@@ -56,7 +56,7 @@ export default function Footer() {
         </div>
 
         <div className="mt-8 pt-8 border-t border-gray-800 text-center text-sm text-gray-500">
-          © 2025 TillTalk. All rights reserved.
+          © 2026 TillTalk. All rights reserved.
         </div>
       </div>
     </footer>
