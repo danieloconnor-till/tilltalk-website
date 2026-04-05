@@ -10,7 +10,7 @@ export default function Footer() {
           <div>
             <span className="text-2xl font-bold text-green-400">TillTalk</span>
             <p className="mt-2 text-sm text-gray-400">
-              WhatsApp sales analytics for Irish restaurants
+              WhatsApp sales analytics for hospitality &amp; retail
             </p>
             <p className="mt-4 text-sm text-gray-500">
               Built in Ireland 🇮🇪

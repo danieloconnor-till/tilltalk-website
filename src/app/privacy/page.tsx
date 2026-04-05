@@ -31,7 +31,7 @@ export default function PrivacyPage() {
                 <h3 className="font-semibold text-gray-900 mb-1">Account Data</h3>
                 <ul className="list-disc list-inside space-y-1 text-gray-600">
                   <li>Full name and email address — to identify your account and contact you</li>
-                  <li>Restaurant name — to personalise your experience</li>
+                  <li>Business name — to personalise your experience</li>
                   <li>Phone/WhatsApp number — to deliver the TillTalk service via WhatsApp</li>
                   <li>POS API credentials (AES-256 encrypted) — to connect to your point-of-sale system</li>
                 </ul>

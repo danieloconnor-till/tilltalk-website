@@ -21,7 +21,7 @@ export default function Home() {
         <div className="max-w-4xl mx-auto">
           <div className="inline-flex items-center gap-2 bg-green-50 text-green-700 text-sm font-medium px-4 py-2 rounded-full mb-6">
             <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-            Now live for Irish restaurants
+            Now live for hospitality &amp; retail businesses
           </div>
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-gray-900 leading-tight">
             Talk to your POS on{' '}

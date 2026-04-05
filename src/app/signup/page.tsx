@@ -164,7 +164,7 @@ function SignupForm() {
             required
             value={form.email}
             onChange={handleChange}
-            placeholder="jane@myrestaurant.ie"
+            placeholder="jane@mybusiness.com"
             className="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
           />
         </div>
@@ -187,10 +187,10 @@ function SignupForm() {
           />
         </div>
 
-        {/* Restaurant Name */}
+        {/* Business Name */}
         <div>
           <label htmlFor="restaurantName" className="block text-sm font-medium text-gray-700 mb-1">
-            Restaurant Name *
+            Business Name *
           </label>
           <input
             id="restaurantName"
@@ -199,7 +199,7 @@ function SignupForm() {
             required
             value={form.restaurantName}
             onChange={handleChange}
-            placeholder="The Rusty Anchor"
+            placeholder="The Rusty Anchor Café"
             className="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
           />
         </div>

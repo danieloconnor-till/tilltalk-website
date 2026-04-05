@@ -237,7 +237,7 @@ export default function DashboardClient({ user, profile }: Props) {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Restaurant Name
+                    Business Name
                   </label>
                   <input
                     type="text"
@@ -284,7 +284,7 @@ export default function DashboardClient({ user, profile }: Props) {
                 {[
                   { label: 'Full Name', value: profile?.full_name || '—' },
                   { label: 'Email', value: user.email || '—' },
-                  { label: 'Restaurant', value: profile?.restaurant_name || '—' },
+                  { label: 'Business', value: profile?.restaurant_name || '—' },
                   { label: 'POS System', value: profile?.pos_type ? profile.pos_type.charAt(0).toUpperCase() + profile.pos_type.slice(1) : '—' },
                   { label: 'WhatsApp', value: profile?.whatsapp_number || '—' },
                   { label: 'Plan', value: planInfo?.name || '—' },

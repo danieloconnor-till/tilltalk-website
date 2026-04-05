@@ -47,7 +47,7 @@ export default function TrustSection() {
                 <div>
                   <p className="font-semibold text-gray-900 text-sm">GDPR compliant</p>
                   <p className="text-xs text-gray-600 mt-1">
-                    Hosted in Ireland, EU data residency. Fully compliant with Irish data protection law.
+                    Hosted in Ireland, EU data residency. Fully GDPR compliant.
                   </p>
                 </div>
               </li>
@@ -73,7 +73,7 @@ export default function TrustSection() {
               <p className="text-sm font-semibold text-gray-700 mb-3">Data you share with us:</p>
               <ul className="space-y-2">
                 {[
-                  'Restaurant name',
+                  'Business name',
                   'Email address',
                   'Phone number',
                   'POS API credentials (AES-256 encrypted)',

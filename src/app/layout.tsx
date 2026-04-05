@@ -10,7 +10,7 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  title: 'TillTalk — WhatsApp Sales Analytics for Restaurants',
+  title: 'TillTalk — WhatsApp Sales Analytics for Your POS',
   description:
     'Connect your POS system and get instant sales insights on WhatsApp. No dashboards needed. Try free for 14 days.',
 }
