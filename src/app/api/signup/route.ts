@@ -5,7 +5,7 @@ import { sendEmail } from '@/lib/sendgrid'
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    const { email, password, fullName, restaurantName, posType, whatsappNumber, plan } = body
+    const { email, password, fullName, restaurantName, posType, whatsappNumber, plan, recaptchaToken } = body
 
     if (!email || !password || !fullName || !restaurantName || !posType || !whatsappNumber) {
       return NextResponse.json({ error: 'All fields are required.' }, { status: 400 })
@@ -13,6 +13,26 @@ export async function POST(request: Request) {
 
     if (password.length < 8) {
       return NextResponse.json({ error: 'Password must be at least 8 characters.' }, { status: 400 })
+    }
+
+    // Verify reCAPTCHA token
+    const recaptchaSecret = process.env.RECAPTCHA_SECRET_KEY
+    if (!recaptchaSecret) {
+      console.error('RECAPTCHA_SECRET_KEY is not set')
+      return NextResponse.json({ error: 'Server misconfiguration.' }, { status: 500 })
+    }
+    if (!recaptchaToken) {
+      return NextResponse.json({ error: 'reCAPTCHA token missing.' }, { status: 400 })
+    }
+    const verifyRes = await fetch('https://www.google.com/recaptcha/api/siteverify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: `secret=${recaptchaSecret}&response=${recaptchaToken}`,
+    })
+    const verifyData = await verifyRes.json()
+    if (!verifyData.success || verifyData.score < 0.5) {
+      console.warn('reCAPTCHA failed:', verifyData)
+      return NextResponse.json({ error: 'reCAPTCHA verification failed. Please try again.' }, { status: 400 })
     }
 
     const admin = createServiceRoleClient()

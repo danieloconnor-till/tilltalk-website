@@ -1,11 +1,12 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { CheckCircle2 } from 'lucide-react'
 import clsx from 'clsx'
 import { Suspense } from 'react'
+import { GoogleReCaptchaProvider, useGoogleReCaptcha } from 'react-google-recaptcha-v3'
 
 const PLAN_OPTIONS = [
   {
@@ -32,6 +33,7 @@ const PLAN_OPTIONS = [
 function SignupForm() {
   const searchParams = useSearchParams()
   const defaultPlan = (searchParams.get('plan') as 'starter' | 'pro' | 'business') || 'pro'
+  const { executeRecaptcha } = useGoogleReCaptcha()
 
   const [form, setForm] = useState({
     fullName: '',
@@ -55,7 +57,7 @@ function SignupForm() {
     }))
   }
 
-  async function handleSubmit(e: React.FormEvent) {
+  const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
 
@@ -72,12 +74,19 @@ function SignupForm() {
       return
     }
 
+    if (!executeRecaptcha) {
+      setError('reCAPTCHA not ready. Please refresh the page and try again.')
+      return
+    }
+
     setLoading(true)
     try {
+      const recaptchaToken = await executeRecaptcha('signup')
+
       const res = await fetch('/api/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, recaptchaToken }),
       })
       const data = await res.json()
       if (!res.ok || data.error) {
@@ -90,7 +99,7 @@ function SignupForm() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [form, executeRecaptcha])
 
   if (success) {
     return (
@@ -328,8 +337,12 @@ function SignupForm() {
 
 export default function SignupPage() {
   return (
-    <Suspense fallback={<div className="py-20 text-center text-gray-500">Loading...</div>}>
-      <SignupForm />
-    </Suspense>
+    <GoogleReCaptchaProvider
+      reCaptchaKey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY ?? ''}
+    >
+      <Suspense fallback={<div className="py-20 text-center text-gray-500">Loading...</div>}>
+        <SignupForm />
+      </Suspense>
+    </GoogleReCaptchaProvider>
   )
 }
