@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createServiceRoleClient } from '@/lib/supabase/admin'
 import { sendEmail } from '@/lib/sendgrid'
+import { welcomeEmail } from '@/lib/email-templates'
 
 export async function POST(request: Request) {
   try {
@@ -110,48 +111,21 @@ export async function POST(request: Request) {
     console.log('[signup] profile inserted for userId:', userId)
 
     // 4. Send welcome email with confirmation button
-    const confirmButtonHtml = confirmationUrl
-      ? `<div style="text-align:center;margin:32px 0;">
-          <a href="${confirmationUrl}"
-             style="display:inline-block;background-color:#16a34a;color:#ffffff;
-                    font-size:18px;font-weight:bold;text-decoration:none;
-                    padding:16px 40px;border-radius:8px;">
-            Confirm my account
-          </a>
-          <p style="margin-top:12px;font-size:12px;color:#6b7280;">
-            Button not working?
-            <a href="${confirmationUrl}" style="color:#16a34a;">Copy this link</a>
-          </p>
-        </div>`
-      : `<p>Please check your inbox for a separate confirmation email from Supabase.</p>`
-
-    const welcomeHtml = `
-      <div style="font-family:sans-serif;max-width:600px;margin:0 auto;">
-        <h1 style="color:#16a34a;">Welcome to TillTalk, ${fullName}!</h1>
-        <p>Your free 14-day trial has started. Confirm your email to activate your account.</p>
-        ${confirmButtonHtml}
-        <h2>What happens next?</h2>
-        <ul>
-          <li>You'll receive WhatsApp setup instructions within 24 hours</li>
-          <li>Your 14-day free trial is now active — no credit card needed</li>
-        </ul>
-        <h2>Your account details</h2>
-        <ul>
-          <li><strong>Business:</strong> ${restaurantName}</li>
-          <li><strong>POS System:</strong> ${posType}</li>
-          <li><strong>Plan:</strong> ${plan || 'pro'}</li>
-        </ul>
-        <p>Questions? <a href="mailto:hello@tilltalk.ie">hello@tilltalk.ie</a></p>
-        <p style="color:#6b7280;font-size:12px;">TillTalk · Built in Ireland 🇮🇪</p>
-      </div>`
+    const welcome = welcomeEmail(
+      fullName,
+      confirmationUrl ?? 'https://tilltalk.ie/login',
+      restaurantName,
+      posType,
+      plan || 'pro',
+    )
 
     console.log('[signup] sending welcome email to:', email)
     try {
       await sendEmail({
         to: email,
-        subject: 'Welcome to TillTalk — confirm your account',
-        text: `Welcome to TillTalk, ${fullName}! Confirm your account: ${confirmationUrl ?? '(see dashboard)'}`,
-        html: welcomeHtml,
+        subject: welcome.subject,
+        text: welcome.text,
+        html: welcome.html,
       })
       console.log('[signup] welcome email sent')
     } catch (emailErr) {
