@@ -28,8 +28,11 @@ function SignupForm() {
     plan: defaultPlan,
     agreeTerms: false,
   })
+  const [confirmPassword, setConfirmPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+
+  const passwordsMatch = form.password.length > 0 && confirmPassword.length > 0 && form.password === confirmPassword
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) {
     const { name, value, type } = e.target
@@ -121,12 +124,38 @@ function SignupForm() {
           <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
             Password *
           </label>
-          <input
-            id="password" name="password" type="password" required minLength={8}
-            value={form.password} onChange={handleChange}
-            placeholder="Minimum 8 characters"
-            className="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-          />
+          <div className="relative">
+            <input
+              id="password" name="password" type="password" required minLength={8}
+              value={form.password} onChange={handleChange}
+              placeholder="Minimum 8 characters"
+              className="w-full border border-gray-300 rounded-lg px-4 py-3 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+            />
+            {passwordsMatch && (
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-green-500 text-base leading-none">✓</span>
+            )}
+          </div>
+        </div>
+
+        {/* Confirm Password */}
+        <div>
+          <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
+            Confirm Password *
+          </label>
+          <div className="relative">
+            <input
+              id="confirmPassword" type="password" required
+              value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)}
+              placeholder="Repeat your password"
+              className="w-full border border-gray-300 rounded-lg px-4 py-3 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+            />
+            {passwordsMatch && (
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-green-500 text-base leading-none">✓</span>
+            )}
+          </div>
+          {confirmPassword.length > 0 && !passwordsMatch && (
+            <p className="mt-1.5 text-xs text-red-600">Passwords do not match</p>
+          )}
         </div>
 
         {/* Business Name */}
@@ -225,7 +254,7 @@ function SignupForm() {
         )}
 
         <button
-          type="submit" disabled={loading}
+          type="submit" disabled={loading || !passwordsMatch}
           className="w-full bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white font-semibold py-4 rounded-xl transition-colors text-sm"
         >
           {loading ? 'Creating your account...' : 'Start your free 2-week trial — no card required'}
