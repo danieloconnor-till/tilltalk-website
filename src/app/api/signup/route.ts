@@ -17,11 +17,14 @@ export async function POST(request: Request) {
 
     const admin = createServiceRoleClient()
 
-    // 1. Create Supabase auth user
-    const { data: authData, error: authError } = await admin.auth.admin.createUser({
+    // 1. Create Supabase auth user and generate confirmation link in one call
+    const { data: authData, error: authError } = await admin.auth.admin.generateLink({
+      type: 'signup',
       email,
       password,
-      email_confirm: false,
+      options: {
+        redirectTo: 'https://tilltalk.ie/dashboard',
+      },
     })
 
     if (authError) {
@@ -36,6 +39,8 @@ export async function POST(request: Request) {
     if (!userId) {
       return NextResponse.json({ error: 'Failed to create user.' }, { status: 500 })
     }
+
+    const confirmationUrl = authData.properties?.action_link ?? null
 
     // 2. Provision client in Railway (TillTalk bot database)
     const railwayUrl = process.env.RAILWAY_ONBOARDING_URL
@@ -98,19 +103,34 @@ export async function POST(request: Request) {
     }
 
     // 4. Send welcome email
+    const confirmButtonHtml = confirmationUrl
+      ? `
+        <div style="text-align: center; margin: 32px 0;">
+          <a href="${confirmationUrl}"
+             style="display: inline-block; background-color: #16a34a; color: #ffffff;
+                    font-size: 18px; font-weight: bold; text-decoration: none;
+                    padding: 16px 40px; border-radius: 8px;">
+            Confirm my account
+          </a>
+          <p style="margin-top: 12px; font-size: 12px; color: #6b7280;">
+            Button not working? <a href="${confirmationUrl}" style="color: #16a34a;">Copy this link</a>
+          </p>
+        </div>`
+      : `<p>Please check your inbox for a separate confirmation email.</p>`
+
     const welcomeHtml = `
       <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
         <h1 style="color: #16a34a;">Welcome to TillTalk, ${fullName}!</h1>
         <p>Your free 14-day trial has started.</p>
+        ${confirmButtonHtml}
         <h2>What happens next?</h2>
         <ul>
-          <li>Check your email to confirm your account</li>
           <li>You'll receive WhatsApp setup instructions within 24 hours</li>
           <li>Your 14-day free trial is now active — no credit card needed</li>
         </ul>
         <h2>Your account details</h2>
         <ul>
-          <li><strong>Restaurant:</strong> ${restaurantName}</li>
+          <li><strong>Business:</strong> ${restaurantName}</li>
           <li><strong>POS System:</strong> ${posType}</li>
           <li><strong>Plan:</strong> ${plan || 'pro'}</li>
         </ul>
