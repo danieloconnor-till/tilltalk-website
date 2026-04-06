@@ -80,15 +80,27 @@ function SignupForm() {
     e.preventDefault()
     setError('')
 
+    console.log('[signup] handleSubmit fired', {
+      passwordsMatch,
+      agreeTerms: form.agreeTerms,
+      posType: form.posType,
+      passwordLength: form.password.length,
+      executeRecaptcha: typeof executeRecaptcha,
+      siteKey: !!process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY,
+    })
+
     if (!form.agreeTerms) {
+      console.log('[signup] blocked: terms not agreed')
       setError('You must agree to the Terms & Conditions to continue.')
       return
     }
     if (form.password.length < 8) {
+      console.log('[signup] blocked: password too short')
       setError('Password must be at least 8 characters.')
       return
     }
     if (!form.posType) {
+      console.log('[signup] blocked: no POS selected')
       setError('Please select your POS system.')
       return
     }
@@ -96,11 +108,15 @@ function SignupForm() {
     const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY
     let recaptchaToken: string | null = null
     if (siteKey) {
+      console.log('[signup] reCAPTCHA required — executeRecaptcha:', typeof executeRecaptcha)
       if (!executeRecaptcha) {
         setError('Security check failed — please refresh the page and try again.')
         return
       }
       recaptchaToken = await executeRecaptcha('signup')
+      console.log('[signup] reCAPTCHA token obtained:', !!recaptchaToken)
+    } else {
+      console.log('[signup] reCAPTCHA site key not set — skipping')
     }
 
     setLoading(true)
@@ -255,7 +271,6 @@ function SignupForm() {
               className="flex-1 min-w-0 border border-gray-300 rounded-r-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
             />
           </div>
-          <p className="text-xs text-gray-400 mt-1">Enter your number without the leading zero</p>
         </div>
 
         {/* Plan */}
