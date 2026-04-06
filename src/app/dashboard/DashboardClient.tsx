@@ -355,11 +355,14 @@ export default function DashboardClient({ user, profile }: Props) {
               {[
                 'Email address',
                 'Full name',
-                'Restaurant name',
+                'Business name',
                 'POS system type',
                 'WhatsApp number',
                 'Plan and subscription status',
+                'Trial start and end dates',
                 'Account creation date',
+                'POS API credentials (encrypted at rest)',
+                'Aggregated sales summaries used for your reports (not raw transaction data, not customer personal data)',
               ].map((item) => (
                 <div key={item} className="flex items-center gap-2">
                   <CheckCircle2 className="text-green-400 shrink-0" size={14} />

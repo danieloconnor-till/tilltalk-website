@@ -4,6 +4,7 @@ import { useState, Suspense } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import clsx from 'clsx'
+import { GoogleReCaptchaProvider, useGoogleReCaptcha } from 'react-google-recaptcha-v3'
 
 const PLAN_OPTIONS = [
   { key: 'starter', name: 'Starter', price: '€29/mo', description: '1 location, 2 numbers' },
@@ -15,6 +16,7 @@ function SignupForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const defaultPlan = (searchParams.get('plan') as 'starter' | 'pro' | 'business') || 'pro'
+  const { executeRecaptcha } = useGoogleReCaptcha()
 
   const [form, setForm] = useState({
     fullName: '',
@@ -54,14 +56,18 @@ function SignupForm() {
       return
     }
 
-    // TODO: add reCAPTCHA v3 token here before submitting
+    if (!executeRecaptcha) {
+      setError('reCAPTCHA not ready. Please wait a moment and try again.')
+      return
+    }
+    const recaptchaToken = await executeRecaptcha('signup')
 
     setLoading(true)
     try {
       const res = await fetch('/api/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, recaptchaToken }),
       })
       const data = await res.json()
       if (!res.ok || data.error) {
@@ -236,8 +242,10 @@ function SignupForm() {
 
 export default function SignupPage() {
   return (
-    <Suspense fallback={<div className="py-20 text-center text-gray-500">Loading...</div>}>
-      <SignupForm />
-    </Suspense>
+    <GoogleReCaptchaProvider reCaptchaKey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY!}>
+      <Suspense fallback={<div className="py-20 text-center text-gray-500">Loading...</div>}>
+        <SignupForm />
+      </Suspense>
+    </GoogleReCaptchaProvider>
   )
 }
