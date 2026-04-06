@@ -2,6 +2,10 @@
 
 # TillTalk Website — Project Reference
 
+## Last Updated
+
+**2026-04-06** — Update this file at the end of every Claude Code session with what was built, changed, or decided.
+
 ## What This Is
 
 The marketing and customer-facing web app for TillTalk: a service that lets hospitality and retail businesses query their POS system via WhatsApp. This repo handles the landing page, signup flow, user dashboard, and admin panel. The bot itself lives in a separate repo (`C:\Users\User\Documents\tilltalk`), deployed on Railway.
