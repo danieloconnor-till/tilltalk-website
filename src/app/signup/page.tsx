@@ -6,6 +6,19 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import clsx from 'clsx'
 import { GoogleReCaptchaProvider, useGoogleReCaptcha } from 'react-google-recaptcha-v3'
 
+const COUNTRY_CODES = [
+  { key: 'IE', dialCode: '+353', label: '🇮🇪 Ireland (+353)' },
+  { key: 'GB', dialCode: '+44',  label: '🇬🇧 UK (+44)' },
+  { key: 'US', dialCode: '+1',   label: '🇺🇸 USA (+1)' },
+  { key: 'AU', dialCode: '+61',  label: '🇦🇺 Australia (+61)' },
+  { key: 'CA', dialCode: '+1',   label: '🇨🇦 Canada (+1)' },
+  { key: 'DE', dialCode: '+49',  label: '🇩🇪 Germany (+49)' },
+  { key: 'FR', dialCode: '+33',  label: '🇫🇷 France (+33)' },
+  { key: 'ES', dialCode: '+34',  label: '🇪🇸 Spain (+34)' },
+  { key: 'IT', dialCode: '+39',  label: '🇮🇹 Italy (+39)' },
+  { key: 'NL', dialCode: '+31',  label: '🇳🇱 Netherlands (+31)' },
+]
+
 const PLAN_OPTIONS = [
   { key: 'starter', name: 'Starter', price: '€29/mo', description: '1 location, 2 numbers' },
   { key: 'pro',     name: 'Pro',     price: '€49/mo', description: '3 locations, 4 numbers',         popular: true },
@@ -30,6 +43,8 @@ function SignupForm() {
   })
   const [confirmPassword, setConfirmPassword] = useState('')
   const [passwordTouched, setPasswordTouched] = useState(false)
+  const [selectedCountry, setSelectedCountry] = useState('IE')
+  const [localNumber, setLocalNumber] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -41,6 +56,24 @@ function SignupForm() {
       ...prev,
       [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value,
     }))
+  }
+
+  function buildWhatsappNumber(countryKey: string, local: string) {
+    const dialCode = COUNTRY_CODES.find(c => c.key === countryKey)?.dialCode ?? '+353'
+    const digits = local.replace(/\s/g, '').replace(/^0+/, '')
+    return dialCode + digits
+  }
+
+  function handleCountryChange(e: React.ChangeEvent<HTMLSelectElement>) {
+    const newKey = e.target.value
+    setSelectedCountry(newKey)
+    setForm(prev => ({ ...prev, whatsappNumber: buildWhatsappNumber(newKey, localNumber) }))
+  }
+
+  function handleLocalNumberChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const val = e.target.value
+    setLocalNumber(val)
+    setForm(prev => ({ ...prev, whatsappNumber: buildWhatsappNumber(selectedCountry, val) }))
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -201,16 +234,28 @@ function SignupForm() {
 
         {/* WhatsApp Number */}
         <div>
-          <label htmlFor="whatsappNumber" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="localNumber" className="block text-sm font-medium text-gray-700 mb-1">
             WhatsApp Number *
           </label>
-          <input
-            id="whatsappNumber" name="whatsappNumber" type="tel" required
-            value={form.whatsappNumber} onChange={handleChange}
-            placeholder="+353 87 123 4567"
-            className="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-          />
-          <p className="text-xs text-gray-400 mt-1">Include country code, e.g. +353 for Ireland</p>
+          <div className="flex">
+            <select
+              value={selectedCountry}
+              onChange={handleCountryChange}
+              className="border border-gray-300 rounded-l-lg px-3 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent border-r-0 shrink-0"
+            >
+              {COUNTRY_CODES.map(({ key, label }) => (
+                <option key={key} value={key}>{label}</option>
+              ))}
+            </select>
+            <input
+              id="localNumber" type="tel" required
+              value={localNumber}
+              onChange={handleLocalNumberChange}
+              placeholder="87 123 4567"
+              className="flex-1 min-w-0 border border-gray-300 rounded-r-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+            />
+          </div>
+          <p className="text-xs text-gray-400 mt-1">Enter your number without the leading zero</p>
         </div>
 
         {/* Plan */}
