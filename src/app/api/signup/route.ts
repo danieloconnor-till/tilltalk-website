@@ -37,7 +37,49 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Failed to create user.' }, { status: 500 })
     }
 
-    // 2. Insert profile record
+    // 2. Provision client in Railway (TillTalk bot database)
+    const railwayUrl = process.env.RAILWAY_ONBOARDING_URL
+    const onboardingKey = process.env.ONBOARDING_API_KEY
+    if (railwayUrl && onboardingKey) {
+      try {
+        const railwayRes = await fetch(`${railwayUrl}/api/onboard`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Onboarding-Key': onboardingKey,
+          },
+          body: JSON.stringify({
+            full_name: fullName,
+            email,
+            restaurant_name: restaurantName,
+            pos_type: posType,
+            whatsapp_number: whatsappNumber,
+            plan: plan || 'pro',
+            supabase_user_id: userId,
+          }),
+        })
+        if (!railwayRes.ok) {
+          const railwayBody = await railwayRes.json().catch(() => ({}))
+          // 409 = duplicate trial — surface this to the user
+          if (railwayRes.status === 409) {
+            await admin.auth.admin.deleteUser(userId)
+            return NextResponse.json(
+              { error: railwayBody.message || 'This POS account has already had a free trial.' },
+              { status: 409 },
+            )
+          }
+          // Other errors: log and continue — account is still usable, admin can fix
+          console.error('Railway onboard non-fatal error:', railwayRes.status, railwayBody)
+        }
+      } catch (railwayErr) {
+        // Network error — log but don't block signup
+        console.error('Railway onboard request failed (non-fatal):', railwayErr)
+      }
+    } else {
+      console.warn('RAILWAY_ONBOARDING_URL or ONBOARDING_API_KEY not set — skipping Railway provisioning')
+    }
+
+    // 3. Insert profile record
     const { error: profileError } = await admin.from('profiles').insert({
       id: userId,
       email,
@@ -55,7 +97,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Failed to create profile. ' + profileError.message }, { status: 500 })
     }
 
-    // 3. Send welcome email
+    // 4. Send welcome email
     const welcomeHtml = `
       <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
         <h1 style="color: #16a34a;">Welcome to TillTalk, ${fullName}!</h1>
@@ -84,7 +126,7 @@ export async function POST(request: Request) {
       html: welcomeHtml,
     })
 
-    // 4. Send notification to admin
+    // 5. Send notification to admin
     const notificationEmail = process.env.NOTIFICATION_EMAIL || 'daniel@tilltalk.ie'
     await sendEmail({
       to: notificationEmail,
