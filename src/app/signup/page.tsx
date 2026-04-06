@@ -29,6 +29,7 @@ function SignupForm() {
     agreeTerms: false,
   })
   const [confirmPassword, setConfirmPassword] = useState('')
+  const [passwordTouched, setPasswordTouched] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -59,11 +60,15 @@ function SignupForm() {
       return
     }
 
-    if (!executeRecaptcha) {
-      setError('reCAPTCHA not ready. Please wait a moment and try again.')
-      return
+    const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY
+    let recaptchaToken: string | null = null
+    if (siteKey) {
+      if (!executeRecaptcha) {
+        setError('Security check failed — please refresh the page and try again.')
+        return
+      }
+      recaptchaToken = await executeRecaptcha('signup')
     }
-    const recaptchaToken = await executeRecaptcha('signup')
 
     setLoading(true)
     try {
@@ -128,6 +133,7 @@ function SignupForm() {
             <input
               id="password" name="password" type="password" required minLength={8}
               value={form.password} onChange={handleChange}
+              onBlur={() => setPasswordTouched(true)}
               placeholder="Minimum 8 characters"
               className="w-full border border-gray-300 rounded-lg px-4 py-3 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
             />
@@ -135,6 +141,11 @@ function SignupForm() {
               <span className="absolute right-3 top-1/2 -translate-y-1/2 text-green-500 text-base leading-none">✓</span>
             )}
           </div>
+          {passwordTouched && form.password.length > 0 && form.password.length < 8 ? (
+            <p className="mt-1.5 text-xs text-red-600">Password must be at least 8 characters</p>
+          ) : (
+            <p className="mt-1.5 text-xs text-gray-400">Minimum 8 characters</p>
+          )}
         </div>
 
         {/* Confirm Password */}
