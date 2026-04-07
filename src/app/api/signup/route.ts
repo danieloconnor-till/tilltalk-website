@@ -6,7 +6,7 @@ import { welcomeEmail } from '@/lib/email-templates'
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    const { email, password, fullName, restaurantName, posType, whatsappNumber, plan, turnstileToken } = body
+    const { email, password, fullName, restaurantName, posType, whatsappNumber, plan, turnstileToken, utmSource } = body
 
     console.log('[signup] request received:', { email, fullName, restaurantName, posType, whatsappNumber, plan })
 
@@ -117,6 +117,7 @@ export async function POST(request: Request) {
       pos_type: posType,
       whatsapp_number: whatsappNumber,
       plan: plan || 'pro',
+      ...(utmSource ? { utm_source: utmSource } : {}),
     })
 
     if (profileError) {

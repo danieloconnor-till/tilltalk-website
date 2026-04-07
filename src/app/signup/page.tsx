@@ -40,6 +40,7 @@ function SignupForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const defaultPlan = (searchParams.get('plan') as 'starter' | 'pro' | 'business') || 'pro'
+  const utmSource = searchParams.get('utm_source') || ''
   const [form, setForm] = useState({
     fullName: '',
     email: '',
@@ -138,7 +139,7 @@ function SignupForm() {
       const res = await fetch('/api/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...form, turnstileToken }),
+        body: JSON.stringify({ ...form, turnstileToken, utmSource }),
       })
       const data = await res.json()
       if (!res.ok || data.error) {

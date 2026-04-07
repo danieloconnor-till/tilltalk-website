@@ -338,3 +338,31 @@ npx vercel --prod
   - Quick-question chips, typing indicator, escape-to-close, keyboard-friendly
   - `@anthropic-ai/sdk ^0.82.0` added to `package.json`
   - **Note: `ANTHROPIC_API_KEY` must be added to Vercel** — copy from Railway env vars: `npx vercel env add ANTHROPIC_API_KEY`
+
+### Session 5 (2026-04-07)
+- **Founder admin dashboard** (`/admin`) — full rewrite of `src/app/admin/page.tsx` + `AdminClient.tsx`:
+  - **Hero row**: MRR and ARR as large green/dark cards
+  - **Customer Metrics**: 8 stat cards (total signups, this month, active trials, expiring soon, paid subscribers, conversion rate, churn, ghost signups) + plan breakdown bar + subscriber counts
+  - **Trial Health**: table of trials expiring in 7 days with POS-connected flag, color-coded days remaining, one-click Extend Trial per row
+  - **Revenue**: MRR-by-plan horizontal bars, subscriber distribution chart, MRR/ARR summary
+  - **Usage & Engagement**: placeholder section (message tracking not yet enabled — requires `message_log` table in Railway)
+  - **Operations**: live Railway status ping via `/api/admin/railway-stats` (client-side fetch, graceful offline), active clients/numbers/trials from Railway DB
+  - **Marketing**: signups-per-day bar chart (last 30 days), UTM source breakdown horizontal bars
+  - **POS Breakdown**: client count by POS type with percentage distribution
+  - **All Clients**: searchable table with status filter tabs (all/trial/paid/expired/inactive), UTM column, extend/deactivate actions
+  - Section nav in sticky header, auto-refresh every 5 minutes, toast notifications
+- **UTM source tracking**:
+  - `supabase/migrations/003_utm_source.sql` adds `utm_source` column to profiles — **must push: `SUPABASE_ACCESS_TOKEN=<token> npx supabase db push`**
+  - `signup/page.tsx` reads `?utm_source=` query param and passes to `/api/signup`
+  - `/api/signup/route.ts` saves `utm_source` to profiles on insert
+- **Railway admin endpoint** — new `admin_stats.py` Blueprint + registered in `main.py`:
+  - `GET /api/admin/overview` — returns active/total clients, by-plan counts, active numbers, on-trial count
+  - Secured with `X-Onboarding-Key` (same as all other Railway endpoints)
+  - New Next.js proxy: `src/app/api/admin/railway-stats/route.ts` (admin-only, 6 s timeout)
+- **PWA support** added to tilltalk.ie:
+  - `public/manifest.json` — TillTalk name, green theme, standalone display, shortcuts to /dashboard
+  - `public/sw.js` — service worker: network-only for /api/, cache-first for static assets, network-first with offline fallback for pages
+  - `public/icon.svg` — green rounded-square "T" logo
+  - `src/components/PwaInit.tsx` — registers SW on all pages; shows "Add to Home Screen" banner after 30 s on /dashboard only (sessionStorage dismissed flag)
+  - `src/app/layout.tsx` — added `<PwaInit />`, manifest link via `metadata.manifest`, `theme-color` meta, `apple-touch-icon` link
+  - **Note**: PNG icons (192×192 and 512×512) not yet generated — needed for full iOS PWA support. Add `icon-192.png` and `icon-512.png` to `/public/`.
