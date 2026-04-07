@@ -4,7 +4,7 @@
 
 ## Last Updated
 
-**2026-04-06** — Update this file at the end of every Claude Code session with what was built, changed, or decided.
+**2026-04-07** — Update this file at the end of every Claude Code session with what was built, changed, or decided.
 
 ## What This Is
 
@@ -49,10 +49,11 @@ All variables are set in Vercel (project settings → Environment Variables) and
 | `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Frontend (unused yet) | Public |
 | `STRIPE_SECRET_KEY` | `src/lib/stripe.ts` | Secret — test key currently |
 | `SENDGRID_API_KEY` | `src/lib/sendgrid.ts` | Secret — trailing `\n` in `.env.local`, trim if issues arise |
-| `RAILWAY_ONBOARDING_URL` | `src/app/api/signup/route.ts` | URL of the Railway bot service |
-| `ONBOARDING_API_KEY` | `src/app/api/signup/route.ts` | Shared secret for Railway `/api/onboard` |
+| `RAILWAY_ONBOARDING_URL` | `src/app/api/signup/route.ts` + all Railway proxy routes | URL of the Railway bot service |
+| `ONBOARDING_API_KEY` | All Railway proxy routes | Shared secret for Railway API endpoints |
 | `NOTIFICATION_EMAIL` | `src/app/api/signup/route.ts` | Defaults to `daniel@tilltalk.ie` |
 | `NEXT_PUBLIC_SITE_URL` | — | Set to `https://tilltalk.ie` |
+| `ANTHROPIC_API_KEY` | `src/app/api/support-chat/route.ts` | Claude API key for the website support chatbot. **Must be added to Vercel.** Copy value from Railway env vars. |
 | `VERCEL_OIDC_TOKEN` | Auto-managed by Vercel | Do not touch |
 
 **To update env vars:** `npx vercel env add <NAME>` or via Vercel dashboard. After changing, run `npx vercel env pull .env.local --yes` to sync locally.
@@ -173,6 +174,16 @@ Public routes (no protection): `/`, `/login`, `/signup`, `/signup/success`, `/fo
 | POST | `/api/signup` | `src/app/api/signup/route.ts` | None | Creates auth user, Railway record, profile, sends emails |
 | POST | `/api/admin/extend-trial` | `src/app/api/admin/extend-trial/route.ts` | Admin only | Extends `trial_end` by N days, logs to `trial_extensions` |
 | POST | `/api/admin/toggle-active` | `src/app/api/admin/toggle-active/route.ts` | Admin only | Flips `profiles.active` boolean |
+| GET/POST | `/api/manage/numbers` | `src/app/api/manage/numbers/route.ts` | Supabase session | Proxy to Railway `/api/manage/numbers` |
+| PATCH/DELETE | `/api/manage/numbers/[id]` | `src/app/api/manage/numbers/[id]/route.ts` | Supabase session | Proxy to Railway `/api/manage/numbers/:id` |
+| GET/POST | `/api/manage/locations` | `src/app/api/manage/locations/route.ts` | Supabase session | Proxy to Railway `/api/manage/locations` |
+| PATCH/DELETE | `/api/manage/locations/[id]` | `src/app/api/manage/locations/[id]/route.ts` | Supabase session | Proxy to Railway `/api/manage/locations/:id` |
+| GET | `/api/dashboard/sales` | `src/app/api/dashboard/sales/route.ts` | Supabase session | Proxy to Railway `/api/dashboard/summary` |
+| GET | `/api/dashboard/events` | `src/app/api/dashboard/events/route.ts` | Supabase session | Proxy to Railway `/api/nearby-events` |
+| GET | `/api/dashboard/notes` | `src/app/api/dashboard/notes/route.ts` | Supabase session | Proxy to Railway `/api/dashboard/notes` |
+| POST | `/api/chat` | `src/app/api/chat/route.ts` | Supabase session | Proxy to Railway `/api/chat` — dashboard AI chat |
+| POST | `/api/support-chat` | `src/app/api/support-chat/route.ts` | Optional Supabase | Calls Anthropic directly; visitor mode = sales, client mode = support |
+| POST | `/api/profile/credentials` | `src/app/api/profile/credentials/route.ts` | Supabase session | Updates POS merchant ID and API credentials in Supabase profiles |
 
 ### Components
 
@@ -181,6 +192,7 @@ Public routes (no protection): `/`, `/login`, `/signup`, `/signup/success`, `/fo
 | `src/components/Nav.tsx` | Top navigation bar with logo, links, sign-in/start trial CTAs |
 | `src/components/Footer.tsx` | Footer with links and copyright 2026 |
 | `src/components/CookieBanner.tsx` | GDPR cookie consent banner (localStorage persistence) |
+| `src/components/SupportChatWidget.tsx` | Floating chat widget on every page — visitor mode (sales) or client mode (support); powered by `/api/support-chat`; history in sessionStorage |
 | `src/components/HowItWorks.tsx` | 3-step explainer section |
 | `src/components/DemoSection.tsx` | Simulated WhatsApp conversation demo |
 | `src/components/FeatureGrid.tsx` | Feature cards grid |
@@ -295,3 +307,34 @@ npx vercel --prod
   - `src/app/forgot-password/page.tsx` — new: `resetPasswordForEmail` with `redirectTo: https://tilltalk.ie/reset-password`, inline success state
   - `src/app/reset-password/page.tsx` — new: exchanges PKCE `code` param on mount, collects new password, `updateUser({ password })`, redirects to `/dashboard`
 - Committed as `f3d39d2`, pushed to GitHub and Vercel
+
+### Session 4 (2026-04-07)
+- **Weather alerts on calendar** (`src/app/dashboard/CalendarSection.tsx` — full rewrite):
+  - Pre-fetches 14-day forecast at mount via Open-Meteo free API (no key needed)
+  - `classifyAlerts()` detects: heavy rain (>10mm), storm winds (>50km/h), extreme heat (>28°C), snow/ice (>0.5cm or WMO 71-77/85-86), dense fog (WMO 45/48)
+  - Orange dots on calendar days that have alerts
+  - Warning banners per alert in the detail panel with icon, label, and business impact text
+  - Staffing suggestion is now alert-aware (snow > wind > rain > event compound logic)
+  - 4-column weather grid in detail view (added snowfall card)
+  - Legend updated: red=holiday, blue=event, green=reminder, orange=weather alert
+- **Self-service account management** — new "Manage" section on dashboard:
+  - `src/app/dashboard/ManageSection.tsx` (new ~500-line component): Numbers tab, Locations tab, Permissions tab
+  - Numbers tab: list/toggle/role-edit/remove WhatsApp numbers, plan-limit bar, add new number
+  - Locations tab: list/edit (inline with masked API key)/remove locations, guided credential help per POS type, add new location
+  - Permissions tab: role legend (Owner/Manager/Staff) + quick role edit table
+  - Plan limits enforced both server-side (Railway) and shown in UI: Starter 2/1, Pro 4/3, Business unlimited
+  - API proxy routes: `src/app/api/manage/numbers/route.ts`, `src/app/api/manage/numbers/[id]/route.ts`, `src/app/api/manage/locations/route.ts`, `src/app/api/manage/locations/[id]/route.ts`
+  - Railway backend: new `manage.py` Blueprint with 8 endpoints + 7 new database functions in `database.py`
+- **POS Address field moved to Account Details**:
+  - `addressStreet`, `addressCity`, `addressCountry` moved from `credForm` to `editForm` in `DashboardClient.tsx`
+  - `handleSaveProfile` saves `pos_address_street/city/country` to Supabase
+  - Account Details edit form shows address fields; POS Credentials no longer shows address
+- **Website support chatbot** (`src/components/SupportChatWidget.tsx` — new):
+  - Floating green chat button (bottom-right) on every page via `src/app/layout.tsx`
+  - Visitor mode (sales assistant) vs client mode (support) based on Supabase auth session
+  - Server-side API route `src/app/api/support-chat/route.ts` calls Anthropic `claude-haiku-4-5-20251001` directly
+  - Chat history persisted in sessionStorage (last 40 messages, 20 sent to API)
+  - Full-screen on mobile, 400×560px panel on desktop
+  - Quick-question chips, typing indicator, escape-to-close, keyboard-friendly
+  - `@anthropic-ai/sdk ^0.82.0` added to `package.json`
+  - **Note: `ANTHROPIC_API_KEY` must be added to Vercel** — copy from Railway env vars: `npx vercel env add ANTHROPIC_API_KEY`

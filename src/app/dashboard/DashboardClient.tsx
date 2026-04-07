@@ -8,11 +8,12 @@ import {
   User, CreditCard, Shield, LogOut, CheckCircle2, AlertCircle,
   Eye, EyeOff, Lock, HelpCircle, X, Bell, Calendar,
   LayoutDashboard, TrendingUp, TrendingDown, RefreshCw,
-  MessageCircle,
+  MessageCircle, Settings,
 } from 'lucide-react'
 import type { User as SupabaseUser } from '@supabase/supabase-js'
 import ChatWidget from './ChatWidget'
 import CalendarSection from './CalendarSection'
+import ManageSection from './ManageSection'
 
 declare global {
   interface Window { Plotly: PlotlyInstance }
@@ -190,6 +191,7 @@ const NAV_ITEMS = [
   { id: 'overview',  label: 'Dashboard', Icon: LayoutDashboard },
   { id: 'calendar',  label: 'Calendar',  Icon: Calendar },
   { id: 'notes',     label: 'Notes',     Icon: Bell },
+  { id: 'manage',    label: 'Manage',    Icon: Settings },
   { id: 'account',   label: 'Account',   Icon: User },
 ] as const
 
@@ -278,6 +280,7 @@ export default function DashboardClient({ user, profile }: Props) {
   const overviewRef  = useRef<HTMLDivElement>(null)
   const calendarRef  = useRef<HTMLDivElement>(null)
   const notesRef     = useRef<HTMLDivElement>(null)
+  const manageRef    = useRef<HTMLDivElement>(null)
   const accountRef   = useRef<HTMLDivElement>(null)
   const chartRef     = useRef<HTMLDivElement>(null)
 
@@ -296,9 +299,12 @@ export default function DashboardClient({ user, profile }: Props) {
   const [saving,   setSaving]   = useState(false)
   const [saveMsg,  setSaveMsg]  = useState('')
   const [editForm, setEditForm] = useState({
-    fullName:       profile?.full_name       || '',
-    restaurantName: profile?.restaurant_name || '',
-    whatsappNumber: profile?.whatsapp_number || '',
+    fullName:       profile?.full_name          || '',
+    restaurantName: profile?.restaurant_name    || '',
+    whatsappNumber: profile?.whatsapp_number    || '',
+    addressStreet:  profile?.pos_address_street  || '',
+    addressCity:    profile?.pos_address_city    || '',
+    addressCountry: profile?.pos_address_country || 'Ireland',
   })
 
   // Credential editing
@@ -309,12 +315,9 @@ export default function DashboardClient({ user, profile }: Props) {
   const [showApiSec,   setShowApiSec]   = useState(false)
   const [showHelpModal, setShowHelpModal] = useState(false)
   const [credForm, setCredForm] = useState({
-    merchantId:    profile?.pos_merchant_id    || '',
-    apiKey:        '',
-    apiSecret:     '',
-    addressStreet: profile?.pos_address_street  || '',
-    addressCity:   profile?.pos_address_city    || '',
-    addressCountry:profile?.pos_address_country || 'Ireland',
+    merchantId: profile?.pos_merchant_id || '',
+    apiKey:     '',
+    apiSecret:  '',
   })
 
   // Mobile nav
@@ -416,7 +419,7 @@ export default function DashboardClient({ user, profile }: Props) {
 
   function navTo(id: SectionId) {
     setActiveSection(id)
-    const ref = { overview: overviewRef, calendar: calendarRef, notes: notesRef, account: accountRef }[id]
+    const ref = { overview: overviewRef, calendar: calendarRef, notes: notesRef, manage: manageRef, account: accountRef }[id]
     ref?.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
 
@@ -427,9 +430,12 @@ export default function DashboardClient({ user, profile }: Props) {
     setSaving(true); setSaveMsg('')
     const supabase = createClient()
     const { error } = await supabase.from('profiles').update({
-      full_name:       editForm.fullName,
-      restaurant_name: editForm.restaurantName,
-      whatsapp_number: editForm.whatsappNumber,
+      full_name:           editForm.fullName,
+      restaurant_name:     editForm.restaurantName,
+      whatsapp_number:     editForm.whatsappNumber,
+      pos_address_street:  editForm.addressStreet,
+      pos_address_city:    editForm.addressCity,
+      pos_address_country: editForm.addressCountry,
     }).eq('id', user.id)
     setSaving(false)
     if (error) { setSaveMsg('Error saving. Please try again.') }
@@ -446,12 +452,9 @@ export default function DashboardClient({ user, profile }: Props) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          merchantId:    credForm.merchantId,
-          apiKey:        credForm.apiKey        || undefined,
-          apiSecret:     credForm.apiSecret     || undefined,
-          addressStreet: credForm.addressStreet,
-          addressCity:   credForm.addressCity,
-          addressCountry:credForm.addressCountry,
+          merchantId: credForm.merchantId,
+          apiKey:     credForm.apiKey    || undefined,
+          apiSecret:  credForm.apiSecret || undefined,
         }),
       })
       const data = await res.json()
@@ -671,7 +674,19 @@ export default function DashboardClient({ user, profile }: Props) {
         </Section>
 
         {/* ═══════════════════════════════════════════════════════════════
-            SECTION 4 — Account
+            SECTION 4 — Manage
+        ════════════════════════════════════════════════════════════════ */}
+        <Section id="manage" sectionRef={manageRef}>
+          <div className="flex items-center justify-between mb-1">
+            <h2 className="text-base font-semibold text-gray-900">Manage Team &amp; Locations</h2>
+          </div>
+          <div className="bg-white rounded-2xl border border-gray-200 p-5">
+            <ManageSection plan={profile?.plan} />
+          </div>
+        </Section>
+
+        {/* ═══════════════════════════════════════════════════════════════
+            SECTION 5 — Account
         ════════════════════════════════════════════════════════════════ */}
         <Section id="account" sectionRef={accountRef}>
 
@@ -743,6 +758,30 @@ export default function DashboardClient({ user, profile }: Props) {
                     />
                   </div>
                 ))}
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide pt-1">Business address</p>
+                <p className="text-xs text-gray-400 -mt-2">Used for nearby events and weather alerts.</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Street address</label>
+                    <input type="text" value={editForm.addressStreet}
+                      onChange={e => setEditForm(p => ({ ...p, addressStreet: e.target.value }))}
+                      placeholder="123 Main Street"
+                      className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
+                    <input type="text" value={editForm.addressCity}
+                      onChange={e => setEditForm(p => ({ ...p, addressCity: e.target.value }))}
+                      placeholder="Dublin"
+                      className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent" />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Country</label>
+                  <input type="text" value={editForm.addressCountry}
+                    onChange={e => setEditForm(p => ({ ...p, addressCountry: e.target.value }))}
+                    className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent" />
+                </div>
                 {saveMsg && <p className={`text-sm ${saveMsg.includes('Error') ? 'text-red-600' : 'text-green-600'}`}>{saveMsg}</p>}
                 <div className="flex gap-3 pt-1">
                   <button type="submit" disabled={saving}
@@ -764,6 +803,7 @@ export default function DashboardClient({ user, profile }: Props) {
                   ['POS System',   profile?.pos_type ? profile.pos_type.charAt(0).toUpperCase() + profile.pos_type.slice(1) : '—'],
                   ['WhatsApp',     profile?.whatsapp_number || '—'],
                   ['Plan',         planInfo?.name          || '—'],
+                  ['Address',      [profile?.pos_address_street, profile?.pos_address_city, profile?.pos_address_country].filter(Boolean).join(', ') || '—'],
                 ] as [string, string][]).map(([label, value]) => (
                   <div key={label} className="flex items-start sm:items-center gap-2">
                     <dt className="text-sm text-gray-500 w-32 shrink-0">{label}</dt>
@@ -800,28 +840,6 @@ export default function DashboardClient({ user, profile }: Props) {
             {credEditing ? (
               <form onSubmit={handleSaveCredentials} className="space-y-3">
                 <p className="text-xs text-gray-500 -mt-2 mb-2">Enter new values to update. Leave a field blank to keep the existing value.</p>
-
-                {/* Address */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Business Address</label>
-                    <input type="text" value={credForm.addressStreet} placeholder="Street address"
-                      onChange={e => setCredForm(p => ({ ...p, addressStreet: e.target.value }))}
-                      className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
-                    <input type="text" value={credForm.addressCity} placeholder="City"
-                      onChange={e => setCredForm(p => ({ ...p, addressCity: e.target.value }))}
-                      className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent" />
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Country</label>
-                  <input type="text" value={credForm.addressCountry}
-                    onChange={e => setCredForm(p => ({ ...p, addressCountry: e.target.value }))}
-                    className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent" />
-                </div>
 
                 {/* POS credentials */}
                 {credLabels.id && (
@@ -881,14 +899,6 @@ export default function DashboardClient({ user, profile }: Props) {
               </form>
             ) : (
               <dl className="space-y-2.5">
-                {profile?.pos_address_street && (
-                  <div className="flex items-start gap-2">
-                    <dt className="text-sm text-gray-500 w-32 shrink-0">Address</dt>
-                    <dd className="text-sm font-medium text-gray-900">
-                      {[profile.pos_address_street, profile.pos_address_city, profile.pos_address_country].filter(Boolean).join(', ')}
-                    </dd>
-                  </div>
-                )}
                 {credLabels.id && profile?.pos_merchant_id && (
                   <div className="flex items-center gap-2">
                     <dt className="text-sm text-gray-500 w-32 shrink-0">{credLabels.id}</dt>
