@@ -1,14 +1,14 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { PLANS } from '@/lib/plans'
 import {
   User, CreditCard, Shield, LogOut, CheckCircle2, AlertCircle,
   Eye, EyeOff, Lock, HelpCircle, X, Bell, Calendar,
   LayoutDashboard, TrendingUp, TrendingDown, RefreshCw,
-  MessageCircle, Settings,
+  MessageCircle, Settings, Zap,
 } from 'lucide-react'
 import type { User as SupabaseUser } from '@supabase/supabase-js'
 import ChatWidget from './ChatWidget'
@@ -274,7 +274,8 @@ function CardHeader({
 // ---------------------------------------------------------------------------
 
 export default function DashboardClient({ user, profile }: Props) {
-  const router = useRouter()
+  const router       = useRouter()
+  const searchParams = useSearchParams()
 
   // Section refs
   const overviewRef  = useRef<HTMLDivElement>(null)
@@ -319,6 +320,11 @@ export default function DashboardClient({ user, profile }: Props) {
     apiKey:     '',
     apiSecret:  '',
   })
+
+  // Billing
+  const [billingInterval, setBillingInterval] = useState<'monthly' | 'annual'>('monthly')
+  const [billingLoading,  setBillingLoading]  = useState<string | null>(null) // plan key or 'portal'
+  const [upgradedToast,   setUpgradedToast]   = useState(false)
 
   // Mobile nav
   const [activeSection, setActiveSection] = useState<SectionId>('overview')
@@ -408,6 +414,47 @@ export default function DashboardClient({ user, profile }: Props) {
   }, [])
 
   useEffect(() => { fetchData() }, [fetchData])
+
+  // Show toast if redirected back from Stripe with ?upgraded=true
+  useEffect(() => {
+    if (searchParams.get('upgraded') === 'true') {
+      setUpgradedToast(true)
+      // Remove query param without re-render loop
+      router.replace('/dashboard', { scroll: false })
+      const t = setTimeout(() => setUpgradedToast(false), 5000)
+      return () => clearTimeout(t)
+    }
+  }, [searchParams, router])
+
+  async function handleCheckout(plan: string) {
+    setBillingLoading(plan)
+    try {
+      const res = await fetch('/api/billing/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan, interval: billingInterval }),
+      })
+      const data = await res.json()
+      if (data.url) window.location.href = data.url
+    } catch {
+      // silently fail — user stays on page
+    } finally {
+      setBillingLoading(null)
+    }
+  }
+
+  async function handlePortal() {
+    setBillingLoading('portal')
+    try {
+      const res  = await fetch('/api/billing/portal', { method: 'POST' })
+      const data = await res.json()
+      if (data.url) window.location.href = data.url
+    } catch {
+      // silently fail
+    } finally {
+      setBillingLoading(null)
+    }
+  }
 
   async function handleRefresh() {
     setRefreshing(true)
@@ -717,19 +764,73 @@ export default function DashboardClient({ user, profile }: Props) {
                     </p>
                   </div>
                 )}
-                <div className="bg-blue-50 border border-blue-100 rounded-lg p-3.5">
-                  <p className="text-sm text-blue-800 font-medium mb-1">Want to continue after your trial?</p>
-                  <p className="text-xs text-blue-600">
-                    Email <a href="mailto:hello@tilltalk.ie" className="underline">hello@tilltalk.ie</a> to upgrade your plan.
-                  </p>
+
+                {/* Interval toggle */}
+                <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1 w-fit mb-4">
+                  {(['monthly', 'annual'] as const).map(iv => (
+                    <button key={iv} onClick={() => setBillingInterval(iv)}
+                      className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${billingInterval === iv ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
+                      {iv === 'monthly' ? 'Monthly' : 'Annual (2 months free)'}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Plan cards */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  {(['starter', 'pro', 'business'] as const).map(p => {
+                    const pi    = PLANS[p]
+                    const price = billingInterval === 'monthly' ? pi.monthlyPrice : pi.annualPrice
+                    const isLoading = billingLoading === p
+                    return (
+                      <div key={p} className="border border-gray-200 rounded-xl p-4 flex flex-col gap-3">
+                        <div>
+                          <p className="text-sm font-semibold text-gray-900">{pi.name}</p>
+                          <p className="text-xl font-bold text-green-700 mt-0.5">
+                            €{price}
+                            <span className="text-xs font-normal text-gray-500">
+                              /{billingInterval === 'monthly' ? 'mo' : 'yr'}
+                            </span>
+                          </p>
+                        </div>
+                        <ul className="space-y-1 flex-1">
+                          {pi.features.map(f => (
+                            <li key={f} className="flex items-start gap-1.5 text-xs text-gray-600">
+                              <CheckCircle2 size={11} className="text-green-500 shrink-0 mt-0.5" />
+                              {f}
+                            </li>
+                          ))}
+                        </ul>
+                        <button
+                          onClick={() => handleCheckout(p)}
+                          disabled={!!billingLoading}
+                          className="w-full flex items-center justify-center gap-1.5 bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white text-xs font-semibold px-3 py-2.5 rounded-lg transition-colors min-h-[40px]"
+                        >
+                          {isLoading ? <RefreshCw size={13} className="animate-spin" /> : <Zap size={13} />}
+                          {isLoading ? 'Redirecting…' : 'Subscribe'}
+                        </button>
+                      </div>
+                    )
+                  })}
                 </div>
               </>
             ) : (
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="text-green-500 shrink-0" size={17} />
-                <p className="text-sm font-medium text-gray-900">
-                  Active — {planInfo?.name} Plan (€{planInfo?.monthlyPrice}/month)
-                </p>
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="text-green-500 shrink-0" size={17} />
+                  <p className="text-sm font-medium text-gray-900">
+                    Active — {planInfo?.name} Plan
+                  </p>
+                </div>
+                <button
+                  onClick={handlePortal}
+                  disabled={billingLoading === 'portal'}
+                  className="flex items-center gap-1.5 text-sm text-green-600 hover:text-green-700 border border-green-200 hover:border-green-300 px-4 py-2 rounded-lg transition-colors min-h-[44px] disabled:opacity-50"
+                >
+                  {billingLoading === 'portal'
+                    ? <RefreshCw size={13} className="animate-spin" />
+                    : <CreditCard size={13} />}
+                  Manage billing
+                </button>
               </div>
             )}
           </Card>
@@ -936,29 +1037,18 @@ export default function DashboardClient({ user, profile }: Props) {
           </Card>
 
           {/* Billing */}
-          <Card>
-            <CardHeader icon={CreditCard} title="Billing" />
-            <div className="space-y-3">
-              <div className="flex items-center justify-between py-2.5 border-b border-gray-100">
+          {!isOnTrial && (
+            <Card>
+              <CardHeader icon={CreditCard} title="Billing" />
+              <div className="flex items-center justify-between py-1">
                 <span className="text-sm text-gray-600">Current plan</span>
                 <span className="text-sm font-medium text-gray-900">{planInfo?.name} — €{planInfo?.monthlyPrice}/mo</span>
               </div>
-              <div className="bg-gray-50 rounded-lg p-3.5">
-                <p className="text-sm text-gray-600">
-                  To upgrade or change plan, contact{' '}
-                  <a href="mailto:hello@tilltalk.ie" className="text-green-600 hover:underline">hello@tilltalk.ie</a>.
-                </p>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {(['starter', 'pro', 'business'] as const).filter(p => p !== currentPlan).map(p => (
-                  <a key={p} href="mailto:hello@tilltalk.ie?subject=Plan change request"
-                    className="text-sm border border-gray-200 hover:border-gray-300 px-4 py-2 rounded-lg text-gray-700 transition-colors min-h-[44px] flex items-center">
-                    Switch to {PLANS[p].name}
-                  </a>
-                ))}
-              </div>
-            </div>
-          </Card>
+              <p className="text-xs text-gray-400 mt-2">
+                Manage invoices, update payment method, or cancel via the billing portal above.
+              </p>
+            </Card>
+          )}
 
           {/* Data & Privacy */}
           <Card>
@@ -999,6 +1089,14 @@ export default function DashboardClient({ user, profile }: Props) {
           posType={profile?.pos_type || null}
           onClose={() => setShowHelpModal(false)}
         />
+      )}
+
+      {/* ── Upgraded toast ────────────────────────────────────────── */}
+      {upgradedToast && (
+        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 bg-green-600 text-white text-sm font-medium px-5 py-3 rounded-full shadow-lg animate-fade-in">
+          <CheckCircle2 size={16} />
+          You&apos;re now on the {planInfo?.name} plan!
+        </div>
       )}
 
       {/* ── Floating chat widget ───────────────────────────────────── */}
