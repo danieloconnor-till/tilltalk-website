@@ -1,0 +1,75 @@
+-- Seed the owner account as a pre-confirmed Supabase auth user.
+-- Run once. Uses DO block so it's safe to re-run (no-ops if the user already exists).
+
+do $$
+declare
+  v_user_id uuid;
+begin
+  -- Check if the owner auth user already exists
+  select id into v_user_id
+  from auth.users
+  where email = 'daniel@tilltalk.ie'
+  limit 1;
+
+  if v_user_id is null then
+    -- Create a confirmed auth user with a strong placeholder password.
+    -- The owner should use "Forgot password" to set their real password.
+    insert into auth.users (
+      id,
+      email,
+      encrypted_password,
+      email_confirmed_at,
+      created_at,
+      updated_at,
+      raw_app_meta_data,
+      raw_user_meta_data,
+      is_super_admin,
+      role
+    ) values (
+      gen_random_uuid(),
+      'daniel@tilltalk.ie',
+      crypt('ChangeMe123!', gen_salt('bf')),  -- placeholder; reset via forgot-password
+      now(),                                  -- pre-confirmed, no email verification needed
+      now(),
+      now(),
+      '{"provider":"email","providers":["email"]}',
+      '{}',
+      false,
+      'authenticated'
+    )
+    returning id into v_user_id;
+
+    raise notice 'Owner auth user created: %', v_user_id;
+  else
+    raise notice 'Owner auth user already exists: %', v_user_id;
+  end if;
+
+  -- Upsert the owner profile (no trial, plan = owner)
+  insert into public.profiles (
+    id,
+    email,
+    full_name,
+    restaurant_name,
+    plan,
+    trial_start,
+    trial_end,
+    active
+  ) values (
+    v_user_id,
+    'daniel@tilltalk.ie',
+    'Daniel O''Connor',
+    'TillTalk',
+    'owner',
+    null,
+    null,
+    true
+  )
+  on conflict (id) do update
+    set plan       = 'owner',
+        trial_start = null,
+        trial_end   = null,
+        active      = true;
+
+  raise notice 'Owner profile upserted for user_id: %', v_user_id;
+end;
+$$;

@@ -39,6 +39,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Password must be at least 8 characters.' }, { status: 400 })
     }
 
+    const OWNER_EMAIL = 'daniel@tilltalk.ie'
+    const isOwner = email.toLowerCase() === OWNER_EMAIL
+
     const admin = createServiceRoleClient()
 
     // 1. Create Supabase auth user and generate confirmation link
@@ -69,10 +72,10 @@ export async function POST(request: Request) {
     const confirmationUrl = authData.properties?.action_link ?? null
     console.log('[signup] user created — userId:', userId, 'confirmationUrl present:', !!confirmationUrl)
 
-    // 2. Provision client in Railway (TillTalk bot database)
+    // 2. Provision client in Railway (skip for owner account)
     const railwayUrl = process.env.RAILWAY_ONBOARDING_URL
     const onboardingKey = process.env.ONBOARDING_API_KEY
-    if (railwayUrl && onboardingKey) {
+    if (!isOwner && railwayUrl && onboardingKey) {
       console.log('[signup] calling Railway onboard for userId:', userId)
       try {
         const railwayRes = await fetch(`${railwayUrl}/api/onboard`, {
@@ -116,7 +119,9 @@ export async function POST(request: Request) {
       restaurant_name: restaurantName,
       pos_type: posType,
       whatsapp_number: whatsappNumber,
-      plan: plan || 'pro',
+      plan: isOwner ? 'owner' : (plan || 'pro'),
+      // Owner account: no trial expiry
+      ...(isOwner ? { trial_start: null, trial_end: null } : {}),
       ...(utmSource ? { utm_source: utmSource } : {}),
     })
 

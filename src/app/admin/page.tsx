@@ -1,12 +1,19 @@
 import { createClient } from '@/lib/supabase/server'
 import { createServiceRoleClient } from '@/lib/supabase/admin'
+import { redirect } from 'next/navigation'
 import AdminClient from './AdminClient'
+
+const ADMIN_EMAIL = 'daniel@tilltalk.ie'
 
 const PLAN_PRICES: Record<string, number> = { starter: 29, pro: 49, business: 99 }
 
 export default async function AdminPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user || user.email !== ADMIN_EMAIL) {
+    redirect('/dashboard')
+  }
 
   const admin = createServiceRoleClient()
   const { data: rawProfiles } = await admin

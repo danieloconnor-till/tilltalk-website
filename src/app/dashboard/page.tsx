@@ -1,6 +1,9 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import Link from 'next/link'
 import DashboardClient from './DashboardClient'
+
+const ADMIN_EMAIL = 'daniel@tilltalk.ie'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -8,6 +11,11 @@ export default async function DashboardPage() {
 
   if (!user) {
     redirect('/login')
+  }
+
+  // Owner account — redirect straight to admin dashboard
+  if (user.email === ADMIN_EMAIL) {
+    redirect('/admin')
   }
 
   const { data: raw } = await supabase
