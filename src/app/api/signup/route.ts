@@ -6,9 +6,27 @@ import { welcomeEmail } from '@/lib/email-templates'
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    const { email, password, fullName, restaurantName, posType, whatsappNumber, plan } = body
+    const { email, password, fullName, restaurantName, posType, whatsappNumber, plan, turnstileToken } = body
 
     console.log('[signup] request received:', { email, fullName, restaurantName, posType, whatsappNumber, plan })
+
+    // Verify Turnstile token
+    if (!turnstileToken) {
+      return NextResponse.json({ error: 'Security check failed. Please refresh and try again.' }, { status: 400 })
+    }
+    const turnstileRes = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        secret: process.env.TURNSTILE_SECRET_KEY ?? '',
+        response: turnstileToken,
+      }),
+    })
+    const turnstileData = await turnstileRes.json() as { success: boolean }
+    if (!turnstileData.success) {
+      console.warn('[signup] Turnstile verification failed for:', email)
+      return NextResponse.json({ error: 'Security check failed. Please refresh and try again.' }, { status: 400 })
+    }
 
     // Field validation
     if (!email || !password || !fullName || !restaurantName || !posType || !whatsappNumber) {

@@ -1,9 +1,21 @@
 'use client'
 
-import { useState, Suspense } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import clsx from 'clsx'
+
+declare global {
+  interface Window {
+    turnstile: {
+      render: (container: string, options: {
+        sitekey: string
+        callback: (token: string) => void
+        theme?: string
+      }) => string
+    }
+  }
+}
 
 const COUNTRY_CODES = [
   { key: 'IE', dialCode: '+353', label: '🇮🇪 Ireland (+353)' },
@@ -44,6 +56,25 @@ function SignupForm() {
   const [localNumber, setLocalNumber] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [turnstileToken, setTurnstileToken] = useState('')
+
+  useEffect(() => {
+    const script = document.createElement('script')
+    script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js'
+    script.async = true
+    script.defer = true
+    script.onload = () => {
+      window.turnstile.render('#turnstile-container', {
+        sitekey: '0x4AAAAAAC1ojDJtV4BU68ah',
+        callback: (token: string) => setTurnstileToken(token),
+        theme: 'light',
+      })
+    }
+    document.head.appendChild(script)
+    return () => {
+      document.head.removeChild(script)
+    }
+  }, [])
 
   const passwordsMatch = form.password.length > 0 && confirmPassword.length > 0 && form.password === confirmPassword
 
@@ -73,8 +104,8 @@ function SignupForm() {
     setForm(prev => ({ ...prev, whatsappNumber: buildWhatsappNumber(selectedCountry, val) }))
   }
 
-  async function handleSubmit(e?: React.FormEvent | React.MouseEvent) {
-    e?.preventDefault()
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
     setError('')
 
     if (!form.agreeTerms) {
@@ -97,13 +128,17 @@ function SignupForm() {
       setError('Please enter your WhatsApp number.')
       return
     }
+    if (!turnstileToken) {
+      setError('Security check failed - please refresh')
+      return
+    }
 
     setLoading(true)
     try {
       const res = await fetch('/api/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...form }),
+        body: JSON.stringify({ ...form, turnstileToken }),
       })
       const data = await res.json()
       if (!res.ok || data.error) {
@@ -297,6 +332,8 @@ function SignupForm() {
           </label>
         </div>
 
+        <div id="turnstile-container" />
+
         {error && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-4">
             <p className="text-sm text-red-700">{error}</p>
@@ -304,8 +341,8 @@ function SignupForm() {
         )}
 
         <button
-          type="button" onClick={handleSubmit} disabled={loading}
-          className="w-full bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white font-semibold py-4 rounded-xl transition-colors text-sm cursor-pointer"
+          type="submit" disabled={loading}
+          className="relative z-10 w-full bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white font-semibold py-4 rounded-xl transition-colors text-sm cursor-pointer"
         >
           {loading ? 'Creating your account...' : 'Start your free 2-week trial — no card required'}
         </button>
