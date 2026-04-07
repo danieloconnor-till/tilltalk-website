@@ -1,6 +1,13 @@
--- Seed the owner account as a pre-confirmed Supabase auth user.
--- Run once. Uses DO block so it's safe to re-run (no-ops if the user already exists).
+-- Extend the plan check constraint to include 'owner', then seed the owner account.
+-- Safe to re-run (DO block is idempotent, constraint drop/add is idempotent).
 
+-- 1. Extend plan constraint to allow 'owner'
+alter table public.profiles drop constraint if exists profiles_plan_check;
+alter table public.profiles
+  add constraint profiles_plan_check
+  check (plan in ('starter', 'pro', 'business', 'owner'));
+
+-- 2. Seed the owner auth user + profile
 do $$
 declare
   v_user_id uuid;
@@ -12,8 +19,8 @@ begin
   limit 1;
 
   if v_user_id is null then
-    -- Create a confirmed auth user with a strong placeholder password.
-    -- The owner should use "Forgot password" to set their real password.
+    -- Create a confirmed auth user with a placeholder password.
+    -- Use "Forgot password" at tilltalk.ie/forgot-password to set the real password.
     insert into auth.users (
       id,
       email,
@@ -28,8 +35,8 @@ begin
     ) values (
       gen_random_uuid(),
       'daniel@tilltalk.ie',
-      crypt('ChangeMe123!', gen_salt('bf')),  -- placeholder; reset via forgot-password
-      now(),                                  -- pre-confirmed, no email verification needed
+      extensions.crypt('ChangeMe123!', extensions.gen_salt('bf')),
+      now(),
       now(),
       now(),
       '{"provider":"email","providers":["email"]}',
@@ -65,7 +72,7 @@ begin
     true
   )
   on conflict (id) do update
-    set plan       = 'owner',
+    set plan        = 'owner',
         trial_start = null,
         trial_end   = null,
         active      = true;
