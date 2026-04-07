@@ -274,6 +274,11 @@ npx vercel --prod
 
 ---
 
+## Legal Document Triggers
+The T&Cs (src/app/terms/page.tsx) and Privacy Policy (src/app/privacy/page.tsx) must be kept in sync with the business. See LEGAL_TRIGGERS.md for the full trigger mapping. At the end of every session, check if any changes made this session require a T&Cs or Privacy Policy update. If yes, update the pages, bump the version number, and note it in the session log. Current T&Cs version: 4.1.
+
+---
+
 ## Session Log
 
 ### Session 1 (initial build)
