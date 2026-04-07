@@ -73,8 +73,8 @@ function SignupForm() {
     setForm(prev => ({ ...prev, whatsappNumber: buildWhatsappNumber(selectedCountry, val) }))
   }
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
+  async function handleSubmit(e?: React.FormEvent | React.MouseEvent) {
+    e?.preventDefault()
     setError('')
 
     if (!form.agreeTerms) {
@@ -83,6 +83,10 @@ function SignupForm() {
     }
     if (form.password.length < 8) {
       setError('Password must be at least 8 characters.')
+      return
+    }
+    if (!passwordsMatch) {
+      setError('Passwords do not match.')
       return
     }
     if (!form.posType) {
@@ -300,8 +304,8 @@ function SignupForm() {
         )}
 
         <button
-          type="submit" disabled={loading || !passwordsMatch}
-          className="w-full bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white font-semibold py-4 rounded-xl transition-colors text-sm"
+          type="button" onClick={handleSubmit} disabled={loading}
+          className="w-full bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white font-semibold py-4 rounded-xl transition-colors text-sm cursor-pointer"
         >
           {loading ? 'Creating your account...' : 'Start your free 2-week trial — no card required'}
         </button>

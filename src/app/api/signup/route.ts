@@ -6,7 +6,7 @@ import { welcomeEmail } from '@/lib/email-templates'
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    const { email, password, fullName, restaurantName, posType, whatsappNumber, plan, recaptchaToken } = body
+    const { email, password, fullName, restaurantName, posType, whatsappNumber, plan } = body
 
     console.log('[signup] request received:', { email, fullName, restaurantName, posType, whatsappNumber, plan })
 
@@ -19,27 +19,6 @@ export async function POST(request: Request) {
 
     if (password.length < 8) {
       return NextResponse.json({ error: 'Password must be at least 8 characters.' }, { status: 400 })
-    }
-
-    // reCAPTCHA v3 verification
-    const recaptchaSecret = process.env.RECAPTCHA_SECRET_KEY
-    if (recaptchaSecret) {
-      if (!recaptchaToken) {
-        console.warn('[signup] reCAPTCHA token missing')
-        return NextResponse.json({ error: 'reCAPTCHA verification failed. Please try again.' }, { status: 400 })
-      }
-      const verifyRes = await fetch('https://www.google.com/recaptcha/api/siteverify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: `secret=${recaptchaSecret}&response=${recaptchaToken}`,
-      })
-      const verifyData = await verifyRes.json()
-      console.log('[signup] reCAPTCHA result:', { success: verifyData.success, score: verifyData.score })
-      if (!verifyData.success || verifyData.score < 0.5) {
-        return NextResponse.json({ error: 'reCAPTCHA verification failed. Please try again.' }, { status: 400 })
-      }
-    } else {
-      console.warn('[signup] RECAPTCHA_SECRET_KEY not set — skipping verification')
     }
 
     const admin = createServiceRoleClient()
