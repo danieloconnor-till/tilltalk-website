@@ -4,7 +4,6 @@ import { useState, Suspense } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import clsx from 'clsx'
-import { GoogleReCaptchaProvider, useGoogleReCaptcha } from 'react-google-recaptcha-v3'
 
 const COUNTRY_CODES = [
   { key: 'IE', dialCode: '+353', label: '🇮🇪 Ireland (+353)' },
@@ -29,8 +28,6 @@ function SignupForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const defaultPlan = (searchParams.get('plan') as 'starter' | 'pro' | 'business') || 'pro'
-  const { executeRecaptcha } = useGoogleReCaptcha()
-
   const [form, setForm] = useState({
     fullName: '',
     email: '',
@@ -80,43 +77,21 @@ function SignupForm() {
     e.preventDefault()
     setError('')
 
-    console.log('[signup] handleSubmit fired', {
-      passwordsMatch,
-      agreeTerms: form.agreeTerms,
-      posType: form.posType,
-      passwordLength: form.password.length,
-      executeRecaptcha: typeof executeRecaptcha,
-      siteKey: !!process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY,
-    })
-
     if (!form.agreeTerms) {
-      console.log('[signup] blocked: terms not agreed')
       setError('You must agree to the Terms & Conditions to continue.')
       return
     }
     if (form.password.length < 8) {
-      console.log('[signup] blocked: password too short')
       setError('Password must be at least 8 characters.')
       return
     }
     if (!form.posType) {
-      console.log('[signup] blocked: no POS selected')
       setError('Please select your POS system.')
       return
     }
-
-    const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY
-    let recaptchaToken: string | null = null
-    if (siteKey) {
-      console.log('[signup] reCAPTCHA required — executeRecaptcha:', typeof executeRecaptcha)
-      if (!executeRecaptcha) {
-        setError('Security check failed — please refresh the page and try again.')
-        return
-      }
-      recaptchaToken = await executeRecaptcha('signup')
-      console.log('[signup] reCAPTCHA token obtained:', !!recaptchaToken)
-    } else {
-      console.log('[signup] reCAPTCHA site key not set — skipping')
+    if (!localNumber.trim()) {
+      setError('Please enter your WhatsApp number.')
+      return
     }
 
     setLoading(true)
@@ -124,7 +99,7 @@ function SignupForm() {
       const res = await fetch('/api/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...form, recaptchaToken }),
+        body: JSON.stringify({ ...form }),
       })
       const data = await res.json()
       if (!res.ok || data.error) {
@@ -342,10 +317,8 @@ function SignupForm() {
 
 export default function SignupPage() {
   return (
-    <GoogleReCaptchaProvider reCaptchaKey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY!}>
-      <Suspense fallback={<div className="py-20 text-center text-gray-500">Loading...</div>}>
-        <SignupForm />
-      </Suspense>
-    </GoogleReCaptchaProvider>
+    <Suspense fallback={<div className="py-20 text-center text-gray-500">Loading...</div>}>
+      <SignupForm />
+    </Suspense>
   )
 }
