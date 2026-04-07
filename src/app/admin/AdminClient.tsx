@@ -36,6 +36,10 @@ interface RailwayStats {
   by_plan?: Record<string, number>
   active_numbers?: number
   on_trial?: number
+  total_messages_all_time?: number
+  messages_last_7_days?: number
+  messages_last_30_days?: number
+  top_clients?: Array<{ name: string; messages: number }>
   error?: string
 }
 
@@ -366,20 +370,43 @@ function RevenueSection({ stats }: { stats: AdminStats }) {
 // ─── Section: Usage & Engagement ─────────────────────────────────────────────
 
 function UsageSection() {
+  const [railway, setRailway] = useState<RailwayStats | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetch('/api/admin/railway-stats')
+      .then((r) => r.json())
+      .then((d: RailwayStats) => setRailway(d))
+      .catch(() => setRailway({ status: 'error' }))
+      .finally(() => setLoading(false))
+  }, [])
+
+  const fmt = (n?: number) => (loading ? '—' : n != null ? n.toLocaleString() : '—')
+
   return (
     <div className="space-y-4">
       <SectionHeader id="usage" title="Usage & Engagement" icon={Activity} />
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <StatCard label="Total messages all time" value={fmt(railway?.total_messages_all_time)} small />
+        <StatCard label="Messages last 7 days" value={fmt(railway?.messages_last_7_days)} small />
+        <StatCard label="Messages last 30 days" value={fmt(railway?.messages_last_30_days)} small />
+      </div>
       <Card>
-        <div className="flex items-center gap-3 text-amber-700 bg-amber-50 rounded-xl px-4 py-3">
-          <AlertTriangle size={16} className="shrink-0" />
-          <div>
-            <p className="text-sm font-medium">Message analytics not yet tracked</p>
-            <p className="text-xs mt-0.5">
-              Add a <code className="bg-amber-100 px-1 rounded">message_log</code> table to the Railway DB to track per-client WhatsApp usage.
-              The <code className="bg-amber-100 px-1 rounded">daily_usage</code> table in Supabase is reserved for this.
-            </p>
-          </div>
-        </div>
+        <p className="text-sm font-semibold text-gray-700 mb-3">Most active clients (last 30 days)</p>
+        {loading ? (
+          <p className="text-sm text-gray-400">Loading…</p>
+        ) : !railway?.top_clients?.length ? (
+          <p className="text-sm text-gray-400">No data yet — messages will appear here once clients start chatting.</p>
+        ) : (
+          <ul className="divide-y divide-gray-100">
+            {railway.top_clients.map((c, i) => (
+              <li key={i} className="flex items-center justify-between py-2.5">
+                <span className="text-sm text-gray-800">{c.name}</span>
+                <span className="text-sm font-semibold text-green-700">{c.messages.toLocaleString()} msgs</span>
+              </li>
+            ))}
+          </ul>
+        )}
       </Card>
     </div>
   )
