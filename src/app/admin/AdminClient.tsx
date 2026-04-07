@@ -774,7 +774,7 @@ export default function AdminClient({ profiles, stats, signupsPerDay, posBreakdo
   const [extendTarget, setExtendTarget] = useState<{ id: string; name: string } | null>(null)
   const [toast, setToast] = useState('')
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date())
-  const refreshTimer = useRef<ReturnType<typeof setInterval>>()
+  const refreshTimer = useRef<ReturnType<typeof setInterval> | undefined>(undefined)
 
   // Auto-refresh every 5 minutes
   useEffect(() => {
