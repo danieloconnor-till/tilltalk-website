@@ -10,11 +10,22 @@ export default async function DashboardPage() {
     redirect('/login')
   }
 
-  const { data: profile } = await supabase
+  const { data: raw } = await supabase
     .from('profiles')
     .select('*')
     .eq('id', user.id)
     .single()
+
+  // Never send credential values to the client — only boolean indicators
+  const profile = raw ? (() => {
+    const { pos_api_key, pos_api_secret, ...rest } = raw as Record<string, unknown>
+    return {
+      ...rest,
+      pos_api_key_set: !!pos_api_key,
+      pos_api_secret_set: !!pos_api_secret,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any
+  })() : null
 
   return <DashboardClient user={user} profile={profile} />
 }
