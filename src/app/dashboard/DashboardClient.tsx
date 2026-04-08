@@ -8,7 +8,7 @@ import {
   User, CreditCard, Shield, LogOut, CheckCircle2, AlertCircle,
   Eye, EyeOff, Lock, HelpCircle, X, Bell, Calendar,
   LayoutDashboard, TrendingUp, TrendingDown, RefreshCw,
-  MessageCircle, Settings, Zap,
+  MessageCircle, Settings, Zap, Download,
 } from 'lucide-react'
 import type { User as SupabaseUser } from '@supabase/supabase-js'
 import ChatWidget from './ChatWidget'
@@ -268,6 +268,96 @@ function CardHeader({
     </div>
   )
 }
+
+// ---------------------------------------------------------------------------
+// Data & Privacy card (self-contained — owns the export state)
+// ---------------------------------------------------------------------------
+
+function DataPrivacyCard() {
+  const [exporting, setExporting] = useState(false)
+  const [exportError, setExportError] = useState<string | null>(null)
+
+  async function handleExport() {
+    setExporting(true)
+    setExportError(null)
+    try {
+      const res = await fetch('/api/export')
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}))
+        throw new Error(body?.error ?? `Server error ${res.status}`)
+      }
+      const data = await res.json()
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
+      const url  = URL.createObjectURL(blob)
+      const a    = document.createElement('a')
+      const date = new Date().toISOString().slice(0, 10)
+      a.href     = url
+      a.download = `tilltalk-data-export-${date}.json`
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      URL.revokeObjectURL(url)
+    } catch (err) {
+      setExportError(err instanceof Error ? err.message : 'Export failed — please try again.')
+    } finally {
+      setExporting(false)
+    }
+  }
+
+  return (
+    <Card>
+      <CardHeader icon={Shield} title="Data &amp; Privacy" />
+      <div className="space-y-2 mb-5">
+        {[
+          'Email address and full name',
+          'Business name and POS system type',
+          'WhatsApp number',
+          'Plan and subscription status',
+          'POS address and API credentials (encrypted at rest)',
+          'Aggregated sales summaries for your reports (no raw transactions, no customer data)',
+        ].map(item => (
+          <div key={item} className="flex items-start gap-2">
+            <CheckCircle2 className="text-green-400 shrink-0 mt-0.5" size={14} />
+            <span className="text-sm text-gray-600">{item}</span>
+          </div>
+        ))}
+      </div>
+
+      <div className="flex flex-wrap gap-3 items-center">
+        <button
+          onClick={handleExport}
+          disabled={exporting}
+          className="flex items-center gap-2 text-sm text-gray-700 hover:text-gray-900 border border-gray-200 hover:border-gray-300 px-4 py-2 rounded-lg transition-colors min-h-[44px] disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {exporting
+            ? <RefreshCw size={14} className="animate-spin" />
+            : <Download size={14} />}
+          {exporting ? 'Preparing export…' : 'Export my data'}
+        </button>
+
+        <button
+          onClick={() => alert('To request data deletion, please email privacy@tilltalk.ie with your account email. We will process your request within 30 days.')}
+          className="text-sm text-red-600 hover:text-red-700 border border-red-200 hover:border-red-300 px-4 py-2 rounded-lg transition-colors min-h-[44px]"
+        >
+          Request data deletion
+        </button>
+      </div>
+
+      {exportError && (
+        <div className="flex items-center gap-2 mt-3 text-sm text-red-600">
+          <AlertCircle size={14} className="shrink-0" />
+          {exportError}
+        </div>
+      )}
+
+      <p className="text-xs text-gray-400 mt-3">
+        Export downloads a JSON file with all data we hold for your account.
+        Data deletion requests are processed within 30 days.
+      </p>
+    </Card>
+  )
+}
+
 
 // ---------------------------------------------------------------------------
 // Main component
@@ -1051,31 +1141,7 @@ export default function DashboardClient({ user, profile }: Props) {
           )}
 
           {/* Data & Privacy */}
-          <Card>
-            <CardHeader icon={Shield} title="Data &amp; Privacy" />
-            <div className="space-y-2 mb-5">
-              {[
-                'Email address and full name',
-                'Business name and POS system type',
-                'WhatsApp number',
-                'Plan and subscription status',
-                'POS address and API credentials (encrypted at rest)',
-                'Aggregated sales summaries for your reports (no raw transactions, no customer data)',
-              ].map(item => (
-                <div key={item} className="flex items-start gap-2">
-                  <CheckCircle2 className="text-green-400 shrink-0 mt-0.5" size={14} />
-                  <span className="text-sm text-gray-600">{item}</span>
-                </div>
-              ))}
-            </div>
-            <button
-              onClick={() => alert('To request data deletion, please email privacy@tilltalk.ie with your account email. We will process your request within 30 days.')}
-              className="text-sm text-red-600 hover:text-red-700 border border-red-200 hover:border-red-300 px-4 py-2 rounded-lg transition-colors min-h-[44px]"
-            >
-              Request data deletion
-            </button>
-            <p className="text-xs text-gray-400 mt-2">Data deleted within 30 days of request.</p>
-          </Card>
+          <DataPrivacyCard />
 
         </Section>
       </div>
