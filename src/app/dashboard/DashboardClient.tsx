@@ -6,7 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import { PLANS } from '@/lib/plans'
 import {
   User, CreditCard, Shield, LogOut, CheckCircle2, AlertCircle,
-  Eye, EyeOff, Lock, HelpCircle, X, Bell, Calendar,
+  X, Bell, Calendar,
   LayoutDashboard, TrendingUp, TrendingDown, RefreshCw,
   MessageCircle, Settings, Zap, Download,
 } from 'lucide-react'
@@ -99,86 +99,6 @@ function StatCardSkeleton() {
       <Skeleton className="h-3 w-24" />
       <Skeleton className="h-7 w-32" />
       <Skeleton className="h-3 w-20" />
-    </div>
-  )
-}
-
-// ---------------------------------------------------------------------------
-// Credentials help modal
-// ---------------------------------------------------------------------------
-
-const CRED_HELP: Record<string, { title: string; steps: string[] }> = {
-  clover: {
-    title: 'Finding your Clover credentials',
-    steps: [
-      'Log in to your Clover dashboard at clover.com',
-      'Go to Account & Setup → API Tokens',
-      'Click "Create New Token" — grant Read permissions only',
-      'Your Merchant ID is in the browser URL: /merchants/{MERCHANT_ID}/…',
-      'Paste both values into the fields below',
-    ],
-  },
-  square: {
-    title: 'Finding your Square credentials',
-    steps: [
-      'Log in to the Square Developer Portal at developer.squareup.com',
-      'Select your application (or create one)',
-      'Go to Credentials → Production',
-      'Copy the Production Access Token',
-      'Your Location ID is in Square Dashboard → Account & Settings → Business locations',
-    ],
-  },
-  eposnow: {
-    title: 'Finding your Epos Now credentials',
-    steps: [
-      'Log in to your Epos Now Back Office',
-      'Navigate to App Store → API Settings',
-      'Generate a new API Key and API Secret',
-      'Paste both values into the fields below',
-      'Need help? Email hello@tilltalk.ie',
-    ],
-  },
-}
-
-function CredentialsHelpModal({ posType, onClose }: { posType: string | null; onClose: () => void }) {
-  const key = (posType || 'clover').toLowerCase()
-  const help = CRED_HELP[key] ?? CRED_HELP.clover
-
-  useEffect(() => {
-    function onKey(e: KeyboardEvent) { if (e.key === 'Escape') onClose() }
-    document.addEventListener('keydown', onKey)
-    return () => document.removeEventListener('keydown', onKey)
-  }, [onClose])
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40">
-      <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6">
-        <div className="flex items-start justify-between mb-4">
-          <h3 className="text-base font-semibold text-gray-900">{help.title}</h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 ml-4 shrink-0 min-h-[44px] min-w-[44px] flex items-center justify-center -mr-2 -mt-2">
-            <X size={20} />
-          </button>
-        </div>
-        <ol className="space-y-3">
-          {help.steps.map((step, i) => (
-            <li key={i} className="flex gap-3 text-sm text-gray-700">
-              <span className="shrink-0 w-5 h-5 rounded-full bg-green-100 text-green-700 text-xs font-bold flex items-center justify-center mt-0.5">
-                {i + 1}
-              </span>
-              {step}
-            </li>
-          ))}
-        </ol>
-        <p className="mt-4 text-xs text-gray-500">
-          Your credentials are stored securely and used only to connect to your POS system.
-        </p>
-        <button
-          onClick={onClose}
-          className="mt-5 w-full bg-green-600 hover:bg-green-700 text-white text-sm font-medium py-2.5 rounded-lg transition-colors"
-        >
-          Got it
-        </button>
-      </div>
     </div>
   )
 }
@@ -398,19 +318,6 @@ export default function DashboardClient({ user, profile }: Props) {
     addressCountry: profile?.pos_address_country || 'Ireland',
   })
 
-  // Credential editing
-  const [credEditing,  setCredEditing]  = useState(false)
-  const [credSaving,   setCredSaving]   = useState(false)
-  const [credMsg,      setCredMsg]      = useState('')
-  const [showApiKey,   setShowApiKey]   = useState(false)
-  const [showApiSec,   setShowApiSec]   = useState(false)
-  const [showHelpModal, setShowHelpModal] = useState(false)
-  const [credForm, setCredForm] = useState({
-    merchantId: profile?.pos_merchant_id || '',
-    apiKey:     '',
-    apiSecret:  '',
-  })
-
   // Billing
   const [billingInterval, setBillingInterval] = useState<'monthly' | 'annual'>('monthly')
   const [billingLoading,  setBillingLoading]  = useState<string | null>(null) // plan key or 'portal'
@@ -579,45 +486,12 @@ export default function DashboardClient({ user, profile }: Props) {
     else        { setSaveMsg('Saved!'); setEditing(false); router.refresh() }
   }
 
-  // ── Credentials save ─────────────────────────────────────────────────────
-
-  async function handleSaveCredentials(e: React.FormEvent) {
-    e.preventDefault()
-    setCredSaving(true); setCredMsg('')
-    try {
-      const res = await fetch('/api/profile/credentials', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          merchantId: credForm.merchantId,
-          apiKey:     credForm.apiKey    || undefined,
-          apiSecret:  credForm.apiSecret || undefined,
-        }),
-      })
-      const data = await res.json()
-      if (!res.ok) { setCredMsg(data.error || 'Error saving.') }
-      else          { setCredMsg('Saved!'); setCredEditing(false); router.refresh() }
-    } catch {
-      setCredMsg('Network error. Please try again.')
-    } finally {
-      setCredSaving(false)
-    }
-  }
-
   async function handleSignOut() {
     const supabase = createClient()
     await supabase.auth.signOut()
     router.push('/')
     router.refresh()
   }
-
-  // ── Credential labels by POS ─────────────────────────────────────────────
-
-  const credLabels = {
-    clover:   { id: 'Merchant ID', key: 'API Key',        secret: null },
-    square:   { id: 'Location ID', key: 'Access Token',   secret: null },
-    eposnow:  { id: null,          key: 'API Key',        secret: 'API Secret' },
-  }[posType] ?? { id: 'Merchant ID', key: 'API Key', secret: null }
 
   // ── Render ───────────────────────────────────────────────────────────────
 
@@ -1005,127 +879,6 @@ export default function DashboardClient({ user, profile }: Props) {
             )}
           </Card>
 
-          {/* POS Credentials */}
-          <Card>
-            <CardHeader
-              icon={Lock}
-              title="POS Credentials"
-              action={
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => setShowHelpModal(true)}
-                    className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-700 min-h-[44px] px-1"
-                  >
-                    <HelpCircle size={14} />
-                    <span className="hidden sm:inline">How to find credentials</span>
-                  </button>
-                  {!credEditing && (
-                    <button onClick={() => setCredEditing(true)} className="text-sm text-green-600 hover:underline min-h-[44px] px-2">
-                      Edit
-                    </button>
-                  )}
-                </div>
-              }
-            />
-
-            {credEditing ? (
-              <form onSubmit={handleSaveCredentials} className="space-y-3">
-                <p className="text-xs text-gray-500 -mt-2 mb-2">Enter new values to update. Leave a field blank to keep the existing value.</p>
-
-                {/* POS credentials */}
-                {credLabels.id && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">{credLabels.id}</label>
-                    <input type="text" value={credForm.merchantId}
-                      onChange={e => setCredForm(p => ({ ...p, merchantId: e.target.value }))}
-                      className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent font-mono" />
-                  </div>
-                )}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">{credLabels.key}</label>
-                  <div className="relative">
-                    <input
-                      type={showApiKey ? 'text' : 'password'}
-                      value={credForm.apiKey}
-                      onChange={e => setCredForm(p => ({ ...p, apiKey: e.target.value }))}
-                      placeholder={profile?.pos_api_key_set ? '(already set — enter to replace)' : ''}
-                      className="w-full border border-gray-300 rounded-lg px-4 py-2.5 pr-12 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent font-mono"
-                    />
-                    <button type="button" onClick={() => setShowApiKey(p => !p)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 min-h-[44px] min-w-[44px] flex items-center justify-center">
-                      {showApiKey ? <EyeOff size={16} /> : <Eye size={16} />}
-                    </button>
-                  </div>
-                </div>
-                {credLabels.secret && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">{credLabels.secret}</label>
-                    <div className="relative">
-                      <input
-                        type={showApiSec ? 'text' : 'password'}
-                        value={credForm.apiSecret}
-                        onChange={e => setCredForm(p => ({ ...p, apiSecret: e.target.value }))}
-                        placeholder={profile?.pos_api_secret_set ? '(already set — enter to replace)' : ''}
-                        className="w-full border border-gray-300 rounded-lg px-4 py-2.5 pr-12 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent font-mono"
-                      />
-                      <button type="button" onClick={() => setShowApiSec(p => !p)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 min-h-[44px] min-w-[44px] flex items-center justify-center">
-                        {showApiSec ? <EyeOff size={16} /> : <Eye size={16} />}
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                {credMsg && <p className={`text-sm ${credMsg.includes('Error') || credMsg.includes('error') ? 'text-red-600' : 'text-green-600'}`}>{credMsg}</p>}
-                <div className="flex gap-3 pt-1">
-                  <button type="submit" disabled={credSaving}
-                    className="bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white text-sm font-medium px-5 py-2.5 rounded-lg transition-colors min-h-[44px]">
-                    {credSaving ? 'Saving…' : 'Save credentials'}
-                  </button>
-                  <button type="button" onClick={() => { setCredEditing(false); setCredMsg('') }}
-                    className="text-sm text-gray-600 hover:text-gray-900 px-5 py-2.5 rounded-lg border border-gray-200 min-h-[44px]">
-                    Cancel
-                  </button>
-                </div>
-              </form>
-            ) : (
-              <dl className="space-y-2.5">
-                {credLabels.id && profile?.pos_merchant_id && (
-                  <div className="flex items-center gap-2">
-                    <dt className="text-sm text-gray-500 w-32 shrink-0">{credLabels.id}</dt>
-                    <dd className="text-sm font-mono text-gray-900">{profile.pos_merchant_id}</dd>
-                  </div>
-                )}
-                <div className="flex items-center gap-2">
-                  <dt className="text-sm text-gray-500 w-32 shrink-0">{credLabels.key}</dt>
-                  <dd className="flex items-center gap-2">
-                    {profile?.pos_api_key_set
-                      ? <><span className="text-sm font-mono text-gray-900 tracking-widest">••••••••</span><span className="text-xs text-green-600 font-medium">Set</span></>
-                      : <span className="text-sm text-gray-400">Not set</span>}
-                  </dd>
-                </div>
-                {credLabels.secret && (
-                  <div className="flex items-center gap-2">
-                    <dt className="text-sm text-gray-500 w-32 shrink-0">{credLabels.secret}</dt>
-                    <dd className="flex items-center gap-2">
-                      {profile?.pos_api_secret_set
-                        ? <><span className="text-sm font-mono text-gray-900 tracking-widest">••••••••</span><span className="text-xs text-green-600 font-medium">Set</span></>
-                        : <span className="text-sm text-gray-400">Not set</span>}
-                    </dd>
-                  </div>
-                )}
-                {!profile?.pos_api_key_set && (
-                  <div className="mt-3 bg-amber-50 border border-amber-100 rounded-lg p-3">
-                    <p className="text-xs text-amber-800">
-                      Add your POS credentials so TillTalk can connect to your sales data.{' '}
-                      <button onClick={() => setShowHelpModal(true)} className="underline font-medium">How to find them →</button>
-                    </p>
-                  </div>
-                )}
-              </dl>
-            )}
-          </Card>
-
           {/* Billing */}
           {!isOnTrial && (
             <Card>
@@ -1148,14 +901,6 @@ export default function DashboardClient({ user, profile }: Props) {
 
       {/* ── Mobile bottom nav ──────────────────────────────────────── */}
       <MobileBottomNav active={activeSection} onNav={navTo} />
-
-      {/* ── Credentials help modal ─────────────────────────────────── */}
-      {showHelpModal && (
-        <CredentialsHelpModal
-          posType={profile?.pos_type || null}
-          onClose={() => setShowHelpModal(false)}
-        />
-      )}
 
       {/* ── Upgraded toast ────────────────────────────────────────── */}
       {upgradedToast && (
