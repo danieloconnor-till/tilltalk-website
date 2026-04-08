@@ -43,6 +43,18 @@ interface RailwayStats {
   error?: string
 }
 
+interface HealthCheck {
+  status: 'ok' | 'error'
+  message: string
+}
+
+interface HealthData {
+  status: 'ok' | 'degraded' | 'down'
+  checks: Record<string, HealthCheck>
+  timestamp?: string
+  error?: string
+}
+
 interface Props {
   profiles: Profile[]
   stats: AdminStats
@@ -412,70 +424,184 @@ function UsageSection() {
   )
 }
 
+// ─── Health check label map ───────────────────────────────────────────────────
+
+const HEALTH_LABELS: Record<string, string> = {
+  database:   'Database',
+  clover_api: 'Clover API',
+  square_api: 'Square API',
+  twilio:     'Twilio',
+  anthropic:  'Anthropic',
+  sendgrid:   'SendGrid',
+  scheduler:  'Scheduler',
+}
+
+const CHECK_ORDER = ['database', 'scheduler', 'clover_api', 'square_api', 'twilio', 'anthropic', 'sendgrid']
+
 // ─── Section: Operations ─────────────────────────────────────────────────────
 
 function OperationsSection() {
   const [railway, setRailway] = useState<RailwayStats | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [health, setHealth] = useState<HealthData | null>(null)
+  const [loadingStats, setLoadingStats] = useState(true)
+  const [loadingHealth, setLoadingHealth] = useState(true)
+  const [lastChecked, setLastChecked] = useState<Date | null>(null)
 
-  const load = useCallback(() => {
-    setLoading(true)
+  const loadStats = useCallback(() => {
+    setLoadingStats(true)
     fetch('/api/admin/railway-stats')
       .then((r) => r.json())
       .then((d: RailwayStats) => setRailway(d))
       .catch(() => setRailway({ status: 'error', error: 'Unreachable' }))
-      .finally(() => setLoading(false))
+      .finally(() => setLoadingStats(false))
   }, [])
 
-  useEffect(() => { load() }, [load])
+  const loadHealth = useCallback(() => {
+    setLoadingHealth(true)
+    fetch('/api/admin/health')
+      .then((r) => r.json())
+      .then((d: HealthData) => { setHealth(d); setLastChecked(new Date()) })
+      .catch(() => setHealth({ status: 'down', checks: {}, error: 'Unreachable' }))
+      .finally(() => setLoadingHealth(false))
+  }, [])
+
+  const loadAll = useCallback(() => { loadStats(); loadHealth() }, [loadStats, loadHealth])
+
+  useEffect(() => {
+    loadAll()
+    const interval = setInterval(loadHealth, 60_000) // auto-refresh health every 60 s
+    return () => clearInterval(interval)
+  }, [loadAll, loadHealth])
 
   const online = railway?.status === 'ok'
+  const loading = loadingStats || loadingHealth
+
+  const overallColor =
+    health?.status === 'ok' ? 'text-green-600' :
+    health?.status === 'degraded' ? 'text-amber-500' :
+    'text-red-600'
+
+  const overallBg =
+    health?.status === 'ok' ? 'bg-green-50 border-green-200' :
+    health?.status === 'degraded' ? 'bg-amber-50 border-amber-200' :
+    'bg-red-50 border-red-200'
 
   return (
     <div className="space-y-4">
       <SectionHeader id="ops" title="Operations" icon={Wifi} />
+
+      {/* Railway counters */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <Card>
           <div className="flex items-center gap-2 mb-2">
-            {loading
+            {loadingStats
               ? <RefreshCw size={16} className="text-gray-400 animate-spin" />
               : online
               ? <Wifi size={16} className="text-green-600" />
               : <WifiOff size={16} className="text-red-500" />}
             <p className="text-xs text-gray-500">Railway Bot</p>
           </div>
-          <p className={`text-sm font-semibold ${loading ? 'text-gray-400' : online ? 'text-green-600' : 'text-red-600'}`}>
-            {loading ? 'Checking…' : online ? 'Online' : 'Offline'}
+          <p className={`text-sm font-semibold ${loadingStats ? 'text-gray-400' : online ? 'text-green-600' : 'text-red-600'}`}>
+            {loadingStats ? 'Checking…' : online ? 'Online' : 'Offline'}
           </p>
         </Card>
-
         <Card>
           <p className="text-xs text-gray-500 mb-1">Active clients (Railway)</p>
-          <p className="text-3xl font-bold text-gray-900">
-            {loading ? '—' : railway?.active_clients ?? '—'}
-          </p>
+          <p className="text-3xl font-bold text-gray-900">{loadingStats ? '—' : railway?.active_clients ?? '—'}</p>
         </Card>
-
         <Card>
           <p className="text-xs text-gray-500 mb-1">Active numbers</p>
-          <p className="text-3xl font-bold text-gray-900">
-            {loading ? '—' : railway?.active_numbers ?? '—'}
-          </p>
+          <p className="text-3xl font-bold text-gray-900">{loadingStats ? '—' : railway?.active_numbers ?? '—'}</p>
         </Card>
-
         <Card>
           <p className="text-xs text-gray-500 mb-1">On trial (Railway)</p>
-          <p className="text-3xl font-bold text-gray-900">
-            {loading ? '—' : railway?.on_trial ?? '—'}
-          </p>
+          <p className="text-3xl font-bold text-gray-900">{loadingStats ? '—' : railway?.on_trial ?? '—'}</p>
         </Card>
       </div>
+
+      {/* System health checks */}
+      <Card>
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <Activity size={15} className="text-gray-400" />
+            <p className="text-sm font-semibold text-gray-900">System health</p>
+            {!loadingHealth && health && (
+              <span className={`text-xs font-semibold capitalize px-2 py-0.5 rounded-full border ${overallBg} ${overallColor}`}>
+                {health.status}
+              </span>
+            )}
+          </div>
+          <div className="flex items-center gap-3">
+            {lastChecked && (
+              <span className="text-xs text-gray-400">
+                {lastChecked.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              </span>
+            )}
+            <button
+              onClick={loadAll}
+              disabled={loading}
+              className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-700 disabled:opacity-40"
+            >
+              <RefreshCw size={12} className={loading ? 'animate-spin' : ''} />
+              Refresh
+            </button>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2">
+          {CHECK_ORDER.map((key) => {
+            const check = health?.checks[key]
+            const isOk = check?.status === 'ok'
+            const isLoading = loadingHealth && !health
+
+            return (
+              <div
+                key={key}
+                className={`flex items-start gap-3 rounded-xl border px-3 py-2.5 text-sm
+                  ${isLoading ? 'bg-gray-50 border-gray-100' :
+                    isOk ? 'bg-green-50 border-green-100' :
+                    check ? 'bg-red-50 border-red-100' :
+                    'bg-gray-50 border-gray-100'}`}
+              >
+                <div className="mt-0.5 shrink-0">
+                  {isLoading || !check ? (
+                    <Minus size={14} className="text-gray-300" />
+                  ) : isOk ? (
+                    <CheckCircle size={14} className="text-green-500" />
+                  ) : (
+                    <AlertTriangle size={14} className="text-red-500" />
+                  )}
+                </div>
+                <div className="min-w-0">
+                  <p className="font-medium text-gray-800 leading-tight">
+                    {HEALTH_LABELS[key] ?? key}
+                  </p>
+                  <p className={`text-xs mt-0.5 truncate
+                    ${isLoading || !check ? 'text-gray-400' :
+                      isOk ? 'text-green-700' : 'text-red-600'}`}
+                    title={check?.message}
+                  >
+                    {isLoading || !check ? 'Checking…' : check.message}
+                  </p>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+
+        {health?.error && (
+          <div className="mt-3 flex items-center gap-2 text-xs text-red-600">
+            <WifiOff size={12} />
+            <span>{health.error}</span>
+          </div>
+        )}
+      </Card>
 
       {railway?.error && !online && (
         <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 flex items-center gap-3">
           <WifiOff size={16} className="text-red-500 shrink-0" />
           <p className="text-sm text-red-700">{railway.error}</p>
-          <button onClick={load} className="ml-auto text-xs text-red-600 hover:text-red-800 flex items-center gap-1">
+          <button onClick={loadAll} className="ml-auto text-xs text-red-600 hover:text-red-800 flex items-center gap-1">
             <RefreshCw size={12} /> Retry
           </button>
         </div>
