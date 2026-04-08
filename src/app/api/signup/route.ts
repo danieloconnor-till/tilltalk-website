@@ -73,10 +73,14 @@ export async function POST(request: Request) {
     console.log('[signup] user created — userId:', userId, 'confirmationUrl present:', !!confirmationUrl)
 
     // 2. Provision client in Railway (skip for owner account)
+    // NON-FATAL — a Railway failure must never prevent the user's account being created.
+    // The only deliberate early-return here is a 409 (duplicate trial), which is
+    // user-facing and intentional.  All other Railway errors are logged and swallowed.
     const railwayUrl = process.env.RAILWAY_ONBOARDING_URL
     const onboardingKey = process.env.ONBOARDING_API_KEY
     if (!isOwner && railwayUrl && onboardingKey) {
       console.log('[signup] calling Railway onboard for userId:', userId)
+      let earlyReturn: NextResponse | null = null
       try {
         const railwayRes = await fetch(`${railwayUrl}/api/onboard`, {
           method: 'POST',
@@ -90,24 +94,36 @@ export async function POST(request: Request) {
             plan: plan || 'pro',
             supabase_user_id: userId,
           }),
+          // Timeout: don't let a slow/down Railway hang the whole Vercel function
+          // and trigger the outer catch with a generic 500.
+          signal: AbortSignal.timeout(8000),
         })
         const railwayBody = await railwayRes.json().catch(() => ({}))
         console.log('[signup] Railway response — status:', railwayRes.status, 'body:', railwayBody)
-        if (!railwayRes.ok) {
-          if (railwayRes.status === 409) {
-            await admin.auth.admin.deleteUser(userId)
-            return NextResponse.json(
-              { error: (railwayBody as { message?: string }).message || 'This POS account has already had a free trial.' },
-              { status: 409 },
-            )
-          }
-          console.error('[signup] Railway non-fatal error — continuing')
+
+        if (railwayRes.status === 409) {
+          // Intentional early-return: this POS account already had a free trial.
+          // Clean up the auth user we just created, then tell the user why.
+          console.warn('[signup] Railway 409 — duplicate trial, deleting auth user and aborting')
+          await admin.auth.admin.deleteUser(userId).catch((e: unknown) =>
+            console.error('[signup] deleteUser after 409 failed (non-fatal):', e)
+          )
+          earlyReturn = NextResponse.json(
+            { error: (railwayBody as { message?: string }).message || 'This POS account has already had a free trial.' },
+            { status: 409 },
+          )
+        } else if (!railwayRes.ok) {
+          // Any other non-ok status from Railway is non-fatal — log and continue.
+          console.error('[signup] Railway returned non-ok status (non-fatal, continuing):', railwayRes.status, railwayBody)
         }
       } catch (railwayErr) {
-        console.error('[signup] Railway request threw (non-fatal):', railwayErr)
+        // Network error, timeout, or JSON parse error — all non-fatal.
+        console.error('[signup] Railway request failed (non-fatal, continuing):', railwayErr)
       }
+      // Return 409 outside the try/catch so deleteUser errors don't suppress it.
+      if (earlyReturn) return earlyReturn
     } else {
-      console.warn('[signup] RAILWAY_ONBOARDING_URL or ONBOARDING_API_KEY not set — skipping')
+      console.warn('[signup] RAILWAY_ONBOARDING_URL or ONBOARDING_API_KEY not set — skipping Railway onboard')
     }
 
     // 3. Insert Supabase profile
