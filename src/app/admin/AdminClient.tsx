@@ -440,7 +440,7 @@ const CHECK_ORDER = ['database', 'scheduler', 'clover_api', 'square_api', 'twili
 
 // ─── Section: Operations ─────────────────────────────────────────────────────
 
-function OperationsSection() {
+function OperationsSection({ onPriceChange }: { onPriceChange: () => void }) {
   const [railway, setRailway] = useState<RailwayStats | null>(null)
   const [health, setHealth] = useState<HealthData | null>(null)
   const [loadingStats, setLoadingStats] = useState(true)
@@ -488,7 +488,16 @@ function OperationsSection() {
 
   return (
     <div className="space-y-4">
-      <SectionHeader id="ops" title="Operations" icon={Wifi} />
+      <div className="flex items-center justify-between">
+        <SectionHeader id="ops" title="Operations" icon={Wifi} />
+        <button
+          onClick={onPriceChange}
+          className="flex items-center gap-2 text-sm bg-green-600 hover:bg-green-700 text-white font-medium px-4 py-2 rounded-lg transition-colors"
+        >
+          <DollarSign size={14} />
+          Price Change Notification
+        </button>
+      </div>
 
       {/* Railway counters */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -827,6 +836,102 @@ function ClientsSection({
   )
 }
 
+// ─── Price Change Modal ───────────────────────────────────────────────────────
+
+function PriceChangeModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const [plan, setPlan]           = useState('pro')
+  const [oldPrice, setOldPrice]   = useState('')
+  const [newPrice, setNewPrice]   = useState('')
+  const [effDate, setEffDate]     = useState('')
+  const [message, setMessage]     = useState('')
+  const [loading, setLoading]     = useState(false)
+  const [result, setResult]       = useState<{ sent: number; failed: number } | null>(null)
+  const [error, setError]         = useState('')
+
+  function reset() { setOldPrice(''); setNewPrice(''); setEffDate(''); setMessage(''); setResult(null); setError('') }
+  function handleClose() { reset(); onClose() }
+
+  async function submit() {
+    if (!oldPrice || !newPrice || !effDate) return
+    setLoading(true); setError(''); setResult(null)
+    try {
+      const res = await fetch('/api/admin/price-change', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan, old_price: parseFloat(oldPrice), new_price: parseFloat(newPrice), effective_date: effDate, message }),
+      })
+      const data = await res.json()
+      if (data.error) { setError(data.error) } else { setResult({ sent: data.sent, failed: data.failed ?? 0 }) }
+    } catch { setError('Network error') }
+    finally { setLoading(false) }
+  }
+
+  if (!open) return null
+
+  const inputCls = 'w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500'
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-base font-semibold text-gray-900">Price Change Notification</h3>
+          <button onClick={handleClose}><X size={20} className="text-gray-400 hover:text-gray-600" /></button>
+        </div>
+        {result ? (
+          <div className="space-y-4">
+            <div className="bg-green-50 border border-green-200 rounded-xl px-4 py-4 text-center">
+              <p className="text-2xl font-bold text-green-700">{result.sent}</p>
+              <p className="text-sm text-green-600 mt-1">email{result.sent !== 1 ? 's' : ''} sent</p>
+              {result.failed > 0 && <p className="text-xs text-red-500 mt-1">{result.failed} failed</p>}
+            </div>
+            <button onClick={handleClose} className="w-full border border-gray-200 text-gray-700 hover:bg-gray-50 font-medium py-2.5 rounded-lg text-sm">Close</button>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Plan</label>
+              <select value={plan} onChange={(e) => setPlan(e.target.value)} className={inputCls}>
+                <option value="starter">Starter</option>
+                <option value="pro">Pro</option>
+                <option value="business">Business</option>
+              </select>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Current price (€/mo)</label>
+                <input type="number" min="0" step="0.01" value={oldPrice} onChange={(e) => setOldPrice(e.target.value)} placeholder="49" className={inputCls} />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">New price (€/mo)</label>
+                <input type="number" min="0" step="0.01" value={newPrice} onChange={(e) => setNewPrice(e.target.value)} placeholder="59" className={inputCls} />
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Effective date</label>
+              <input type="text" value={effDate} onChange={(e) => setEffDate(e.target.value)} placeholder="1 June 2026" className={inputCls} />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Optional message</label>
+              <textarea value={message} onChange={(e) => setMessage(e.target.value)} rows={3} placeholder="Any extra context for subscribers…" className={`${inputCls} resize-none`} />
+            </div>
+            {error && <p className="text-sm text-red-600">{error}</p>}
+            <div className="flex gap-3 pt-1">
+              <button
+                onClick={submit}
+                disabled={loading || !oldPrice || !newPrice || !effDate}
+                className="flex-1 bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white font-medium py-2.5 rounded-lg text-sm transition-colors"
+              >
+                {loading ? 'Sending…' : 'Send notifications'}
+              </button>
+              <button onClick={handleClose} className="flex-1 border border-gray-200 text-gray-700 hover:bg-gray-50 font-medium py-2.5 rounded-lg text-sm">Cancel</button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
 // ─── Extend Trial Modal ───────────────────────────────────────────────────────
 
 function ExtendModal({
@@ -925,6 +1030,7 @@ const NAV_ITEMS = [
 export default function AdminClient({ profiles, stats, signupsPerDay, posBreakdown, utmBreakdown }: Props) {
   const router = useRouter()
   const [extendTarget, setExtendTarget] = useState<{ id: string; name: string } | null>(null)
+  const [showPriceChange, setShowPriceChange] = useState(false)
   const [toast, setToast] = useState('')
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date())
   const refreshTimer = useRef<ReturnType<typeof setInterval> | undefined>(undefined)
@@ -1003,7 +1109,7 @@ export default function AdminClient({ profiles, stats, signupsPerDay, posBreakdo
         <TrialHealthSection stats={stats} onExtend={(id, name) => setExtendTarget({ id, name })} />
         <RevenueSection stats={stats} />
         <UsageSection />
-        <OperationsSection />
+        <OperationsSection onPriceChange={() => setShowPriceChange(true)} />
         <MarketingSection signupsPerDay={signupsPerDay} utmBreakdown={utmBreakdown} />
         <PosSection posBreakdown={posBreakdown} />
         <ClientsSection
@@ -1020,6 +1126,9 @@ export default function AdminClient({ profiles, stats, signupsPerDay, posBreakdo
           <button onClick={() => setToast('')}><X size={14} /></button>
         </div>
       )}
+
+      {/* Price change modal */}
+      <PriceChangeModal open={showPriceChange} onClose={() => setShowPriceChange(false)} />
 
       {/* Extend modal */}
       <ExtendModal
