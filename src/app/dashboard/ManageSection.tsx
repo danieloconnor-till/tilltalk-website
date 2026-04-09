@@ -636,7 +636,7 @@ function LocationsTab({ plan }: { plan: string | null | undefined }) {
               <input type="text" value={form.merchant_id}
                 onChange={e => setForm(p => ({ ...p, merchant_id: e.target.value }))}
                 placeholder={form.pos_type === 'clover' ? '7ZQ4HZBXQ84D1' : ''}
-                autoComplete="off"
+                autoComplete="off" autoCorrect="off" autoCapitalize="off" spellCheck={false}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-green-500" />
             </div>
           )}
