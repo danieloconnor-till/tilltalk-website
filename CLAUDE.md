@@ -4,7 +4,7 @@
 
 ## Last Updated
 
-**2026-04-07** — Update this file at the end of every Claude Code session with what was built, changed, or decided.
+**2026-04-09** — Update this file at the end of every Claude Code session with what was built, changed, or decided.
 
 ## What This Is
 
@@ -344,6 +344,17 @@ The T&Cs (src/app/terms/page.tsx) and Privacy Policy (src/app/privacy/page.tsx) 
   - `@anthropic-ai/sdk ^0.82.0` added to `package.json`
   - **Note: `ANTHROPIC_API_KEY` must be added to Vercel** — copy from Railway env vars: `npx vercel env add ANTHROPIC_API_KEY`
 
+### Session 6 (2026-04-09) — Signup hardening, dashboard cleanup, GDPR export
+- **Supabase RLS INSERT policy**: added `INSERT` policy to `profiles` table so the service-role client can write during signup without RLS blocking it
+- **SMTP / SendGrid confirmed**: SendGrid API key wired up in Vercel; welcome email with confirmation link delivers via `src/lib/sendgrid.ts`; admin notification email also fires on every signup
+- **Railway call isolation** (`src/app/api/signup/route.ts`): Railway `/api/onboard` call is now in its own isolated try/catch; `AbortSignal.timeout(8000)` prevents a slow/down Railway from hanging the Vercel function; 409 (duplicate trial) uses `earlyReturn` pattern — `deleteUser` uses `.catch()` so a cleanup failure can never suppress the 409 response
+- **Welcome WhatsApp message updated** (`onboarding.py` on Railway): message now tells new users to add POS credentials first (Go to tilltalk.ie/dashboard → Manage → Locations) before asking sales questions
+- **Merchant ID autocomplete bug fixed** (`src/app/dashboard/ManageSection.tsx`): browser was autofilling the Merchant ID input with the user's saved email; fixed by adding `autoComplete="off"` to the merchant_id field and `autoComplete="new-password"` to the api_key field
+- **Legacy POS Credentials card removed** (`src/app/dashboard/DashboardClient.tsx`): removed entire POS Credentials card (form, status indicators, `CredentialsHelpModal`, `credLabels`, `handleSaveCredentials`, credential state); credentials are now managed exclusively via Manage → Locations in `ManageSection.tsx`; unused icons (`Lock`, `HelpCircle`, `Eye`, `EyeOff`) removed from imports
+- **GDPR data export**: new `GET /api/export/route.ts` (session-authenticated proxy to Railway); "Export my data" button added to DataPrivacyCard in `DashboardClient.tsx`; downloads full JSON of client data
+- **Admin health panel** (`src/app/admin/AdminClient.tsx`): Operations section displays live 7-check health status from Railway `/health` with coloured indicators; auto-refreshes every 60 s
+- **Price change admin modal** (`src/app/admin/AdminClient.tsx`, `/api/admin/price-change/route.ts`): admin can send a branded price-change notification email to all active paying subscribers from the Operations section
+
 ### Session 5 (2026-04-07)
 - **Founder admin dashboard** (`/admin`) — full rewrite of `src/app/admin/page.tsx` + `AdminClient.tsx`:
   - **Hero row**: MRR and ARR as large green/dark cards
@@ -371,3 +382,21 @@ The T&Cs (src/app/terms/page.tsx) and Privacy Policy (src/app/privacy/page.tsx) 
   - `src/components/PwaInit.tsx` — registers SW on all pages; shows "Add to Home Screen" banner after 30 s on /dashboard only (sessionStorage dismissed flag)
   - `src/app/layout.tsx` — added `<PwaInit />`, manifest link via `metadata.manifest`, `theme-color` meta, `apple-touch-icon` link
   - **Note**: PNG icons (192×192 and 512×512) not yet generated — needed for full iOS PWA support. Add `icon-192.png` and `icon-512.png` to `/public/`.
+
+---
+
+## Roadmap
+
+Items agreed or noted for future development. Not yet started unless marked.
+
+### WhatsApp flag system + auto Claude Opus diagnosis
+- User can flag a bad bot response directly in WhatsApp (e.g., reply "flag" or "that's wrong")
+- Flagged message + surrounding context stored in a `flags` DB table (Railway)
+- A daily or on-demand admin trigger re-runs the flagged query through `claude-opus-4-6` with a diagnostic system prompt to identify what went wrong
+- Admin dashboard shows flagged responses + Opus diagnosis in a new "Quality" section
+- Goal: systematic quality feedback loop without manual log-digging
+
+### Staging environment
+- Mirror of production on Railway (separate service, same GitHub repo, different env vars)
+- Separate Vercel preview environment pointing at the staging Railway URL
+- Goal: test onboarding flow, email delivery, and WhatsApp responses end-to-end before merging to main

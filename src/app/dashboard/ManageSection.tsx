@@ -390,7 +390,8 @@ function LocationsTab({ plan }: { plan: string | null | undefined }) {
   const [editForm, setEditForm] = useState({
     nickname: '', merchant_id: '', api_key: '', api_base: '',
   })
-  const [editShowKey, setEditShowKey] = useState(false)
+  const [editShowKey,      setEditShowKey]      = useState(false)
+  const [deleteConfirmId,  setDeleteConfirmId]  = useState<number | null>(null)
 
   const limits = getLimits(plan)
 
@@ -454,12 +455,12 @@ function LocationsTab({ plan }: { plan: string | null | undefined }) {
     load()
   }
 
-  async function handleRemove(loc: LocationEntry) {
-    if (!confirm(`Remove location "${loc.nickname}"? The bot will no longer connect to this POS.`)) return
-    const res  = await fetch(`/api/manage/locations/${loc.id}`, { method: 'DELETE' })
+  async function handleRemove(id: number, nickname: string) {
+    const res  = await fetch(`/api/manage/locations/${id}`, { method: 'DELETE' })
     const data = await res.json()
+    setDeleteConfirmId(null)
     if (!res.ok) { setMsg({ ok: false, text: data.error || 'Remove failed.' }); return }
-    setMsg({ ok: true, text: `"${loc.nickname}" removed.` })
+    setMsg({ ok: true, text: `"${nickname}" removed.` })
     load()
   }
 
@@ -495,6 +496,7 @@ function LocationsTab({ plan }: { plan: string | null | undefined }) {
                       </label>
                       <input type="text" value={editForm.merchant_id}
                         onChange={e => setEditForm(p => ({ ...p, merchant_id: e.target.value }))}
+                        autoComplete="off" autoCorrect="off"
                         className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-green-500" />
                     </div>
                   </div>
@@ -505,7 +507,7 @@ function LocationsTab({ plan }: { plan: string | null | undefined }) {
                     <div className="relative">
                       <input type={editShowKey ? 'text' : 'password'} value={editForm.api_key}
                         onChange={e => setEditForm(p => ({ ...p, api_key: e.target.value }))}
-                        placeholder={loc.api_key_set ? '(already set — enter to replace)' : ''}
+                        placeholder={loc.api_key_set ? 'Type or paste new API key and click Save' : ''}
                         className="w-full border border-gray-300 rounded-lg px-3 py-2 pr-10 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-green-500" />
                       <button type="button" onClick={() => setEditShowKey(p => !p)}
                         className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 min-h-[36px] min-w-[36px] flex items-center justify-center">
@@ -525,35 +527,54 @@ function LocationsTab({ plan }: { plan: string | null | undefined }) {
                   </div>
                 </div>
               ) : (
-                <div className="flex items-start gap-3 px-3 py-3">
-                  <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center shrink-0 mt-0.5">
-                    <MapPin size={14} className="text-blue-600" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-gray-900">{loc.nickname}</p>
-                    <p className="text-xs text-gray-500 mt-0.5">
-                      {loc.pos_type.charAt(0).toUpperCase() + loc.pos_type.slice(1)}
-                      {loc.merchant_id && <span className="font-mono"> · {loc.merchant_id.slice(0, 8)}…</span>}
-                    </p>
-                    <div className="flex items-center gap-3 mt-1.5">
-                      <span className={`text-[11px] font-medium flex items-center gap-1 ${loc.api_key_set ? 'text-green-600' : 'text-amber-600'}`}>
-                        <Lock size={10} />
-                        {loc.api_key_set ? 'API key set' : 'No API key'}
-                      </span>
-                      {!loc.active && <span className="text-[11px] text-gray-400">Inactive</span>}
+                <>
+                  <div className="flex items-start gap-3 px-3 py-3">
+                    <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center shrink-0 mt-0.5">
+                      <MapPin size={14} className="text-blue-600" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-gray-900">{loc.nickname}</p>
+                      <p className="text-xs text-gray-500 mt-0.5">
+                        {loc.pos_type.charAt(0).toUpperCase() + loc.pos_type.slice(1)}
+                        {loc.merchant_id && <span className="font-mono"> · {loc.merchant_id.slice(0, 8)}…</span>}
+                      </p>
+                      <div className="flex items-center gap-3 mt-1.5">
+                        <span className={`text-[11px] font-medium flex items-center gap-1 ${loc.api_key_set ? 'text-green-600' : 'text-amber-600'}`}>
+                          <Lock size={10} />
+                          {loc.api_key_set ? 'API key set' : 'No API key'}
+                        </span>
+                        {!loc.active && <span className="text-[11px] text-gray-400">Inactive</span>}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1 shrink-0">
+                      <button onClick={() => startEdit(loc)} title="Edit location"
+                        className="text-gray-400 hover:text-gray-600 min-h-[36px] min-w-[36px] flex items-center justify-center hover:bg-gray-100 rounded-lg">
+                        <Pencil size={14} />
+                      </button>
+                      <button onClick={() => setDeleteConfirmId(loc.id)} title="Delete location"
+                        className="text-gray-300 hover:text-red-500 min-h-[36px] min-w-[36px] flex items-center justify-center hover:bg-gray-100 rounded-lg transition-colors">
+                        <Trash2 size={14} />
+                      </button>
                     </div>
                   </div>
-                  <div className="flex items-center gap-1 shrink-0">
-                    <button onClick={() => startEdit(loc)} title="Edit location"
-                      className="text-gray-400 hover:text-gray-600 min-h-[36px] min-w-[36px] flex items-center justify-center hover:bg-gray-100 rounded-lg">
-                      <Pencil size={14} />
-                    </button>
-                    <button onClick={() => handleRemove(loc)} title="Remove location"
-                      className="text-gray-300 hover:text-red-500 min-h-[36px] min-w-[36px] flex items-center justify-center hover:bg-gray-100 rounded-lg transition-colors">
-                      <Trash2 size={14} />
-                    </button>
-                  </div>
-                </div>
+                  {deleteConfirmId === loc.id && (
+                    <div className="mx-3 mb-3 rounded-lg bg-red-50 border border-red-200 px-4 py-3 flex flex-col sm:flex-row sm:items-center gap-3">
+                      <p className="text-sm text-red-700 flex-1">
+                        Are you sure you want to delete this location? This cannot be undone.
+                      </p>
+                      <div className="flex gap-2 shrink-0">
+                        <button onClick={() => handleRemove(loc.id, loc.nickname)} disabled={saving}
+                          className="text-sm font-medium text-white bg-red-600 hover:bg-red-700 disabled:bg-red-400 px-4 py-2 rounded-lg min-h-[36px]">
+                          {saving ? 'Deleting…' : 'Yes, delete'}
+                        </button>
+                        <button onClick={() => setDeleteConfirmId(null)}
+                          className="text-sm text-gray-600 border border-gray-200 bg-white px-4 py-2 rounded-lg hover:bg-gray-50 min-h-[36px]">
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           ))}
