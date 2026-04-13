@@ -353,8 +353,29 @@ export default function CalendarSection({ reminders, locations }: CalendarProps)
     setSelected(null)
   }
 
-  function handleRefresh() {
-    if (activeLoc && !refreshing) loadData(activeLoc, true)
+  async function handleRefresh() {
+    if (!activeLoc || refreshing) return
+    setRefreshing(true)
+
+    // Trigger a Songkick scrape for the nearest metro area — non-fatal if it fails
+    try {
+      const address = activeLoc.address
+      if (address) {
+        const coords = await geocodeAddress(address)
+        if (coords) {
+          const [lat, lng] = coords
+          await fetch('/api/trigger-event-scrape', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ lat, lng }),
+          }).catch(() => null)
+        }
+      }
+    } catch {
+      // scrape failure is non-fatal — still reload the calendar
+    }
+
+    loadData(activeLoc, true)
   }
 
   function prevMonth() {
