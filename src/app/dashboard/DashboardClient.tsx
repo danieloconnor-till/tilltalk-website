@@ -14,6 +14,7 @@ import type { User as SupabaseUser } from '@supabase/supabase-js'
 import ChatWidget from './ChatWidget'
 import CalendarSection from './CalendarSection'
 import ManageSection from './ManageSection'
+import AnalyticsSection from './AnalyticsSection'
 
 declare global {
   interface Window { Plotly: PlotlyInstance }
@@ -105,11 +106,12 @@ function StatCardSkeleton() {
 // ---------------------------------------------------------------------------
 
 const NAV_ITEMS = [
-  { id: 'overview',  label: 'Dashboard', Icon: LayoutDashboard },
-  { id: 'calendar',  label: 'Calendar',  Icon: Calendar },
-  { id: 'notes',     label: 'Notes',     Icon: Bell },
-  { id: 'manage',    label: 'Manage',    Icon: Settings },
-  { id: 'account',   label: 'Account',   Icon: User },
+  { id: 'overview',   label: 'Dashboard', Icon: LayoutDashboard },
+  { id: 'calendar',   label: 'Calendar',  Icon: Calendar },
+  { id: 'analytics',  label: 'Analytics', Icon: TrendingUp },
+  { id: 'notes',      label: 'Notes',     Icon: Bell },
+  { id: 'manage',     label: 'Manage',    Icon: Settings },
+  { id: 'account',    label: 'Account',   Icon: User },
 ] as const
 
 type SectionId = typeof NAV_ITEMS[number]['id']
@@ -285,12 +287,13 @@ export default function DashboardClient({ user, profile }: Props) {
   const searchParams = useSearchParams()
 
   // Section refs
-  const overviewRef  = useRef<HTMLDivElement>(null)
-  const calendarRef  = useRef<HTMLDivElement>(null)
-  const notesRef     = useRef<HTMLDivElement>(null)
-  const manageRef    = useRef<HTMLDivElement>(null)
-  const accountRef   = useRef<HTMLDivElement>(null)
-  const chartRef     = useRef<HTMLDivElement>(null)
+  const overviewRef   = useRef<HTMLDivElement>(null)
+  const calendarRef   = useRef<HTMLDivElement>(null)
+  const analyticsRef  = useRef<HTMLDivElement>(null)
+  const notesRef      = useRef<HTMLDivElement>(null)
+  const manageRef     = useRef<HTMLDivElement>(null)
+  const accountRef    = useRef<HTMLDivElement>(null)
+  const chartRef      = useRef<HTMLDivElement>(null)
 
   // Data state
   const [salesData,   setSalesData]   = useState<SalesData | null>(null)
@@ -458,7 +461,7 @@ export default function DashboardClient({ user, profile }: Props) {
 
   function navTo(id: SectionId) {
     setActiveSection(id)
-    const ref = { overview: overviewRef, calendar: calendarRef, notes: notesRef, manage: manageRef, account: accountRef }[id]
+    const ref = { overview: overviewRef, calendar: calendarRef, analytics: analyticsRef, notes: notesRef, manage: manageRef, account: accountRef }[id]
     ref?.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
 
@@ -625,7 +628,14 @@ export default function DashboardClient({ user, profile }: Props) {
         </Section>
 
         {/* ═══════════════════════════════════════════════════════════════
-            SECTION 3 — Notes & Reminders
+            SECTION 3 — Analytics
+        ════════════════════════════════════════════════════════════════ */}
+        <Section id="analytics" sectionRef={analyticsRef}>
+          <AnalyticsSection locations={locations} />
+        </Section>
+
+        {/* ═══════════════════════════════════════════════════════════════
+            SECTION 4 — Notes & Reminders
         ════════════════════════════════════════════════════════════════ */}
         <Section id="notes" sectionRef={notesRef}>
           <Card>
