@@ -214,6 +214,7 @@ interface EventItem {
   category:    string
   distance_km: number | null
   url:         string
+  source?:     'ticketmaster' | 'eventbrite' | string
 }
 interface LocationItem { id: number; nickname: string; address: string | null }
 
@@ -579,12 +580,19 @@ export default function CalendarSection({ reminders, locations }: CalendarProps)
                         )}
                       </div>
                     </div>
-                    {ev.url && (
-                      <a href={ev.url} target="_blank" rel="noopener noreferrer"
-                        className="text-xs font-medium text-blue-600 hover:text-blue-800 hover:underline shrink-0 mt-0.5 whitespace-nowrap">
-                        Event info →
-                      </a>
-                    )}
+                    <div className="flex flex-col items-end gap-1 shrink-0">
+                      {ev.url && (
+                        <a href={ev.url} target="_blank" rel="noopener noreferrer"
+                          className="text-xs font-medium text-blue-600 hover:text-blue-800 hover:underline whitespace-nowrap">
+                          Event info →
+                        </a>
+                      )}
+                      {ev.source === 'eventbrite' && (
+                        <span className="text-[10px] text-orange-500 font-medium bg-orange-50 border border-orange-100 px-1.5 py-0.5 rounded">
+                          Eventbrite
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
               ))}
