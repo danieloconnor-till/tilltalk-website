@@ -646,7 +646,7 @@ function LocationsTab({ plan }: { plan: string | null | undefined }) {
             <div className="relative">
               <input type={showKey ? 'text' : 'password'} value={form.api_key}
                 onChange={e => setForm(p => ({ ...p, api_key: e.target.value }))}
-                autoComplete="new-password"
+                autoComplete="off"
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 pr-10 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-green-500" />
               <button type="button" onClick={() => setShowKey(p => !p)}
                 className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 min-h-[36px] min-w-[36px] flex items-center justify-center">
