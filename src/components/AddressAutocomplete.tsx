@@ -6,11 +6,12 @@ import { useEffect, useRef, useState } from 'react'
 // Singleton script loader — only inserts the <script> tag once per page load
 // ---------------------------------------------------------------------------
 
-let _state: 'idle' | 'loading' | 'ready' = 'idle'
+let _state: 'idle' | 'loading' | 'ready' | 'error' = 'idle'
 const _queue: Array<() => void> = []
 
 function loadGoogleMaps(apiKey: string, onReady: () => void): void {
   if (_state === 'ready') { onReady(); return }
+  if (_state === 'error') return
   _queue.push(onReady)
   if (_state === 'loading') return
   _state = 'loading'
@@ -21,6 +22,10 @@ function loadGoogleMaps(apiKey: string, onReady: () => void): void {
   script.onload = () => {
     _state = 'ready'
     _queue.forEach(cb => cb())
+    _queue.length = 0
+  }
+  script.onerror = () => {
+    _state = 'error'
     _queue.length = 0
   }
   document.head.appendChild(script)
@@ -70,31 +75,38 @@ export default function AddressAutocomplete({
 }: AddressAutocompleteProps) {
   const inputRef    = useRef<HTMLInputElement>(null)
   const acRef       = useRef<GAutocomplete | null>(null)
+  const onChangeRef = useRef(onChange)
   const [ready, setReady] = useState(false)
 
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_PLACES_API_KEY ?? ''
 
-  // Load script on first render
+  // Keep the ref current without re-running effects
+  useEffect(() => { onChangeRef.current = onChange })
+
+  // Load script once
   useEffect(() => {
     if (!apiKey) return
     loadGoogleMaps(apiKey, () => setReady(true))
   }, [apiKey])
 
-  // Attach Autocomplete once script is ready
+  // Attach Autocomplete once — never re-runs on onChange changes because
+  // onChange is accessed via ref, not listed as a dependency.
   useEffect(() => {
     if (!ready || !inputRef.current) return
+    if (typeof google === 'undefined' || !google?.maps?.places) return
+
     acRef.current = new google.maps.places.Autocomplete(inputRef.current, {
       types:  ['address'],
       fields: ['formatted_address'],
     })
     acRef.current.addListener('place_changed', () => {
       const place = acRef.current!.getPlace()
-      if (place.formatted_address) onChange(place.formatted_address)
+      if (place.formatted_address) onChangeRef.current(place.formatted_address)
     })
     return () => {
       if (acRef.current) google.maps.event.clearInstanceListeners(acRef.current)
     }
-  }, [ready, onChange])
+  }, [ready]) // onChange intentionally omitted — accessed via ref above
 
   return (
     <div className={className}>
