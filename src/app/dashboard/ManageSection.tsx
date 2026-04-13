@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import {
   Plus, Trash2, Eye, EyeOff, HelpCircle, X,
   Phone, MapPin, Lock, Users, Shield, CheckCircle2,
-  AlertCircle, ToggleLeft, ToggleRight, Pencil,
+  AlertCircle, ToggleLeft, ToggleRight, Pencil, Play,
 } from 'lucide-react'
 import { PLANS } from '@/lib/plans'
 import AddressAutocomplete from '@/components/AddressAutocomplete'
@@ -369,6 +369,85 @@ function NumbersTab({ plan }: { plan: string | null | undefined }) {
 }
 
 // ---------------------------------------------------------------------------
+// POS tutorial video widget
+// ---------------------------------------------------------------------------
+
+const POS_VIDEO_IDS: Record<string, string | null> = {
+  clover:  'EhdZA9ia6H4',
+  square:  null,
+  eposnow: null,
+}
+
+function PosVideoTutorial({ posType }: { posType: string }) {
+  const [expanded, setExpanded] = useState(false)
+  const videoId  = POS_VIDEO_IDS[posType.toLowerCase()] ?? null
+  const posLabel = posType === 'eposnow' ? 'Epos Now' : posType.charAt(0).toUpperCase() + posType.slice(1)
+
+  if (!videoId) {
+    return (
+      <div className="flex items-center gap-2.5 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5">
+        <div className="w-7 h-7 bg-gray-200 rounded flex items-center justify-center shrink-0">
+          <Play size={11} className="text-gray-400 ml-0.5" />
+        </div>
+        <div>
+          <p className="text-xs font-medium text-gray-600">How to connect {posLabel}</p>
+          <p className="text-[11px] text-gray-400">Tutorial video coming soon</p>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="rounded-lg overflow-hidden border border-blue-100 bg-blue-50">
+      {!expanded ? (
+        <button
+          type="button"
+          onClick={() => setExpanded(true)}
+          className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-blue-100 transition-colors text-left"
+        >
+          <div className="relative w-[72px] h-10 rounded overflow-hidden shrink-0 bg-gray-200">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={`https://img.youtube.com/vi/${videoId}/mqdefault.jpg`}
+              alt=""
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 flex items-center justify-center bg-black/25">
+              <div className="w-5 h-5 bg-white/90 rounded-full flex items-center justify-center">
+                <Play size={8} className="text-red-600 ml-0.5" fill="currentColor" />
+              </div>
+            </div>
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-xs font-semibold text-blue-900">How to connect {posLabel}</p>
+            <p className="text-[11px] text-blue-600 mt-0.5">Watch the setup tutorial</p>
+          </div>
+        </button>
+      ) : (
+        <div>
+          <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
+            <iframe
+              src={`https://www.youtube.com/embed/${videoId}?autoplay=1`}
+              title={`How to connect ${posLabel}`}
+              className="absolute inset-0 w-full h-full"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+          </div>
+          <button
+            type="button"
+            onClick={() => setExpanded(false)}
+            className="w-full text-xs text-blue-600 hover:text-blue-800 py-2 text-center border-t border-blue-100"
+          >
+            Hide video
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
 // Locations tab
 // ---------------------------------------------------------------------------
 
@@ -506,6 +585,7 @@ function LocationsTab({ plan }: { plan: string | null | undefined }) {
                       </select>
                     </div>
                   </div>
+                  <PosVideoTutorial posType={editForm.pos_type} />
                   {credGuide(editForm.pos_type).idLabel && (
                     <div>
                       <label className="block text-xs font-medium text-gray-700 mb-1">
@@ -665,6 +745,8 @@ function LocationsTab({ plan }: { plan: string | null | undefined }) {
               </select>
             </div>
           </div>
+
+          <PosVideoTutorial posType={form.pos_type} />
 
           {guide.idLabel && (
             <div>
