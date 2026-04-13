@@ -1,9 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import {
   ChevronLeft, ChevronRight, Cloud, Wind, Droplets, MapPin,
-  CloudRain, Thermometer, Snowflake, AlertTriangle,
+  CloudRain, Thermometer, Snowflake, AlertTriangle, RefreshCw,
 } from 'lucide-react'
 
 // ---------------------------------------------------------------------------
@@ -36,35 +36,6 @@ const IRISH_HOLIDAYS: Record<string, string> = {
 }
 
 // ---------------------------------------------------------------------------
-// City → coordinates (fallback to Dublin)
-// ---------------------------------------------------------------------------
-
-const CITY_COORDS: Record<string, [number, number]> = {
-  dublin:    [53.3498, -6.2603],
-  cork:      [51.8985, -8.4756],
-  galway:    [53.2707, -9.0568],
-  limerick:  [52.6638, -8.6267],
-  waterford: [52.2593, -7.1101],
-  kilkenny:  [52.6541, -7.2448],
-  sligo:     [54.2697, -8.4694],
-  drogheda:  [53.7186, -6.3575],
-  dundalk:   [54.0041, -6.4110],
-  bray:      [53.2008, -6.0988],
-  navan:     [53.6524, -6.6817],
-  ennis:     [52.8438, -8.9872],
-  tralee:    [52.2714, -9.6944],
-  killarney: [52.0599, -9.5044],
-  wexford:   [52.3369, -6.4633],
-  athlone:   [53.4239, -7.9407],
-}
-
-function getCoordsForCity(city: string | null | undefined): [number, number] {
-  if (!city) return CITY_COORDS.dublin
-  const key = city.toLowerCase().replace(/[^a-z]/g, '')
-  return CITY_COORDS[key] ?? CITY_COORDS.dublin
-}
-
-// ---------------------------------------------------------------------------
 // Weather types
 // ---------------------------------------------------------------------------
 
@@ -77,7 +48,6 @@ interface WeatherDay {
   weatherCode: number
 }
 
-// WMO weather codes for fog: 45 = fog, 48 = depositing rime fog
 const FOG_CODES = new Set([45, 48])
 
 type AlertType = 'rain' | 'wind' | 'heat' | 'snow' | 'fog'
@@ -90,69 +60,57 @@ interface WeatherAlert {
 
 function classifyAlerts(wx: WeatherDay): WeatherAlert[] {
   const alerts: WeatherAlert[] = []
-
-  if (wx.rain > 10) {
-    alerts.push({
-      type:   'rain',
-      label:  `Heavy rain — ${wx.rain} mm forecast`,
-      impact: 'Expect fewer walk-ins. Consider pushing delivery promotions and reducing outdoor seating prep.',
-    })
-  }
-  if (wx.wind > 50) {
-    alerts.push({
-      type:   'wind',
-      label:  `Storm-force winds — ${wx.wind} km/h`,
-      impact: 'Significant disruption likely. Secure outdoor furniture, check for event cancellations, and review staffing.',
-    })
-  }
-  if (wx.tempMax > 28) {
-    alerts.push({
-      type:   'heat',
-      label:  `Extreme heat — ${wx.tempMax}°C`,
-      impact: 'Unusually hot for Ireland — expect higher demand for cold drinks and lighter dishes. Ensure adequate refrigeration.',
-    })
-  }
-  if (wx.snowfall > 0.5) {
-    alerts.push({
-      type:   'snow',
-      label:  `Snow or ice — ${wx.snowfall} cm`,
-      impact: 'Snow expected — footfall will drop sharply. Consider reduced staffing and a slower trading day.',
-    })
-  }
-  if (FOG_CODES.has(wx.weatherCode)) {
-    alerts.push({
-      type:   'fog',
-      label:  'Dense fog forecast',
-      impact: 'Reduced visibility may lower morning footfall. Allow extra time for deliveries.',
-    })
-  }
-
+  if (wx.rain > 10)
+    alerts.push({ type: 'rain', label: `Heavy rain — ${wx.rain} mm forecast`, impact: 'Expect fewer walk-ins. Consider pushing delivery promotions and reducing outdoor seating prep.' })
+  if (wx.wind > 50)
+    alerts.push({ type: 'wind', label: `Storm-force winds — ${wx.wind} km/h`, impact: 'Significant disruption likely. Secure outdoor furniture, check for event cancellations, and review staffing.' })
+  if (wx.tempMax > 28)
+    alerts.push({ type: 'heat', label: `Extreme heat — ${wx.tempMax}°C`, impact: 'Unusually hot for Ireland — expect higher demand for cold drinks and lighter dishes. Ensure adequate refrigeration.' })
+  if (wx.snowfall > 0.5)
+    alerts.push({ type: 'snow', label: `Snow or ice — ${wx.snowfall} cm`, impact: 'Snow expected — footfall will drop sharply. Consider reduced staffing and a slower trading day.' })
+  if (FOG_CODES.has(wx.weatherCode))
+    alerts.push({ type: 'fog', label: 'Dense fog forecast', impact: 'Reduced visibility may lower morning footfall. Allow extra time for deliveries.' })
   return alerts
 }
-
-// ---------------------------------------------------------------------------
-// Alert icon + colour helpers
-// ---------------------------------------------------------------------------
 
 const ALERT_STYLES: Record<AlertType, {
   Icon: React.ComponentType<{ size: number; className?: string }>
   bg: string; border: string; text: string; iconClass: string
 }> = {
-  rain: { Icon: CloudRain,    bg: 'bg-blue-50',   border: 'border-blue-200',  text: 'text-blue-900',  iconClass: 'text-blue-500'  },
-  wind: { Icon: Wind,         bg: 'bg-slate-50',  border: 'border-slate-200', text: 'text-slate-900', iconClass: 'text-slate-500' },
-  heat: { Icon: Thermometer,  bg: 'bg-red-50',    border: 'border-red-200',   text: 'text-red-900',   iconClass: 'text-red-500'   },
-  snow: { Icon: Snowflake,    bg: 'bg-sky-50',    border: 'border-sky-200',   text: 'text-sky-900',   iconClass: 'text-sky-500'   },
-  fog:  { Icon: Cloud,        bg: 'bg-gray-100',  border: 'border-gray-200',  text: 'text-gray-800',  iconClass: 'text-gray-400'  },
+  rain: { Icon: CloudRain,   bg: 'bg-blue-50',  border: 'border-blue-200',  text: 'text-blue-900',  iconClass: 'text-blue-500'  },
+  wind: { Icon: Wind,        bg: 'bg-slate-50', border: 'border-slate-200', text: 'text-slate-900', iconClass: 'text-slate-500' },
+  heat: { Icon: Thermometer, bg: 'bg-red-50',   border: 'border-red-200',   text: 'text-red-900',   iconClass: 'text-red-500'   },
+  snow: { Icon: Snowflake,   bg: 'bg-sky-50',   border: 'border-sky-200',   text: 'text-sky-900',   iconClass: 'text-sky-500'   },
+  fog:  { Icon: Cloud,       bg: 'bg-gray-100', border: 'border-gray-200',  text: 'text-gray-800',  iconClass: 'text-gray-400'  },
 }
 
 // ---------------------------------------------------------------------------
-// Forecast fetch — single call covers 14 days
+// Geocoding (Nominatim) + weather (Open-Meteo)
 // ---------------------------------------------------------------------------
 
-async function fetchForecast(
-  lat: number,
-  lng: number,
-): Promise<Record<string, WeatherDay>> {
+// Simple in-memory cache so navigating tabs doesn't re-geocode the same address
+const _geocodeCache: Record<string, [number, number] | null> = {}
+
+async function geocodeAddress(address: string): Promise<[number, number] | null> {
+  if (address in _geocodeCache) return _geocodeCache[address]
+  try {
+    const res  = await fetch(
+      `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&limit=1`,
+      { headers: { 'Accept-Language': 'en' } },
+    )
+    const data = await res.json()
+    const coords: [number, number] | null = data[0]
+      ? [parseFloat(data[0].lat), parseFloat(data[0].lon)]
+      : null
+    _geocodeCache[address] = coords
+    return coords
+  } catch {
+    _geocodeCache[address] = null
+    return null
+  }
+}
+
+async function fetchForecast(lat: number, lng: number): Promise<Record<string, WeatherDay>> {
   try {
     const params = new URLSearchParams({
       latitude:      String(lat),
@@ -166,7 +124,6 @@ async function fetchForecast(
     const data = await res.json()
     const d = data.daily
     if (!d?.time) return {}
-
     const map: Record<string, WeatherDay> = {}
     for (let i = 0; i < d.time.length; i++) {
       map[d.time[i]] = {
@@ -189,11 +146,12 @@ async function fetchForecast(
 // ---------------------------------------------------------------------------
 
 interface ReminderItem { id: number; text: string; remind_at: string }
+interface EventItem    { name: string; date: string; distance_km: number; url?: string }
+interface LocationItem { id: number; nickname: string; address: string | null }
 
 interface CalendarProps {
   reminders: ReminderItem[]
-  events:    { name: string; date: string; distance_km: number; url?: string }[]
-  city:      string | null | undefined
+  locations: LocationItem[]
 }
 
 // ---------------------------------------------------------------------------
@@ -213,7 +171,7 @@ const MONTH_NAMES = ['January','February','March','April','May','June','July','A
 const DAY_NAMES   = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun']
 
 // ---------------------------------------------------------------------------
-// Staffing suggestion (weather-aware)
+// Staffing suggestion
 // ---------------------------------------------------------------------------
 
 function staffingSuggestion(
@@ -222,12 +180,11 @@ function staffingSuggestion(
   alerts: WeatherAlert[],
   hasEvents: boolean,
 ): string {
-  const holiday  = IRISH_HOLIDAYS[dateStr]
-  const dow      = new Date(dateStr).getDay()
+  const holiday   = IRISH_HOLIDAYS[dateStr]
+  const dow       = new Date(dateStr).getDay()
   const isWeekend = dow === 0 || dow === 6
-  const isFri    = dow === 5
+  const isFri     = dow === 5
 
-  // Priority order: holiday > severe weather > event > weekend/weekday
   if (holiday) return `Public holiday (${holiday}) — expect significantly higher footfall. Consider full staffing.`
 
   const snow = alerts.find(a => a.type === 'snow')
@@ -237,7 +194,7 @@ function staffingSuggestion(
   if (snow) return 'Snow forecast — expect very low footfall. Consider a skeleton crew and contact staff early.'
   if (wind) return 'Storm-force winds — disruption likely. Review staffing levels and check for delivery delays.'
   if (hasEvents && rain) return 'Nearby event plus heavy rain — event-goers may still come but expect some drop-off. Monitor from midday.'
-  if (hasEvents) return `Event nearby — expect higher footfall around the event. Plan for a busier shift.`
+  if (hasEvents) return 'Event nearby — expect higher footfall around the event. Plan for a busier shift.'
   if (rain) return 'Heavy rain — walk-ins likely lower. Consider lighter staffing and push delivery/takeaway.'
   if (isFri || isWeekend) return `${isWeekend ? 'Weekend' : 'Friday'} — typically your busiest period. Schedule accordingly.`
   return 'No significant disruptions expected. Standard staffing should be sufficient.'
@@ -247,36 +204,82 @@ function staffingSuggestion(
 // Component
 // ---------------------------------------------------------------------------
 
-export default function CalendarSection({ reminders, events, city }: CalendarProps) {
+export default function CalendarSection({ reminders, locations }: CalendarProps) {
   const today  = new Date()
   const [year,  setYear]  = useState(today.getFullYear())
   const [month, setMonth] = useState(today.getMonth())
   const [selected, setSelected] = useState<string | null>(null)
 
-  // 14-day forecast preloaded at mount
-  const [forecast,        setForecast]        = useState<Record<string, WeatherDay>>({})
-  const [forecastLoading, setForecastLoading] = useState(true)
+  // Active location tab
+  const [activeLocId, setActiveLocId] = useState<number | null>(
+    locations.length > 0 ? locations[0].id : null
+  )
 
-  const coords = getCoordsForCity(city)
+  // Per-location data
+  const [forecast,        setForecast]        = useState<Record<string, WeatherDay>>({})
+  const [events,          setEvents]          = useState<EventItem[]>([])
+  const [forecastLoading, setForecastLoading] = useState(false)
+  const [eventsLoading,   setEventsLoading]   = useState(false)
+  const [refreshing,      setRefreshing]      = useState(false)
+  const [locationLabel,   setLocationLabel]   = useState<string | null>(null)
+
+  const activeLoc = locations.find(l => l.id === activeLocId) ?? locations[0] ?? null
+
+  // Sync activeLocId when locations list changes (e.g. first load)
+  useEffect(() => {
+    if (locations.length > 0 && (activeLocId === null || !locations.find(l => l.id === activeLocId))) {
+      setActiveLocId(locations[0].id)
+    }
+  }, [locations, activeLocId])
+
+  const loadData = useCallback(async (loc: LocationItem, isRefresh = false) => {
+    if (isRefresh) setRefreshing(true)
+    setForecastLoading(true)
+    setEventsLoading(true)
+    setEvents([])
+    setForecast({})
+
+    const address = loc.address
+
+    // Geocode then fetch weather
+    if (address) {
+      const coords = await geocodeAddress(address)
+      setLocationLabel(address)
+      if (coords) {
+        fetchForecast(coords[0], coords[1]).then(data => {
+          setForecast(data)
+          setForecastLoading(false)
+        })
+      } else {
+        setForecastLoading(false)
+      }
+    } else {
+      setLocationLabel(loc.nickname)
+      setForecastLoading(false)
+    }
+
+    // Fetch events for this location
+    fetch(`/api/dashboard/events?location_id=${loc.id}`)
+      .then(r => (r.ok ? r.json() : null)).catch(() => null)
+      .then(d => {
+        setEvents(d?.events ?? [])
+        setEventsLoading(false)
+        if (isRefresh) setRefreshing(false)
+      })
+  }, [])
 
   useEffect(() => {
-    setForecastLoading(true)
-    fetchForecast(coords[0], coords[1]).then(data => {
-      setForecast(data)
-      setForecastLoading(false)
-    })
-  }, [coords[0], coords[1]]) // eslint-disable-line react-hooks/exhaustive-deps
+    if (activeLoc) loadData(activeLoc)
+  }, [activeLoc, loadData]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Index reminders and events by date
-  const reminderDays = new Set(reminders.map(r => r.remind_at.slice(0, 10)))
-  const eventDays    = new Set(events.map(e => (e.date || '').slice(0, 10)))
+  function handleTabChange(loc: LocationItem) {
+    setActiveLocId(loc.id)
+    setSelected(null)
+  }
 
-  // Days with weather alerts (orange dot)
-  const alertDays = new Set(
-    Object.entries(forecast)
-      .filter(([, wx]) => classifyAlerts(wx).length > 0)
-      .map(([date]) => date)
-  )
+  function handleRefresh() {
+    if (activeLoc && !refreshing) loadData(activeLoc, true)
+  }
 
   function prevMonth() {
     if (month === 0) { setYear(y => y - 1); setMonth(11) }
@@ -289,37 +292,76 @@ export default function CalendarSection({ reminders, events, city }: CalendarPro
     setSelected(null)
   }
 
-  const totalDays = daysInMonth(year, month)
-  const startDow  = firstDayOfWeek(year, month)
-  const todayISO  = toISO(today.getFullYear(), today.getMonth(), today.getDate())
+  const reminderDays = new Set(reminders.map(r => r.remind_at.slice(0, 10)))
+  const eventDays    = new Set(events.map(e => (e.date || '').slice(0, 10)))
+  const alertDays    = new Set(
+    Object.entries(forecast)
+      .filter(([, wx]) => classifyAlerts(wx).length > 0)
+      .map(([date]) => date)
+  )
+
+  const totalDays  = daysInMonth(year, month)
+  const startDow   = firstDayOfWeek(year, month)
+  const todayISO   = toISO(today.getFullYear(), today.getMonth(), today.getDate())
 
   const cells: (string | null)[] = []
   for (let i = 0; i < startDow; i++) cells.push(null)
   for (let d = 1; d <= totalDays; d++) cells.push(toISO(year, month, d))
   while (cells.length % 7 !== 0) cells.push(null)
 
-  // Selected day data
-  const selWx        = selected ? forecast[selected]                                          : undefined
-  const selAlerts    = selWx    ? classifyAlerts(selWx)                                       : []
+  const selWx        = selected ? forecast[selected]                                           : undefined
+  const selAlerts    = selWx    ? classifyAlerts(selWx)                                        : []
   const selReminders = selected ? reminders.filter(r => r.remind_at.slice(0, 10) === selected) : []
   const selEvents    = selected ? events.filter(e => (e.date || '').slice(0, 10) === selected)  : []
-  const selHoliday   = selected ? IRISH_HOLIDAYS[selected] ?? null                             : null
-  const inForecast   = selected ? !!forecast[selected]                                         : false
-  const isPast       = selected ? new Date(selected).getTime() < new Date(todayISO).getTime()  : false
+  const selHoliday   = selected ? IRISH_HOLIDAYS[selected] ?? null                              : null
+  const inForecast   = selected ? !!forecast[selected]                                          : false
+  const isPast       = selected ? new Date(selected).getTime() < new Date(todayISO).getTime()   : false
+
+  const dataLoading = forecastLoading || eventsLoading
 
   return (
     <div className="space-y-4">
 
-      {/* ── Calendar card ─────────────────────────────────────────── */}
+      {/* ── Location tabs (only shown for multi-location clients) ──────── */}
+      {locations.length > 1 && (
+        <div className="flex gap-1.5 flex-wrap">
+          {locations.map(loc => (
+            <button
+              key={loc.id}
+              onClick={() => handleTabChange(loc)}
+              className={`flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg border transition-colors min-h-[32px] ${
+                loc.id === activeLocId
+                  ? 'bg-green-600 text-white border-green-600'
+                  : 'bg-white text-gray-600 border-gray-200 hover:border-green-300 hover:text-green-700'
+              }`}
+            >
+              <MapPin size={11} />
+              {loc.nickname}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* ── Calendar card ──────────────────────────────────────────────── */}
       <div className="bg-white rounded-2xl border border-gray-200 p-5">
 
-        {/* Month nav */}
+        {/* Month nav + refresh button */}
         <div className="flex items-center justify-between mb-4">
           <button onClick={prevMonth}
             className="p-2 rounded-lg hover:bg-gray-100 min-h-[44px] min-w-[44px] flex items-center justify-center text-gray-600">
             <ChevronLeft size={18} />
           </button>
-          <h3 className="text-sm font-semibold text-gray-900">{MONTH_NAMES[month]} {year}</h3>
+          <div className="flex items-center gap-2">
+            <h3 className="text-sm font-semibold text-gray-900">{MONTH_NAMES[month]} {year}</h3>
+            <button
+              onClick={handleRefresh}
+              disabled={refreshing || dataLoading}
+              title="Refresh events and weather"
+              className="p-1.5 rounded-lg hover:bg-gray-100 disabled:opacity-40 text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              <RefreshCw size={13} className={refreshing ? 'animate-spin' : ''} />
+            </button>
+          </div>
           <button onClick={nextMonth}
             className="p-2 rounded-lg hover:bg-gray-100 min-h-[44px] min-w-[44px] flex items-center justify-center text-gray-600">
             <ChevronRight size={18} />
@@ -363,20 +405,11 @@ export default function CalendarSection({ reminders, events, city }: CalendarPro
                 <span className={`text-sm leading-none ${isHoliday && !isSelected ? 'text-red-600 font-semibold' : ''}`}>
                   {day}
                 </span>
-                {/* Dots row */}
                 <div className="flex gap-0.5 mt-1">
-                  {isHoliday && (
-                    <span className={`w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-white/80' : 'bg-red-400'}`} />
-                  )}
-                  {hasEvent && (
-                    <span className={`w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-white/80' : 'bg-blue-400'}`} />
-                  )}
-                  {hasRemind && (
-                    <span className={`w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-white/80' : 'bg-green-500'}`} />
-                  )}
-                  {hasAlert && !forecastLoading && (
-                    <span className={`w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-white/80' : 'bg-orange-400'}`} />
-                  )}
+                  {isHoliday  && <span className={`w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-white/80' : 'bg-red-400'}`} />}
+                  {hasEvent   && <span className={`w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-white/80' : 'bg-blue-400'}`} />}
+                  {hasRemind  && <span className={`w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-white/80' : 'bg-green-500'}`} />}
+                  {hasAlert && !forecastLoading && <span className={`w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-white/80' : 'bg-orange-400'}`} />}
                 </div>
               </button>
             )
@@ -396,10 +429,15 @@ export default function CalendarSection({ reminders, events, city }: CalendarPro
               <span className="text-xs text-gray-500">{label}</span>
             </div>
           ))}
+          {(eventsLoading || forecastLoading) && (
+            <span className="text-xs text-gray-400 ml-auto flex items-center gap-1">
+              <RefreshCw size={10} className="animate-spin" /> Loading…
+            </span>
+          )}
         </div>
       </div>
 
-      {/* ── Day detail panel ───────────────────────────────────────── */}
+      {/* ── Day detail panel ───────────────────────────────────────────── */}
       {selected && (
         <div className="bg-white rounded-2xl border border-gray-200 p-5 space-y-4">
 
@@ -409,20 +447,15 @@ export default function CalendarSection({ reminders, events, city }: CalendarPro
             })}
           </h3>
 
-          {/* ── Weather alerts (orange banners) ──────────────────── */}
+          {/* Weather alerts */}
           {selAlerts.length > 0 && (
             <div className="space-y-2">
               {selAlerts.map(alert => {
                 const style = ALERT_STYLES[alert.type]
                 const { Icon } = style
                 return (
-                  <div
-                    key={alert.type}
-                    className={`flex items-start gap-3 ${style.bg} border ${style.border} rounded-xl px-3.5 py-3`}
-                  >
-                    <div className="shrink-0 mt-0.5">
-                      <Icon size={16} className={style.iconClass} />
-                    </div>
+                  <div key={alert.type} className={`flex items-start gap-3 ${style.bg} border ${style.border} rounded-xl px-3.5 py-3`}>
+                    <div className="shrink-0 mt-0.5"><Icon size={16} className={style.iconClass} /></div>
                     <div>
                       <p className={`text-sm font-semibold ${style.text}`}>{alert.label}</p>
                       <p className={`text-xs mt-0.5 ${style.text} opacity-80`}>{alert.impact}</p>
@@ -433,7 +466,7 @@ export default function CalendarSection({ reminders, events, city }: CalendarPro
             </div>
           )}
 
-          {/* ── Holiday ──────────────────────────────────────────── */}
+          {/* Holiday */}
           {selHoliday && (
             <div className="flex items-center gap-2 bg-red-50 border border-red-100 rounded-lg px-3 py-2.5">
               <span className="w-2 h-2 rounded-full bg-red-400 shrink-0" />
@@ -441,7 +474,7 @@ export default function CalendarSection({ reminders, events, city }: CalendarPro
             </div>
           )}
 
-          {/* ── Nearby events ────────────────────────────────────── */}
+          {/* Nearby events */}
           {selEvents.length > 0 && (
             <div className="space-y-2">
               <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Nearby events</p>
@@ -461,7 +494,7 @@ export default function CalendarSection({ reminders, events, city }: CalendarPro
             </div>
           )}
 
-          {/* ── Reminders ────────────────────────────────────────── */}
+          {/* Reminders */}
           {selReminders.length > 0 && (
             <div className="space-y-2">
               <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Your reminders</p>
@@ -479,13 +512,13 @@ export default function CalendarSection({ reminders, events, city }: CalendarPro
             </div>
           )}
 
-          {/* ── Weather detail ───────────────────────────────────── */}
+          {/* Weather detail */}
           <div>
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
               Weather forecast
-              {city && (
+              {locationLabel && (
                 <span className="ml-1 font-normal normal-case text-gray-400 inline-flex items-center gap-0.5">
-                  <MapPin size={10} />{city}
+                  <MapPin size={10} />{locationLabel}
                 </span>
               )}
             </p>
@@ -493,7 +526,11 @@ export default function CalendarSection({ reminders, events, city }: CalendarPro
               <p className="text-xs text-gray-400">No forecast available for past dates.</p>
             ) : !inForecast ? (
               <p className="text-xs text-gray-400">
-                Forecast not available — Open-Meteo provides up to 14 days ahead.
+                {forecastLoading
+                  ? 'Loading forecast…'
+                  : activeLoc?.address
+                    ? 'Forecast not available — Open-Meteo provides up to 14 days ahead.'
+                    : 'Add an address to this location to enable weather forecasts.'}
               </p>
             ) : selWx ? (
               <div className="grid grid-cols-4 gap-2">
@@ -521,7 +558,7 @@ export default function CalendarSection({ reminders, events, city }: CalendarPro
             ) : null}
           </div>
 
-          {/* ── Staffing suggestion ───────────────────────────────── */}
+          {/* Staffing suggestion */}
           <div className="bg-amber-50 border border-amber-100 rounded-xl px-3.5 py-3">
             <p className="text-xs font-semibold text-amber-700 mb-1">Staffing suggestion</p>
             <p className="text-sm text-amber-900">
@@ -529,7 +566,6 @@ export default function CalendarSection({ reminders, events, city }: CalendarPro
             </p>
           </div>
 
-          {/* Empty state */}
           {!selHoliday && selEvents.length === 0 && selReminders.length === 0 &&
            selAlerts.length === 0 && !inForecast && !isPast && (
             <p className="text-sm text-gray-400 text-center py-2">No events or reminders on this day.</p>

@@ -56,12 +56,9 @@ interface SalesData {
   top_items: { name: string; revenue: number; qty: number }[]
 }
 
-interface EventItem {
-  name: string; venue: string; date: string; distance_km: number; url?: string
-}
-
 interface ReminderItem { id: number; text: string; remind_at: string }
 interface NoteItem    { id: number; note_text: string; created_at: string }
+interface LocationItem { id: number; nickname: string; address: string | null }
 
 interface Props {
   user: SupabaseUser
@@ -297,10 +294,9 @@ export default function DashboardClient({ user, profile }: Props) {
 
   // Data state
   const [salesData,   setSalesData]   = useState<SalesData | null>(null)
-  const [eventsData,  setEventsData]  = useState<EventItem[]>([])
   const [notesData,   setNotesData]   = useState<{ reminders: ReminderItem[]; notes: NoteItem[] }>({ reminders: [], notes: [] })
+  const [locations,   setLocations]   = useState<LocationItem[]>([])
   const [salesLoading,  setSalesLoading]  = useState(true)
-  const [eventsLoading, setEventsLoading] = useState(true)
   const [notesLoading,  setNotesLoading]  = useState(true)
   const [plotlyLoaded,  setPlotlyLoaded]  = useState(false)
   const [refreshing,    setRefreshing]    = useState(false)
@@ -394,20 +390,19 @@ export default function DashboardClient({ user, profile }: Props) {
 
   const fetchData = useCallback(async () => {
     setSalesLoading(true)
-    setEventsLoading(true)
     setNotesLoading(true)
 
     fetch('/api/dashboard/sales')
       .then(r => (r.ok ? r.json() : null)).catch(() => null)
       .then(d => { setSalesData(d); setSalesLoading(false) })
 
-    fetch('/api/dashboard/events')
-      .then(r => (r.ok ? r.json() : null)).catch(() => null)
-      .then(d => { setEventsData(d?.events || []); setEventsLoading(false) })
-
     fetch('/api/dashboard/notes')
       .then(r => (r.ok ? r.json() : null)).catch(() => null)
       .then(d => { setNotesData({ reminders: d?.reminders || [], notes: d?.notes || [] }); setNotesLoading(false) })
+
+    fetch('/api/manage/locations')
+      .then(r => (r.ok ? r.json() : null)).catch(() => null)
+      .then(d => { setLocations((d?.locations ?? []).map((l: Record<string, unknown>) => ({ id: l.id, nickname: l.nickname, address: l.address ?? null }))) })
   }, [])
 
   useEffect(() => { fetchData() }, [fetchData])
@@ -617,15 +612,14 @@ export default function DashboardClient({ user, profile }: Props) {
           <div className="flex items-center justify-between mb-1">
             <h2 className="text-base font-semibold text-gray-900">Calendar</h2>
           </div>
-          {notesLoading || eventsLoading ? (
+          {notesLoading ? (
             <div className="bg-white rounded-2xl border border-gray-200 p-5">
               <div className="h-64 bg-gray-100 rounded-xl animate-pulse" />
             </div>
           ) : (
             <CalendarSection
               reminders={notesData.reminders}
-              events={eventsData}
-              city={profile?.pos_address_city}
+              locations={locations}
             />
           )}
         </Section>
