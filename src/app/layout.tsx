@@ -16,6 +16,10 @@ export const metadata: Metadata = {
   description:
     'Connect your POS system and get instant sales insights on WhatsApp. No dashboards needed. Try free for 14 days.',
   manifest: '/manifest.json',
+  icons: {
+    icon: '/favicon.ico',
+    apple: '/icon-192.png',
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
@@ -32,7 +36,7 @@ export default function RootLayout({
     <html lang="en">
       <head>
         <meta name="theme-color" content="#16a34a" />
-        <link rel="apple-touch-icon" href="/icon.svg" />
+        <link rel="apple-touch-icon" href="/icon-192.png" />
       </head>
       <body className={`${inter.className} bg-gray-50`}>
         <Nav />
