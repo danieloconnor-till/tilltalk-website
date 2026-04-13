@@ -58,12 +58,31 @@ interface WeatherAlert {
   impact: string
 }
 
-function classifyAlerts(wx: WeatherDay): WeatherAlert[] {
+// Per-day hourly time windows for peak rain / wind
+interface DayWindows { rain_window: string | null; wind_window: string | null }
+
+function fmtHour(h: number): string {
+  if (h === 0 || h === 24) return 'midnight'
+  if (h === 12) return 'noon'
+  return h < 12 ? `${h}am` : `${h - 12}pm`
+}
+
+function peakWindow(hours: number[], values: number[], threshold: number): string | null {
+  const above = hours.filter((_, i) => values[i] >= threshold)
+  if (above.length === 0) return null
+  return `${fmtHour(above[0])}–${fmtHour(above[above.length - 1] + 1)}`
+}
+
+function classifyAlerts(wx: WeatherDay, windows?: DayWindows): WeatherAlert[] {
   const alerts: WeatherAlert[] = []
-  if (wx.rain > 10)
-    alerts.push({ type: 'rain', label: `Heavy rain — ${wx.rain} mm forecast`, impact: 'Expect fewer walk-ins. Consider pushing delivery promotions and reducing outdoor seating prep.' })
-  if (wx.wind > 50)
-    alerts.push({ type: 'wind', label: `Storm-force winds — ${wx.wind} km/h`, impact: 'Significant disruption likely. Secure outdoor furniture, check for event cancellations, and review staffing.' })
+  if (wx.rain > 10) {
+    const t = windows?.rain_window ? `, heaviest ${windows.rain_window}` : ''
+    alerts.push({ type: 'rain', label: `Heavy rain — ${wx.rain} mm forecast${t}`, impact: 'Expect fewer walk-ins. Consider pushing delivery promotions and reducing outdoor seating prep.' })
+  }
+  if (wx.wind > 50) {
+    const t = windows?.wind_window ? `, peaking ${windows.wind_window}` : ''
+    alerts.push({ type: 'wind', label: `Storm-force winds — ${wx.wind} km/h${t}`, impact: 'Significant disruption likely. Secure outdoor furniture, check for event cancellations, and review staffing.' })
+  }
   if (wx.tempMax > 28)
     alerts.push({ type: 'heat', label: `Extreme heat — ${wx.tempMax}°C`, impact: 'Unusually hot for Ireland — expect higher demand for cold drinks and lighter dishes. Ensure adequate refrigeration.' })
   if (wx.snowfall > 0.5)
@@ -141,12 +160,61 @@ async function fetchForecast(lat: number, lng: number): Promise<Record<string, W
   }
 }
 
+async function fetchHourlyWindows(lat: number, lng: number): Promise<Record<string, DayWindows>> {
+  try {
+    const params = new URLSearchParams({
+      latitude:      String(lat),
+      longitude:     String(lng),
+      hourly:        'precipitation,windspeed_10m',
+      timezone:      'Europe/Dublin',
+      forecast_days: '14',
+    })
+    const res = await fetch(`https://api.open-meteo.com/v1/forecast?${params}`)
+    if (!res.ok) return {}
+    const data = await res.json()
+    const h = data.hourly
+    if (!h?.time) return {}
+
+    // Group hourly values by date
+    const byDate: Record<string, { hours: number[]; rain: number[]; wind: number[] }> = {}
+    for (let i = 0; i < h.time.length; i++) {
+      const [date, timeStr] = (h.time[i] as string).split('T')
+      const hour = parseInt(timeStr.slice(0, 2), 10)
+      if (!byDate[date]) byDate[date] = { hours: [], rain: [], wind: [] }
+      byDate[date].hours.push(hour)
+      byDate[date].rain.push(h.precipitation?.[i] ?? 0)
+      byDate[date].wind.push(h.windspeed_10m?.[i] ?? 0)
+    }
+
+    const result: Record<string, DayWindows> = {}
+    for (const [date, { hours, rain, wind }] of Object.entries(byDate)) {
+      result[date] = {
+        rain_window: peakWindow(hours, rain, 0.5),   // any hour ≥ 0.5 mm
+        wind_window: peakWindow(hours, wind, 40),    // any hour ≥ 40 km/h
+      }
+    }
+    return result
+  } catch {
+    return {}
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
 
 interface ReminderItem { id: number; text: string; remind_at: string }
-interface EventItem    { name: string; date: string; distance_km: number; url?: string }
+interface EventItem {
+  name:        string
+  venue:       string
+  date:        string
+  start_time:  string
+  end_time:    string
+  capacity:    number | null
+  category:    string
+  distance_km: number | null
+  url:         string
+}
 interface LocationItem { id: number; nickname: string; address: string | null }
 
 interface CalendarProps {
@@ -217,6 +285,7 @@ export default function CalendarSection({ reminders, locations }: CalendarProps)
 
   // Per-location data
   const [forecast,        setForecast]        = useState<Record<string, WeatherDay>>({})
+  const [hourlyWindows,   setHourlyWindows]   = useState<Record<string, DayWindows>>({})
   const [events,          setEvents]          = useState<EventItem[]>([])
   const [forecastLoading, setForecastLoading] = useState(false)
   const [eventsLoading,   setEventsLoading]   = useState(false)
@@ -238,16 +307,22 @@ export default function CalendarSection({ reminders, locations }: CalendarProps)
     setEventsLoading(true)
     setEvents([])
     setForecast({})
+    setHourlyWindows({})
 
     const address = loc.address
 
-    // Geocode then fetch weather
+    // Geocode then fetch daily + hourly weather in parallel
     if (address) {
       const coords = await geocodeAddress(address)
       setLocationLabel(address)
       if (coords) {
-        fetchForecast(coords[0], coords[1]).then(data => {
-          setForecast(data)
+        const [lat, lng] = coords
+        Promise.all([
+          fetchForecast(lat, lng),
+          fetchHourlyWindows(lat, lng),
+        ]).then(([daily, hourly]) => {
+          setForecast(daily)
+          setHourlyWindows(hourly)
           setForecastLoading(false)
         })
       } else {
@@ -310,7 +385,7 @@ export default function CalendarSection({ reminders, locations }: CalendarProps)
   while (cells.length % 7 !== 0) cells.push(null)
 
   const selWx        = selected ? forecast[selected]                                           : undefined
-  const selAlerts    = selWx    ? classifyAlerts(selWx)                                        : []
+  const selAlerts    = selWx    ? classifyAlerts(selWx, selected ? hourlyWindows[selected] : undefined) : []
   const selReminders = selected ? reminders.filter(r => r.remind_at.slice(0, 10) === selected) : []
   const selEvents    = selected ? events.filter(e => (e.date || '').slice(0, 10) === selected)  : []
   const selHoliday   = selected ? IRISH_HOLIDAYS[selected] ?? null                              : null
@@ -479,16 +554,38 @@ export default function CalendarSection({ reminders, locations }: CalendarProps)
             <div className="space-y-2">
               <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Nearby events</p>
               {selEvents.map((ev, i) => (
-                <div key={i} className="flex items-start gap-2 bg-blue-50 border border-blue-100 rounded-lg px-3 py-2.5">
-                  <span className="w-2 h-2 rounded-full bg-blue-400 shrink-0 mt-1.5" />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-blue-900 truncate">{ev.name}</p>
-                    <p className="text-xs text-blue-600 mt-0.5">{ev.distance_km.toFixed(1)} km away</p>
+                <div key={i} className="bg-blue-50 border border-blue-100 rounded-lg px-3 py-2.5">
+                  <div className="flex items-start gap-2">
+                    <span className="w-2 h-2 rounded-full bg-blue-400 shrink-0 mt-1.5" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-blue-900 leading-snug">{ev.name}</p>
+                      {ev.venue && (
+                        <p className="text-xs text-blue-700 mt-0.5">{ev.venue}</p>
+                      )}
+                      <div className="flex flex-wrap items-center gap-x-2.5 gap-y-0.5 mt-1">
+                        {(ev.start_time || ev.end_time) && (
+                          <span className="text-xs text-blue-600 font-medium">
+                            {ev.start_time}{ev.end_time ? `–${ev.end_time}` : ''}
+                          </span>
+                        )}
+                        {ev.distance_km !== null && ev.distance_km !== undefined && (
+                          <span className="text-xs text-blue-500">{Number(ev.distance_km).toFixed(1)} km away</span>
+                        )}
+                        {ev.capacity && (
+                          <span className="text-xs text-blue-500">~{ev.capacity.toLocaleString()} capacity</span>
+                        )}
+                        {ev.category && ev.category !== 'Event' && (
+                          <span className="text-xs text-blue-400">{ev.category}</span>
+                        )}
+                      </div>
+                    </div>
+                    {ev.url && (
+                      <a href={ev.url} target="_blank" rel="noopener noreferrer"
+                        className="text-xs font-medium text-blue-600 hover:text-blue-800 hover:underline shrink-0 mt-0.5 whitespace-nowrap">
+                        Event info →
+                      </a>
+                    )}
                   </div>
-                  {ev.url && (
-                    <a href={ev.url} target="_blank" rel="noopener noreferrer"
-                      className="text-xs text-blue-600 hover:underline shrink-0">View →</a>
-                  )}
                 </div>
               ))}
             </div>
