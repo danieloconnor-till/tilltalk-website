@@ -505,16 +505,6 @@ function LocationsTab({ plan }: { plan: string | null | undefined }) {
                   </div>
                   <div>
                     <label className="block text-xs font-medium text-gray-700 mb-1">
-                      Address <span className="font-normal text-gray-400">(optional — used for nearby events &amp; weather)</span>
-                    </label>
-                    <input type="text" value={editForm.address}
-                      onChange={e => setEditForm(p => ({ ...p, address: e.target.value }))}
-                      placeholder="12 Grafton Street, Dublin 2, Ireland"
-                      autoComplete="off"
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500" />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">
                       {credGuide(loc.pos_type).keyLabel} {loc.api_key_set && '(leave blank to keep current)'}
                     </label>
                     <div className="relative">
@@ -527,6 +517,16 @@ function LocationsTab({ plan }: { plan: string | null | undefined }) {
                         {editShowKey ? <EyeOff size={15} /> : <Eye size={15} />}
                       </button>
                     </div>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">
+                      Address <span className="font-normal text-gray-400">(optional — used for nearby events &amp; weather)</span>
+                    </label>
+                    <input type="text" value={editForm.address}
+                      onChange={e => setEditForm(p => ({ ...p, address: e.target.value }))}
+                      placeholder="12 Grafton Street, Dublin 2, Ireland"
+                      autoComplete="off"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500" />
                   </div>
                   <div className="flex gap-2 pt-1">
                     <button onClick={() => handleEditSave(loc.id)} disabled={saving}
@@ -643,17 +643,6 @@ function LocationsTab({ plan }: { plan: string | null | undefined }) {
             </div>
           </div>
 
-          <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">
-              Address <span className="font-normal text-gray-400">(optional — used for nearby events &amp; weather)</span>
-            </label>
-            <input type="text" value={form.address}
-              onChange={e => setForm(p => ({ ...p, address: e.target.value }))}
-              placeholder="12 Grafton Street, Dublin 2, Ireland"
-              autoComplete="off"
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500" />
-          </div>
-
           {guide.idLabel && (
             <div>
               <label className="block text-xs font-medium text-gray-700 mb-1">{guide.idLabel}</label>
@@ -704,6 +693,17 @@ function LocationsTab({ plan }: { plan: string | null | undefined }) {
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-green-500" />
             </div>
           )}
+
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">
+              Address <span className="font-normal text-gray-400">(optional — used for nearby events &amp; weather)</span>
+            </label>
+            <input type="text" value={form.address}
+              onChange={e => setForm(p => ({ ...p, address: e.target.value }))}
+              placeholder="12 Grafton Street, Dublin 2, Ireland"
+              autoComplete="off"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500" />
+          </div>
 
           <div className="flex gap-3 pt-1">
             <button type="submit" disabled={saving}
