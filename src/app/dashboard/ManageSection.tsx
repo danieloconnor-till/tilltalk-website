@@ -27,6 +27,7 @@ interface LocationEntry {
   merchant_id: string | null
   api_key_set: boolean
   api_base: string | null
+  address: string | null
   active: boolean
 }
 
@@ -384,11 +385,11 @@ function LocationsTab({ plan }: { plan: string | null | undefined }) {
 
   // Add form
   const [form, setForm] = useState({
-    nickname: '', pos_type: 'clover', merchant_id: '', api_key: '', api_base: '',
+    nickname: '', pos_type: 'clover', merchant_id: '', api_key: '', api_base: '', address: '',
   })
   // Edit form
   const [editForm, setEditForm] = useState({
-    nickname: '', merchant_id: '', api_key: '', api_base: '',
+    nickname: '', merchant_id: '', api_key: '', api_base: '', address: '',
   })
   const [editShowKey,      setEditShowKey]      = useState(false)
   const [deleteConfirmId,  setDeleteConfirmId]  = useState<number | null>(null)
@@ -417,20 +418,21 @@ function LocationsTab({ plan }: { plan: string | null | undefined }) {
         merchant_id: form.merchant_id.trim() || undefined,
         api_key:     form.api_key.trim()     || undefined,
         api_base:    form.api_base.trim()    || undefined,
+        address:     form.address.trim()     || undefined,
       }),
     })
     const data = await res.json()
     setSaving(false)
     if (!res.ok) { setMsg({ ok: false, text: data.error || 'Failed to add location.' }); return }
     setAdding(false)
-    setForm({ nickname: '', pos_type: 'clover', merchant_id: '', api_key: '', api_base: '' })
+    setForm({ nickname: '', pos_type: 'clover', merchant_id: '', api_key: '', api_base: '', address: '' })
     setMsg({ ok: true, text: `"${form.nickname}" added.` })
     load()
   }
 
   function startEdit(loc: LocationEntry) {
     setEditId(loc.id)
-    setEditForm({ nickname: loc.nickname, merchant_id: loc.merchant_id || '', api_key: '', api_base: loc.api_base || '' })
+    setEditForm({ nickname: loc.nickname, merchant_id: loc.merchant_id || '', api_key: '', api_base: loc.api_base || '', address: loc.address || '' })
     setEditShowKey(false)
   }
 
@@ -441,6 +443,7 @@ function LocationsTab({ plan }: { plan: string | null | undefined }) {
     if (editForm.merchant_id) body.merchant_id = editForm.merchant_id.trim()
     if (editForm.api_key)     body.api_key     = editForm.api_key.trim()
     if (editForm.api_base)    body.api_base    = editForm.api_base.trim()
+    body.address = editForm.address.trim()
 
     const res  = await fetch(`/api/manage/locations/${id}`, {
       method: 'PATCH',
@@ -499,6 +502,16 @@ function LocationsTab({ plan }: { plan: string | null | undefined }) {
                         autoComplete="off" autoCorrect="off"
                         className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-green-500" />
                     </div>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">
+                      Address <span className="font-normal text-gray-400">(optional — used for nearby events &amp; weather)</span>
+                    </label>
+                    <input type="text" value={editForm.address}
+                      onChange={e => setEditForm(p => ({ ...p, address: e.target.value }))}
+                      placeholder="12 Grafton Street, Dublin 2, Ireland"
+                      autoComplete="off"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500" />
                   </div>
                   <div>
                     <label className="block text-xs font-medium text-gray-700 mb-1">
@@ -628,6 +641,17 @@ function LocationsTab({ plan }: { plan: string | null | undefined }) {
                 <option value="eposnow">Epos Now</option>
               </select>
             </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">
+              Address <span className="font-normal text-gray-400">(optional — used for nearby events &amp; weather)</span>
+            </label>
+            <input type="text" value={form.address}
+              onChange={e => setForm(p => ({ ...p, address: e.target.value }))}
+              placeholder="12 Grafton Street, Dublin 2, Ireland"
+              autoComplete="off"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500" />
           </div>
 
           {guide.idLabel && (
