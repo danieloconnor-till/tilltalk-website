@@ -389,7 +389,7 @@ function LocationsTab({ plan }: { plan: string | null | undefined }) {
   })
   // Edit form
   const [editForm, setEditForm] = useState({
-    nickname: '', merchant_id: '', api_key: '', api_base: '', address: '',
+    nickname: '', pos_type: 'clover', merchant_id: '', api_key: '', api_base: '', address: '',
   })
   const [editShowKey,      setEditShowKey]      = useState(false)
   const [deleteConfirmId,  setDeleteConfirmId]  = useState<number | null>(null)
@@ -432,7 +432,7 @@ function LocationsTab({ plan }: { plan: string | null | undefined }) {
 
   function startEdit(loc: LocationEntry) {
     setEditId(loc.id)
-    setEditForm({ nickname: loc.nickname, merchant_id: loc.merchant_id || '', api_key: '', api_base: loc.api_base || '', address: loc.address || '' })
+    setEditForm({ nickname: loc.nickname, pos_type: loc.pos_type, merchant_id: loc.merchant_id || '', api_key: '', api_base: loc.api_base || '', address: loc.address || '' })
     setEditShowKey(false)
   }
 
@@ -440,6 +440,7 @@ function LocationsTab({ plan }: { plan: string | null | undefined }) {
     setSaving(true); setMsg(null)
     const body: Record<string, string> = {}
     if (editForm.nickname)    body.nickname    = editForm.nickname.trim()
+    if (editForm.pos_type)    body.pos_type    = editForm.pos_type
     if (editForm.merchant_id) body.merchant_id = editForm.merchant_id.trim()
     if (editForm.api_key)     body.api_key     = editForm.api_key.trim()
     if (editForm.api_base)    body.api_base    = editForm.api_base.trim()
@@ -494,18 +495,30 @@ function LocationsTab({ plan }: { plan: string | null | undefined }) {
                         className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500" />
                     </div>
                     <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">POS type</label>
+                      <select value={editForm.pos_type}
+                        onChange={e => setEditForm(p => ({ ...p, pos_type: e.target.value }))}
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 bg-white">
+                        <option value="clover">Clover</option>
+                        <option value="square">Square</option>
+                        <option value="eposnow">Epos Now</option>
+                      </select>
+                    </div>
+                  </div>
+                  {credGuide(editForm.pos_type).idLabel && (
+                    <div>
                       <label className="block text-xs font-medium text-gray-700 mb-1">
-                        {credGuide(loc.pos_type).idLabel ?? 'Merchant / Location ID'}
+                        {credGuide(editForm.pos_type).idLabel}
                       </label>
                       <input type="text" value={editForm.merchant_id}
                         onChange={e => setEditForm(p => ({ ...p, merchant_id: e.target.value }))}
                         autoComplete="off" autoCorrect="off"
                         className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-green-500" />
                     </div>
-                  </div>
+                  )}
                   <div>
                     <label className="block text-xs font-medium text-gray-700 mb-1">
-                      {credGuide(loc.pos_type).keyLabel} {loc.api_key_set && '(leave blank to keep current)'}
+                      {credGuide(editForm.pos_type).keyLabel} {loc.api_key_set && '(leave blank to keep current)'}
                     </label>
                     <div className="relative">
                       <input type={editShowKey ? 'text' : 'password'} value={editForm.api_key}
@@ -518,6 +531,16 @@ function LocationsTab({ plan }: { plan: string | null | undefined }) {
                       </button>
                     </div>
                   </div>
+                  {editForm.pos_type === 'clover' && (
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">API Base URL</label>
+                      <input type="text" value={editForm.api_base}
+                        onChange={e => setEditForm(p => ({ ...p, api_base: e.target.value }))}
+                        placeholder="https://api.eu.clover.com"
+                        autoComplete="off"
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-green-500" />
+                    </div>
+                  )}
                   <div>
                     <label className="block text-xs font-medium text-gray-700 mb-1">
                       Address <span className="font-normal text-gray-400">(optional — used for nearby events &amp; weather)</span>
