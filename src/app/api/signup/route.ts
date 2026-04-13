@@ -72,13 +72,21 @@ export async function POST(request: Request) {
     const confirmationUrl = authData.properties?.action_link ?? null
     console.log('[signup] user created — userId:', userId, 'confirmationUrl present:', !!confirmationUrl)
 
-    // 2. Provision client in Railway (skip for owner account)
-    // NON-FATAL — a Railway failure must never prevent the user's account being created.
-    // The only deliberate early-return here is a 409 (duplicate trial), which is
-    // user-facing and intentional.  All other Railway errors are logged and swallowed.
+    // 2. Provision client in Railway (required for all non-owner signups)
+    // FATAL — if Railway fails, we abort and delete the auth user so we never end up
+    // with an orphaned Supabase user that has no Railway client record.
+    // The only non-error early-return is a 409 (duplicate trial).
     const railwayUrl = process.env.RAILWAY_ONBOARDING_URL
     const onboardingKey = process.env.ONBOARDING_API_KEY
-    if (!isOwner && railwayUrl && onboardingKey) {
+    if (!isOwner) {
+      if (!railwayUrl || !onboardingKey) {
+        console.error('[signup] RAILWAY_ONBOARDING_URL or ONBOARDING_API_KEY not configured — aborting signup')
+        await admin.auth.admin.deleteUser(userId).catch((e: unknown) =>
+          console.error('[signup] deleteUser after config error (non-fatal):', e)
+        )
+        return NextResponse.json({ error: 'Service configuration error. Please contact support.' }, { status: 500 })
+      }
+
       console.log('[signup] calling Railway onboard for userId:', userId)
       let earlyReturn: NextResponse | null = null
       try {
@@ -94,16 +102,13 @@ export async function POST(request: Request) {
             plan: plan || 'pro',
             supabase_user_id: userId,
           }),
-          // Timeout: don't let a slow/down Railway hang the whole Vercel function
-          // and trigger the outer catch with a generic 500.
-          signal: AbortSignal.timeout(8000),
+          signal: AbortSignal.timeout(12000),
         })
         const railwayBody = await railwayRes.json().catch(() => ({}))
         console.log('[signup] Railway response — status:', railwayRes.status, 'body:', railwayBody)
 
         if (railwayRes.status === 409) {
-          // Intentional early-return: this POS account already had a free trial.
-          // Clean up the auth user we just created, then tell the user why.
+          // Duplicate trial — clean up auth user and tell the user why.
           console.warn('[signup] Railway 409 — duplicate trial, deleting auth user and aborting')
           await admin.auth.admin.deleteUser(userId).catch((e: unknown) =>
             console.error('[signup] deleteUser after 409 failed (non-fatal):', e)
@@ -113,17 +118,23 @@ export async function POST(request: Request) {
             { status: 409 },
           )
         } else if (!railwayRes.ok) {
-          // Any other non-ok status from Railway is non-fatal — log and continue.
-          console.error('[signup] Railway returned non-ok status (non-fatal, continuing):', railwayRes.status, railwayBody)
+          // Railway returned an error — abort to avoid an orphaned Supabase user.
+          console.error('[signup] Railway returned non-ok status, aborting:', railwayRes.status, railwayBody)
+          await admin.auth.admin.deleteUser(userId).catch((e: unknown) =>
+            console.error('[signup] deleteUser after Railway error (non-fatal):', e)
+          )
+          return NextResponse.json({ error: 'Failed to set up your account. Please try again.' }, { status: 500 })
         }
       } catch (railwayErr) {
-        // Network error, timeout, or JSON parse error — all non-fatal.
-        console.error('[signup] Railway request failed (non-fatal, continuing):', railwayErr)
+        // Network error or timeout — abort to avoid an orphaned Supabase user.
+        console.error('[signup] Railway request failed, aborting:', railwayErr)
+        await admin.auth.admin.deleteUser(userId).catch((e: unknown) =>
+          console.error('[signup] deleteUser after Railway timeout (non-fatal):', e)
+        )
+        return NextResponse.json({ error: 'Failed to set up your account. Please try again.' }, { status: 500 })
       }
       // Return 409 outside the try/catch so deleteUser errors don't suppress it.
       if (earlyReturn) return earlyReturn
-    } else {
-      console.warn('[signup] RAILWAY_ONBOARDING_URL or ONBOARDING_API_KEY not set — skipping Railway onboard')
     }
 
     // 3. Insert Supabase profile
