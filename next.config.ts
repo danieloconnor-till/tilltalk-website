@@ -6,21 +6,16 @@ const nextConfig: NextConfig = {
 };
 
 export default withSentryConfig(nextConfig, {
-  // Sentry org and project — set these once you've created the project at sentry.io
+  // Sentry org/project — can also be set via SENTRY_ORG / SENTRY_PROJECT env vars
   // org: "your-sentry-org",
   // project: "tilltalk-website",
 
-  // Suppress verbose build output
-  silent: !process.env.CI,
+  // Suppress build output unless debugging
+  silent: true,
 
-  // Upload source maps to Sentry for readable stack traces in production
-  // Requires SENTRY_AUTH_TOKEN env var — add via `npx vercel env add SENTRY_AUTH_TOKEN`
-  // Leave widenClientFileUpload false until auth token is configured
-  widenClientFileUpload: false,
-
-  // Automatically tree-shake Sentry logger statements in production
-  disableLogger: true,
-
-  // Disable automatic instrumentation of Vercel Cron Monitors (not used)
-  automaticVercelMonitors: false,
+  // Skip source map upload when SENTRY_AUTH_TOKEN is not configured.
+  // Set SENTRY_AUTH_TOKEN in Vercel env vars to enable upload for readable stack traces.
+  sourcemaps: {
+    disable: !process.env.SENTRY_AUTH_TOKEN,
+  },
 });
