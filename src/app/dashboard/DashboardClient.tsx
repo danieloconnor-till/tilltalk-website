@@ -15,6 +15,7 @@ import ChatWidget from './ChatWidget'
 import CalendarSection from './CalendarSection'
 import ManageSection from './ManageSection'
 import AnalyticsSection from './AnalyticsSection'
+import NotesSection from './NotesSection'
 
 declare global {
   interface Window { Plotly: PlotlyInstance }
@@ -637,67 +638,12 @@ export default function DashboardClient({ user, profile }: Props) {
             SECTION 4 — Notes Feed
         ════════════════════════════════════════════════════════════════ */}
         <Section id="notes" sectionRef={notesRef}>
-
-          {/* Upcoming reminders — compact strip above the notes feed */}
-          {!notesLoading && notesData.reminders.length > 0 && (
-            <Card>
-              <CardHeader icon={Bell} title="Upcoming Reminders" />
-              <div className="space-y-2">
-                {notesData.reminders.map(r => (
-                  <div key={r.id} className="flex items-start gap-3 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2.5">
-                    <Bell size={14} className="text-amber-500 shrink-0 mt-0.5" />
-                    <div>
-                      <p className="text-sm text-gray-800">{r.text}</p>
-                      <p className="text-xs text-amber-600 mt-0.5">
-                        {new Date(r.remind_at).toLocaleDateString('en-IE', {
-                          weekday: 'short', day: 'numeric', month: 'short',
-                          hour: '2-digit', minute: '2-digit',
-                        })}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </Card>
-          )}
-
-          {/* Notes feed */}
-          <Card>
-            <CardHeader icon={MessageCircle} title="Notes" />
-            {notesLoading ? (
-              <div className="space-y-3">
-                <Skeleton className="h-14 w-full" />
-                <Skeleton className="h-14 w-full" />
-                <Skeleton className="h-14 w-full" />
-              </div>
-            ) : notesData.notes.length === 0 ? (
-              <div className="text-center py-8">
-                <MessageCircle className="mx-auto mb-3 text-gray-200" size={36} />
-                <p className="text-sm font-medium text-gray-600 mb-1">No notes yet</p>
-                <p className="text-xs text-gray-400 max-w-xs mx-auto">
-                  Send a note to TillTalk on WhatsApp — e.g.{' '}
-                  <span className="font-mono bg-gray-100 px-1 rounded">note: check wine stock before Saturday</span>
-                </p>
-              </div>
-            ) : (
-              <div className="divide-y divide-gray-50 max-h-[480px] overflow-y-auto -mx-1 px-1">
-                {notesData.notes.map(n => (
-                  <div key={n.id} className="flex items-start gap-3 py-3 first:pt-0 last:pb-0">
-                    <div className="w-2 h-2 rounded-full bg-green-400 shrink-0 mt-1.5" />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm text-gray-900 leading-snug">{n.note_text}</p>
-                      <p className="text-xs text-gray-400 mt-0.5">
-                        {new Date(n.created_at).toLocaleDateString('en-IE', {
-                          weekday: 'short', day: 'numeric', month: 'short',
-                          hour: '2-digit', minute: '2-digit',
-                        })}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </Card>
+          <NotesSection
+            notes={notesData.notes}
+            reminders={notesData.reminders}
+            loading={notesLoading}
+            onRefresh={fetchData}
+          />
         </Section>
 
         {/* ═══════════════════════════════════════════════════════════════
