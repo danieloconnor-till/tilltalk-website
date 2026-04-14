@@ -18,12 +18,17 @@ export async function GET() {
       {
         headers: { 'X-Onboarding-Key': ONBOARDING_KEY },
         cache: 'no-store',
+        signal: AbortSignal.timeout(8_000),
       }
     )
-    if (!res.ok) return NextResponse.json({ reminders: [] })
+    if (!res.ok) {
+      console.error('[dashboard/reminders] Railway returned', res.status)
+      return NextResponse.json({ reminders: [] })
+    }
     const data = await res.json()
     return NextResponse.json(data)
-  } catch {
+  } catch (err) {
+    console.error('[dashboard/reminders] fetch failed:', err)
     return NextResponse.json({ reminders: [] })
   }
 }
