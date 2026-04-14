@@ -813,14 +813,16 @@ function ClientsSection({
                         >
                           Extend
                         </button>
-                        <button
-                          onClick={() => onToggleActive(p.id, p.active)}
-                          className={`text-xs px-2.5 py-1 rounded-lg transition-colors whitespace-nowrap ${
-                            p.active ? 'bg-red-50 hover:bg-red-100 text-red-700' : 'bg-green-50 hover:bg-green-100 text-green-700'
-                          }`}
-                        >
-                          {p.active ? 'Deactivate' : 'Activate'}
-                        </button>
+                        {p.email !== 'daniel@tilltalk.ie' && (
+                          <button
+                            onClick={() => onToggleActive(p.id, p.active)}
+                            className={`text-xs px-2.5 py-1 rounded-lg transition-colors whitespace-nowrap ${
+                              p.active ? 'bg-red-50 hover:bg-red-100 text-red-700' : 'bg-green-50 hover:bg-green-100 text-green-700'
+                            }`}
+                          >
+                            {p.active ? 'Deactivate' : 'Activate'}
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>
