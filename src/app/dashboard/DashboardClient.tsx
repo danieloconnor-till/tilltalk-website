@@ -885,7 +885,7 @@ export default function DashboardClient({ user, profile }: Props) {
           {/* AI Query Chat + Chart display */}
           <div>
             <h2 className="text-base font-semibold text-gray-900 mb-3">Ask Your Data</h2>
-            <QueryChat />
+            <QueryChat businessName={profile?.restaurant_name || profile?.full_name || ''} />
           </div>
 
           {/* Detailed Analytics */}

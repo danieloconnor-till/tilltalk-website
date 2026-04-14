@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { Send, RefreshCw, BarChart2, Clock, Sparkles } from 'lucide-react'
+import { Send, RefreshCw, BarChart2, Clock, Sparkles, Download, Printer } from 'lucide-react'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -19,6 +19,10 @@ interface ChartSnapshot {
   data: string
 }
 
+interface Props {
+  businessName?: string
+}
+
 // ---------------------------------------------------------------------------
 // Suggested prompts
 // ---------------------------------------------------------------------------
@@ -34,10 +38,20 @@ const PROMPTS = [
 ]
 
 // ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+/** "Sales this week" → "tilltalk-sales-this-week.png" */
+function toFilename(title: string): string {
+  const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+  return `tilltalk-${slug || 'chart'}.png`
+}
+
+// ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
 
-export default function QueryChat() {
+export default function QueryChat({ businessName }: Props) {
   const [messages,      setMessages]      = useState<Message[]>([])
   const [input,         setInput]         = useState('')
   const [loading,       setLoading]       = useState(false)
@@ -45,8 +59,9 @@ export default function QueryChat() {
   const [currentTitle,  setCurrentTitle]  = useState('')
   const [chartHistory,  setChartHistory]  = useState<ChartSnapshot[]>([])
 
-  const endRef   = useRef<HTMLDivElement>(null)
-  const inputRef = useRef<HTMLTextAreaElement>(null)
+  const endRef      = useRef<HTMLDivElement>(null)
+  const inputRef    = useRef<HTMLTextAreaElement>(null)
+  const printAreaId = 'tilltalk-print-area'
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -105,6 +120,83 @@ export default function QueryChat() {
     el.style.height = `${Math.min(el.scrollHeight, 96)}px`
   }
 
+  // ── Download ────────────────────────────────────────────────────────────
+  function handleDownload() {
+    if (!currentChart) return
+    const a = document.createElement('a')
+    a.href = `data:image/png;base64,${currentChart}`
+    a.download = toFilename(currentTitle)
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+  }
+
+  // ── Print ────────────────────────────────────────────────────────────────
+  function handlePrint() {
+    if (!currentChart) return
+
+    const lastAssistantText = [...messages].reverse().find(m => m.role === 'assistant')?.text ?? ''
+    const dateStr = new Date().toLocaleDateString('en-IE', {
+      day: 'numeric', month: 'long', year: 'numeric',
+    })
+
+    // Inject a <style> that hides everything except the print area when printing
+    const styleId = 'tilltalk-print-style'
+    let styleEl = document.getElementById(styleId) as HTMLStyleElement | null
+    if (!styleEl) {
+      styleEl = document.createElement('style')
+      styleEl.id = styleId
+      document.head.appendChild(styleEl)
+    }
+    styleEl.textContent = `
+      @media print {
+        * { visibility: hidden !important; }
+        #${printAreaId},
+        #${printAreaId} * { visibility: visible !important; }
+        #${printAreaId} {
+          position: fixed !important;
+          inset: 0 !important;
+          background: white !important;
+          padding: 40px !important;
+          box-sizing: border-box !important;
+          font-family: system-ui, -apple-system, sans-serif !important;
+        }
+      }
+    `
+
+    // Build the print area content
+    const printArea = document.getElementById(printAreaId)
+    if (printArea) {
+      const safeText = lastAssistantText
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      printArea.innerHTML = `
+        <div style="display:flex;align-items:center;gap:12px;padding-bottom:16px;margin-bottom:20px;border-bottom:2px solid #16a34a;">
+          <span style="color:#16a34a;font-size:22px;font-weight:800;letter-spacing:-0.5px;">TillTalk</span>
+          ${businessName ? `<span style="font-size:14px;color:#6b7280;border-left:1px solid #e5e7eb;padding-left:12px;">${businessName}</span>` : ''}
+        </div>
+        <p style="font-size:16px;font-weight:600;color:#111;margin:0 0 16px;">${currentTitle}</p>
+        <img src="data:image/png;base64,${currentChart}" alt="${currentTitle}" style="max-width:100%;height:auto;display:block;" />
+        ${lastAssistantText ? `
+          <div style="margin-top:24px;padding:16px;background:#f9fafb;border-radius:8px;">
+            <p style="font-size:12px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em;margin:0 0 8px;">Summary</p>
+            <p style="font-size:14px;color:#374151;line-height:1.6;white-space:pre-wrap;margin:0;">${safeText}</p>
+          </div>
+        ` : ''}
+        <div style="margin-top:32px;font-size:12px;color:#9ca3af;border-top:1px solid #e5e7eb;padding-top:12px;">
+          Generated by TillTalk · ${dateStr}
+        </div>
+      `
+    }
+
+    window.print()
+
+    // Clean up after the print dialog closes
+    setTimeout(() => {
+      styleEl?.remove()
+      if (printArea) printArea.innerHTML = ''
+    }, 1000)
+  }
+
   return (
     <div className="space-y-4">
 
@@ -114,7 +206,26 @@ export default function QueryChat() {
           <>
             <div className="px-5 pt-4 pb-2 flex items-center gap-2">
               <BarChart2 size={15} className="text-green-600 shrink-0" />
-              <p className="text-sm font-semibold text-gray-700 truncate">{currentTitle}</p>
+              <p className="text-sm font-semibold text-gray-700 truncate flex-1">{currentTitle}</p>
+              {/* Download + Print — only visible when a chart is shown */}
+              <div className="flex items-center gap-1.5 shrink-0">
+                <button
+                  onClick={handleDownload}
+                  title="Download chart as PNG"
+                  className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-800 border border-gray-200 hover:border-gray-300 px-2.5 py-1.5 rounded-lg transition-colors"
+                >
+                  <Download size={12} />
+                  <span className="hidden sm:inline">Download</span>
+                </button>
+                <button
+                  onClick={handlePrint}
+                  title="Print chart and summary"
+                  className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-800 border border-gray-200 hover:border-gray-300 px-2.5 py-1.5 rounded-lg transition-colors"
+                >
+                  <Printer size={12} />
+                  <span className="hidden sm:inline">Print</span>
+                </button>
+              </div>
             </div>
             <img
               src={`data:image/png;base64,${currentChart}`}
@@ -134,6 +245,9 @@ export default function QueryChat() {
           </div>
         )}
       </div>
+
+      {/* ── Hidden print area — populated by handlePrint() ─────────────── */}
+      <div id={printAreaId} style={{ position: 'absolute', left: '-9999px', top: 0, pointerEvents: 'none' }} aria-hidden="true" />
 
       {/* ── Recent charts row ──────────────────────────────────────────── */}
       {chartHistory.length > 0 && (
