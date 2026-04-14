@@ -634,55 +634,68 @@ export default function DashboardClient({ user, profile }: Props) {
         </Section>
 
         {/* ═══════════════════════════════════════════════════════════════
-            SECTION 4 — Notes & Reminders
+            SECTION 4 — Notes Feed
         ════════════════════════════════════════════════════════════════ */}
         <Section id="notes" sectionRef={notesRef}>
-          <Card>
-            <CardHeader icon={Bell} title="Notes &amp; Reminders" />
-            {notesLoading ? (
+
+          {/* Upcoming reminders — compact strip above the notes feed */}
+          {!notesLoading && notesData.reminders.length > 0 && (
+            <Card>
+              <CardHeader icon={Bell} title="Upcoming Reminders" />
               <div className="space-y-2">
-                <Skeleton className="h-10 w-full" />
-                <Skeleton className="h-10 w-full" />
+                {notesData.reminders.map(r => (
+                  <div key={r.id} className="flex items-start gap-3 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2.5">
+                    <Bell size={14} className="text-amber-500 shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-sm text-gray-800">{r.text}</p>
+                      <p className="text-xs text-amber-600 mt-0.5">
+                        {new Date(r.remind_at).toLocaleDateString('en-IE', {
+                          weekday: 'short', day: 'numeric', month: 'short',
+                          hour: '2-digit', minute: '2-digit',
+                        })}
+                      </p>
+                    </div>
+                  </div>
+                ))}
               </div>
-            ) : notesData.reminders.length === 0 && notesData.notes.length === 0 ? (
-              <div className="text-center py-6">
-                <p className="text-sm text-gray-500 mb-2">No notes or reminders yet.</p>
-                <p className="text-xs text-gray-400">Send <span className="font-mono bg-gray-100 px-1 rounded">remind me tomorrow at 9am to check stock</span> to TillTalk on WhatsApp.</p>
+            </Card>
+          )}
+
+          {/* Notes feed */}
+          <Card>
+            <CardHeader icon={MessageCircle} title="Notes" />
+            {notesLoading ? (
+              <div className="space-y-3">
+                <Skeleton className="h-14 w-full" />
+                <Skeleton className="h-14 w-full" />
+                <Skeleton className="h-14 w-full" />
+              </div>
+            ) : notesData.notes.length === 0 ? (
+              <div className="text-center py-8">
+                <MessageCircle className="mx-auto mb-3 text-gray-200" size={36} />
+                <p className="text-sm font-medium text-gray-600 mb-1">No notes yet</p>
+                <p className="text-xs text-gray-400 max-w-xs mx-auto">
+                  Send a note to TillTalk on WhatsApp — e.g.{' '}
+                  <span className="font-mono bg-gray-100 px-1 rounded">note: check wine stock before Saturday</span>
+                </p>
               </div>
             ) : (
-              <>
-                {notesData.reminders.length > 0 && (
-                  <div className="mb-4">
-                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Upcoming reminders</p>
-                    <div className="space-y-2">
-                      {notesData.reminders.slice(0, 3).map(r => (
-                        <div key={r.id} className="flex items-start gap-3 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2.5">
-                          <Bell size={14} className="text-amber-500 shrink-0 mt-0.5" />
-                          <div>
-                            <p className="text-sm text-gray-800">{r.text}</p>
-                            <p className="text-xs text-amber-600 mt-0.5">
-                              {new Date(r.remind_at).toLocaleDateString('en-IE', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
-                            </p>
-                          </div>
-                        </div>
-                      ))}
+              <div className="divide-y divide-gray-50 max-h-[480px] overflow-y-auto -mx-1 px-1">
+                {notesData.notes.map(n => (
+                  <div key={n.id} className="flex items-start gap-3 py-3 first:pt-0 last:pb-0">
+                    <div className="w-2 h-2 rounded-full bg-green-400 shrink-0 mt-1.5" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-gray-900 leading-snug">{n.note_text}</p>
+                      <p className="text-xs text-gray-400 mt-0.5">
+                        {new Date(n.created_at).toLocaleDateString('en-IE', {
+                          weekday: 'short', day: 'numeric', month: 'short',
+                          hour: '2-digit', minute: '2-digit',
+                        })}
+                      </p>
                     </div>
                   </div>
-                )}
-                {notesData.notes.length > 0 && (
-                  <div>
-                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Open to-dos</p>
-                    <div className="space-y-2">
-                      {notesData.notes.slice(0, 3).map(n => (
-                        <div key={n.id} className="flex items-center gap-3 bg-gray-50 rounded-lg px-3 py-2.5">
-                          <div className="w-4 h-4 border-2 border-gray-300 rounded shrink-0" />
-                          <p className="text-sm text-gray-800">{n.note_text}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </>
+                ))}
+              </div>
             )}
           </Card>
         </Section>

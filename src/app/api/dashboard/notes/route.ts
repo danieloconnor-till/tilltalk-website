@@ -18,6 +18,7 @@ export async function GET() {
       {
         headers: { 'X-Onboarding-Key': ONBOARDING_KEY },
         cache: 'no-store',
+        signal: AbortSignal.timeout(8_000),
       }
     )
     if (!res.ok) return NextResponse.json({ reminders: [], notes: [] })
