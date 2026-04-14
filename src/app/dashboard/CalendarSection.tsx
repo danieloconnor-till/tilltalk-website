@@ -203,7 +203,7 @@ async function fetchHourlyWindows(lat: number, lng: number): Promise<Record<stri
 // Types
 // ---------------------------------------------------------------------------
 
-interface ReminderItem { id: number; text: string; remind_at: string }
+interface ReminderItem { id: number; text: string; remind_at: string; appointment_at?: string | null }
 
 interface EventItem {
   name:        string
@@ -411,7 +411,7 @@ export default function CalendarSection({ locations }: CalendarProps) {
     setSelected(null)
   }
 
-  const reminderDays = new Set(reminders.map(r => r.remind_at.slice(0, 10)))
+  const reminderDays = new Set(reminders.map(r => (r.appointment_at || r.remind_at).slice(0, 10)))
   const eventDays    = new Set(events.map(e => (e.date || '').slice(0, 10)))
   const alertDays    = new Set(
     Object.entries(forecast)
@@ -430,7 +430,7 @@ export default function CalendarSection({ locations }: CalendarProps) {
 
   const selWx        = selected ? forecast[selected]                                           : undefined
   const selAlerts    = selWx    ? classifyAlerts(selWx, selected ? hourlyWindows[selected] : undefined) : []
-  const selReminders = selected ? reminders.filter(r => r.remind_at.slice(0, 10) === selected) : []
+  const selReminders = selected ? reminders.filter(r => (r.appointment_at || r.remind_at).slice(0, 10) === selected) : []
   const selEvents    = selected ? events.filter(e => (e.date || '').slice(0, 10) === selected)  : []
   const selHoliday   = selected ? IRISH_HOLIDAYS[selected] ?? null                              : null
   const inForecast   = selected ? !!forecast[selected]                                          : false
@@ -652,7 +652,7 @@ export default function CalendarSection({ locations }: CalendarProps) {
                   <div>
                     <p className="text-sm text-green-900">{r.text}</p>
                     <p className="text-xs text-green-600 mt-0.5">
-                      {new Date(r.remind_at).toLocaleTimeString('en-IE', { hour: '2-digit', minute: '2-digit' })}
+                      {new Date(r.appointment_at || r.remind_at).toLocaleTimeString('en-IE', { hour: '2-digit', minute: '2-digit' })}
                     </p>
                   </div>
                 </div>
