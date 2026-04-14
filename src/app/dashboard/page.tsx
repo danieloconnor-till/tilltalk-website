@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import Link from 'next/link'
 import DashboardClient from './DashboardClient'
+import DeactivatedPage from './DeactivatedPage'
 
 const ADMIN_EMAIL = 'daniel@tilltalk.ie'
 
@@ -23,6 +23,11 @@ export default async function DashboardPage() {
     .select('*')
     .eq('id', user.id)
     .single()
+
+  // Block deactivated accounts — show message instead of dashboard
+  if (raw?.deactivated_at) {
+    return <DeactivatedPage />
+  }
 
   // Never send credential values to the client — only boolean indicators
   const profile = raw ? (() => {

@@ -175,6 +175,17 @@ function PlanBadge({ plan }: { plan: string | null }) {
 }
 
 function StatusBadge({ profile }: { profile: Profile }) {
+  if (profile.deactivated_at) {
+    const daysLeft = profile.scheduled_deletion_at
+      ? Math.max(0, Math.ceil((new Date(profile.scheduled_deletion_at).getTime() - Date.now()) / 86_400_000))
+      : null
+    return (
+      <span className="inline-flex flex-col gap-0.5">
+        <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700">Deactivated</span>
+        {daysLeft !== null && <span className="text-xs text-gray-400">{daysLeft}d until purge</span>}
+      </span>
+    )
+  }
   if (!profile.active) return <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">Inactive</span>
   if (profile.stripe_subscription_id) return <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">Paid</span>
   if (profile.trial_end && new Date(profile.trial_end) > new Date()) return <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">Trial</span>
@@ -710,14 +721,16 @@ function PosSection({
 function ClientsSection({
   profiles,
   onExtend,
-  onToggleActive,
+  onDeactivate,
+  onReactivate,
 }: {
   profiles: Profile[]
   onExtend: (id: string, name: string) => void
-  onToggleActive: (id: string, current: boolean) => void
+  onDeactivate: (id: string, name: string, email: string) => void
+  onReactivate: (id: string) => void
 }) {
   const [search, setSearch] = useState('')
-  const [statusFilter, setStatusFilter] = useState<'all' | 'trial' | 'paid' | 'expired' | 'inactive'>('all')
+  const [statusFilter, setStatusFilter] = useState<'all' | 'trial' | 'paid' | 'expired' | 'inactive' | 'deactivated'>('all')
 
   const filtered = profiles.filter((p) => {
     const q = search.toLowerCase()
@@ -727,17 +740,19 @@ function ClientsSection({
       (p.restaurant_name ?? '').toLowerCase().includes(q)
 
     const now = new Date()
-    const onTrial = !p.stripe_subscription_id && p.trial_end && new Date(p.trial_end) > now && p.active
-    const paid = !!p.stripe_subscription_id && p.active
-    const expired = !p.stripe_subscription_id && p.trial_end && new Date(p.trial_end) <= now
-    const inactive = !p.active
+    const deactivated = !!p.deactivated_at
+    const onTrial = !p.stripe_subscription_id && p.trial_end && new Date(p.trial_end) > now && p.active && !deactivated
+    const paid = !!p.stripe_subscription_id && p.active && !deactivated
+    const expired = !p.stripe_subscription_id && p.trial_end && new Date(p.trial_end) <= now && !deactivated
+    const inactive = !p.active && !deactivated
 
     const matchStatus =
       statusFilter === 'all' ||
       (statusFilter === 'trial' && onTrial) ||
       (statusFilter === 'paid' && paid) ||
       (statusFilter === 'expired' && expired) ||
-      (statusFilter === 'inactive' && inactive)
+      (statusFilter === 'inactive' && inactive) ||
+      (statusFilter === 'deactivated' && deactivated)
 
     return matchSearch && matchStatus
   })
@@ -758,11 +773,11 @@ function ClientsSection({
             />
           </div>
           <div className="flex gap-1.5 flex-wrap">
-            {(['all', 'trial', 'paid', 'expired', 'inactive'] as const).map((f) => (
+            {(['all', 'trial', 'paid', 'expired', 'inactive', 'deactivated'] as const).map((f) => (
               <button
                 key={f}
                 onClick={() => setStatusFilter(f)}
-                className={`text-xs px-3 py-1.5 rounded-lg capitalize transition-colors ${statusFilter === f ? 'bg-green-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+                className={`text-xs px-3 py-1.5 rounded-lg capitalize transition-colors ${statusFilter === f ? (f === 'deactivated' ? 'bg-red-600 text-white' : 'bg-green-600 text-white') : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
               >
                 {f}
               </button>
@@ -814,14 +829,21 @@ function ClientsSection({
                           Extend
                         </button>
                         {p.email !== 'daniel@tilltalk.ie' && (
-                          <button
-                            onClick={() => onToggleActive(p.id, p.active)}
-                            className={`text-xs px-2.5 py-1 rounded-lg transition-colors whitespace-nowrap ${
-                              p.active ? 'bg-red-50 hover:bg-red-100 text-red-700' : 'bg-green-50 hover:bg-green-100 text-green-700'
-                            }`}
-                          >
-                            {p.active ? 'Deactivate' : 'Activate'}
-                          </button>
+                          p.deactivated_at ? (
+                            <button
+                              onClick={() => onReactivate(p.id)}
+                              className="text-xs px-2.5 py-1 rounded-lg transition-colors whitespace-nowrap bg-green-50 hover:bg-green-100 text-green-700"
+                            >
+                              Reactivate
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => onDeactivate(p.id, p.restaurant_name || p.full_name || p.email, p.email)}
+                              className="text-xs px-2.5 py-1 rounded-lg transition-colors whitespace-nowrap bg-red-50 hover:bg-red-100 text-red-700"
+                            >
+                              Deactivate
+                            </button>
+                          )
                         )}
                       </div>
                     </td>
@@ -1210,10 +1232,11 @@ const NAV_ITEMS = [
 
 export default function AdminClient({ profiles, stats, signupsPerDay, posBreakdown, utmBreakdown }: Props) {
   const router = useRouter()
-  const [extendTarget, setExtendTarget] = useState<{ id: string; name: string } | null>(null)
-  const [showPriceChange, setShowPriceChange] = useState(false)
-  const [toast, setToast] = useState('')
-  const [lastRefresh, setLastRefresh] = useState<Date>(new Date())
+  const [extendTarget,     setExtendTarget]     = useState<{ id: string; name: string } | null>(null)
+  const [deactivateTarget, setDeactivateTarget] = useState<{ id: string; name: string; email: string } | null>(null)
+  const [showPriceChange,  setShowPriceChange]  = useState(false)
+  const [toast,            setToast]            = useState('')
+  const [lastRefresh,      setLastRefresh]      = useState<Date>(new Date())
   const refreshTimer = useRef<ReturnType<typeof setInterval> | undefined>(undefined)
 
   // Auto-refresh every 5 minutes
@@ -1230,7 +1253,7 @@ export default function AdminClient({ profiles, stats, signupsPerDay, posBreakdo
     setTimeout(() => setToast(''), 3500)
   }
 
-  async function handleToggleActive(profileId: string, currentActive: boolean) {
+  async function handleDeactivateConfirm(profileId: string) {
     try {
       const res = await fetch('/api/admin/toggle-active', {
         method: 'POST',
@@ -1239,7 +1262,20 @@ export default function AdminClient({ profiles, stats, signupsPerDay, posBreakdo
       })
       const data = await res.json()
       if (data.error) { showToast('Error: ' + data.error) }
-      else { showToast(`Account ${currentActive ? 'deactivated' : 'activated'}`); router.refresh() }
+      else { showToast('Account deactivated — data retained for 7 days'); router.refresh() }
+    } catch { showToast('Network error') }
+  }
+
+  async function handleReactivate(profileId: string) {
+    try {
+      const res = await fetch('/api/admin/toggle-active', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ profileId }),
+      })
+      const data = await res.json()
+      if (data.error) { showToast('Error: ' + data.error) }
+      else { showToast('Account reactivated'); router.refresh() }
     } catch { showToast('Network error') }
   }
 
@@ -1296,7 +1332,8 @@ export default function AdminClient({ profiles, stats, signupsPerDay, posBreakdo
         <ClientsSection
           profiles={profiles}
           onExtend={(id, name) => setExtendTarget({ id, name })}
-          onToggleActive={handleToggleActive}
+          onDeactivate={(id, name, email) => setDeactivateTarget({ id, name, email })}
+          onReactivate={handleReactivate}
         />
         <FailedQueriesSection />
       </div>
@@ -1322,6 +1359,47 @@ export default function AdminClient({ profiles, stats, signupsPerDay, posBreakdo
           router.refresh()
         }}
       />
+
+      {/* Deactivate confirmation modal */}
+      {deactivateTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
+            <div className="flex items-start justify-between gap-3 mb-4">
+              <div className="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center shrink-0">
+                <AlertTriangle size={20} className="text-amber-600" />
+              </div>
+              <button onClick={() => setDeactivateTarget(null)} className="text-gray-400 hover:text-gray-600 mt-1">
+                <X size={18} />
+              </button>
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Deactivate account?</h3>
+            <p className="text-sm text-gray-600 mb-2">
+              You are about to deactivate <strong>{deactivateTarget.name}</strong> ({deactivateTarget.email}).
+            </p>
+            <p className="text-sm text-gray-600 mb-6">
+              Their data will be <strong>retained for 7 days</strong> and can be fully restored by reactivating within that window. After 7 days, a cleanup job will permanently purge all their data.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={async () => {
+                  const id = deactivateTarget.id
+                  setDeactivateTarget(null)
+                  await handleDeactivateConfirm(id)
+                }}
+                className="flex-1 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold px-4 py-2.5 rounded-lg transition-colors"
+              >
+                Deactivate
+              </button>
+              <button
+                onClick={() => setDeactivateTarget(null)}
+                className="flex-1 text-sm font-medium text-gray-700 hover:text-gray-900 border border-gray-200 px-4 py-2.5 rounded-lg"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

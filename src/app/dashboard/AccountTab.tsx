@@ -513,7 +513,7 @@ export default function AccountTab({
             </div>
             <h3 className="text-lg font-semibold text-gray-900 mb-2">Delete account</h3>
             <p className="text-sm text-gray-600 mb-4">
-              This will permanently delete your account, all your data, and cancel any active subscriptions. This action cannot be undone.
+              This will <strong>permanently delete all your data immediately</strong> and cannot be undone. Your POS connections, WhatsApp numbers, sales history, and all settings will be erased. A confirmation email will be sent to {user.email}.
             </p>
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 mb-1.5">
