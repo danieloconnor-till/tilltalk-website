@@ -16,6 +16,7 @@ import CalendarSection from './CalendarSection'
 import ManageSection from './ManageSection'
 import AnalyticsSection from './AnalyticsSection'
 import NotesSection from './NotesSection'
+import QueryChat from './QueryChat'
 
 declare global {
   interface Window { Plotly: PlotlyInstance }
@@ -106,13 +107,20 @@ function StatCardSkeleton() {
 // Mobile bottom nav
 // ---------------------------------------------------------------------------
 
+// Top-level tabs
+const TAB_ITEMS = [
+  { id: 'dashboard', label: 'Dashboard' },
+  { id: 'analytics', label: 'Analytics' },
+] as const
+type TabId = typeof TAB_ITEMS[number]['id']
+
+// Bottom-nav sections within the Dashboard tab
 const NAV_ITEMS = [
-  { id: 'overview',   label: 'Dashboard', Icon: LayoutDashboard },
-  { id: 'calendar',   label: 'Calendar',  Icon: Calendar },
-  { id: 'analytics',  label: 'Analytics', Icon: TrendingUp },
-  { id: 'notes',      label: 'Notes',     Icon: Bell },
-  { id: 'manage',     label: 'Manage',    Icon: Settings },
-  { id: 'account',    label: 'Account',   Icon: User },
+  { id: 'overview', label: 'Dashboard', Icon: LayoutDashboard },
+  { id: 'calendar', label: 'Calendar',  Icon: Calendar },
+  { id: 'notes',    label: 'Notes',     Icon: Bell },
+  { id: 'manage',   label: 'Manage',    Icon: Settings },
+  { id: 'account',  label: 'Account',   Icon: User },
 ] as const
 
 type SectionId = typeof NAV_ITEMS[number]['id']
@@ -287,14 +295,16 @@ export default function DashboardClient({ user, profile }: Props) {
   const router       = useRouter()
   const searchParams = useSearchParams()
 
-  // Section refs
-  const overviewRef   = useRef<HTMLDivElement>(null)
-  const calendarRef   = useRef<HTMLDivElement>(null)
-  const analyticsRef  = useRef<HTMLDivElement>(null)
-  const notesRef      = useRef<HTMLDivElement>(null)
-  const manageRef     = useRef<HTMLDivElement>(null)
-  const accountRef    = useRef<HTMLDivElement>(null)
-  const chartRef      = useRef<HTMLDivElement>(null)
+  // Top-level tab
+  const [activeTab, setActiveTab] = useState<TabId>('dashboard')
+
+  // Section refs (Dashboard tab)
+  const overviewRef  = useRef<HTMLDivElement>(null)
+  const calendarRef  = useRef<HTMLDivElement>(null)
+  const notesRef     = useRef<HTMLDivElement>(null)
+  const manageRef    = useRef<HTMLDivElement>(null)
+  const accountRef   = useRef<HTMLDivElement>(null)
+  const chartRef     = useRef<HTMLDivElement>(null)
 
   // Data state
   const [salesData,   setSalesData]   = useState<SalesData | null>(null)
@@ -462,7 +472,7 @@ export default function DashboardClient({ user, profile }: Props) {
 
   function navTo(id: SectionId) {
     setActiveSection(id)
-    const ref = { overview: overviewRef, calendar: calendarRef, analytics: analyticsRef, notes: notesRef, manage: manageRef, account: accountRef }[id]
+    const ref = { overview: overviewRef, calendar: calendarRef, notes: notesRef, manage: manageRef, account: accountRef }[id]
     ref?.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
 
@@ -498,8 +508,8 @@ export default function DashboardClient({ user, profile }: Props) {
     <div className="min-h-screen bg-gray-50 pb-28 md:pb-10">
 
       {/* ── Header ───────────────────────────────────────────────────── */}
-      <div className="max-w-4xl mx-auto px-4 pt-6 pb-2">
-        <div className="flex items-center justify-between">
+      <div className="max-w-4xl mx-auto px-4 pt-6 pb-0">
+        <div className="flex items-center justify-between mb-4">
           <div>
             <h1 className="text-xl sm:text-2xl font-bold text-gray-900 leading-tight">
               {profile?.restaurant_name || profile?.full_name || 'Dashboard'}
@@ -514,13 +524,33 @@ export default function DashboardClient({ user, profile }: Props) {
             <span className="hidden sm:inline">Sign out</span>
           </button>
         </div>
+
+        {/* ── Tab bar ──────────────────────────────────────────────────── */}
+        <div className="flex border-b border-gray-200 overflow-x-auto">
+          {TAB_ITEMS.map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`shrink-0 px-5 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors ${
+                activeTab === tab.id
+                  ? 'border-green-600 text-green-700'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="max-w-4xl mx-auto px-4 py-4 space-y-6">
 
         {/* ═══════════════════════════════════════════════════════════════
-            SECTION 1 — Sales Overview
+            TAB 1 — Dashboard
         ════════════════════════════════════════════════════════════════ */}
+        {activeTab === 'dashboard' && (<>
+
+        {/* SECTION 1 — Sales Overview */}
         <Section id="overview" sectionRef={overviewRef}>
           <div className="flex items-center justify-between">
             <h2 className="text-base font-semibold text-gray-900">Sales Overview</h2>
@@ -609,9 +639,7 @@ export default function DashboardClient({ user, profile }: Props) {
           )}
         </Section>
 
-        {/* ═══════════════════════════════════════════════════════════════
-            SECTION 2 — Calendar
-        ════════════════════════════════════════════════════════════════ */}
+        {/* SECTION 2 — Calendar */}
         <Section id="calendar" sectionRef={calendarRef}>
           <div className="flex items-center justify-between mb-1">
             <h2 className="text-base font-semibold text-gray-900">Calendar</h2>
@@ -627,16 +655,7 @@ export default function DashboardClient({ user, profile }: Props) {
           )}
         </Section>
 
-        {/* ═══════════════════════════════════════════════════════════════
-            SECTION 3 — Analytics
-        ════════════════════════════════════════════════════════════════ */}
-        <Section id="analytics" sectionRef={analyticsRef}>
-          <AnalyticsSection locations={locations} />
-        </Section>
-
-        {/* ═══════════════════════════════════════════════════════════════
-            SECTION 4 — Notes Feed
-        ════════════════════════════════════════════════════════════════ */}
+        {/* SECTION 3 — Notes Feed */}
         <Section id="notes" sectionRef={notesRef}>
           <NotesSection
             notes={notesData.notes}
@@ -646,9 +665,7 @@ export default function DashboardClient({ user, profile }: Props) {
           />
         </Section>
 
-        {/* ═══════════════════════════════════════════════════════════════
-            SECTION 4 — Manage
-        ════════════════════════════════════════════════════════════════ */}
+        {/* SECTION 4 — Manage */}
         <Section id="manage" sectionRef={manageRef}>
           <div className="flex items-center justify-between mb-1">
             <h2 className="text-base font-semibold text-gray-900">Manage Team &amp; Locations</h2>
@@ -658,9 +675,7 @@ export default function DashboardClient({ user, profile }: Props) {
           </div>
         </Section>
 
-        {/* ═══════════════════════════════════════════════════════════════
-            SECTION 5 — Account
-        ════════════════════════════════════════════════════════════════ */}
+        {/* SECTION 5 — Account */}
         <Section id="account" sectionRef={accountRef}>
 
           {/* Subscription */}
@@ -859,10 +874,34 @@ export default function DashboardClient({ user, profile }: Props) {
           <DataPrivacyCard />
 
         </Section>
+
+        </>)} {/* end activeTab === 'dashboard' */}
+
+        {/* ═══════════════════════════════════════════════════════════════
+            TAB 2 — Analytics
+        ════════════════════════════════════════════════════════════════ */}
+        {activeTab === 'analytics' && (<>
+
+          {/* AI Query Chat + Chart display */}
+          <div>
+            <h2 className="text-base font-semibold text-gray-900 mb-3">Ask Your Data</h2>
+            <QueryChat />
+          </div>
+
+          {/* Detailed Analytics */}
+          <div>
+            <h2 className="text-base font-semibold text-gray-900 mb-3">Detailed Analytics</h2>
+            <AnalyticsSection locations={locations} />
+          </div>
+
+        </>)} {/* end activeTab === 'analytics' */}
+
       </div>
 
-      {/* ── Mobile bottom nav ──────────────────────────────────────── */}
-      <MobileBottomNav active={activeSection} onNav={navTo} />
+      {/* ── Mobile bottom nav — Dashboard tab only ─────────────────── */}
+      {activeTab === 'dashboard' && (
+        <MobileBottomNav active={activeSection} onNav={navTo} />
+      )}
 
       {/* ── Upgraded toast ────────────────────────────────────────── */}
       {upgradedToast && (
