@@ -24,8 +24,8 @@ export default async function DashboardPage() {
     .eq('id', user.id)
     .single()
 
-  // Block deactivated accounts — show message instead of dashboard
-  if (raw?.deactivated_at) {
+  // Block any inactive account (trial expired, payment failed, admin-deactivated)
+  if (raw && !raw.active) {
     return <DeactivatedPage />
   }
 

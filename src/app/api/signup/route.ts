@@ -1,7 +1,33 @@
 import { NextResponse } from 'next/server'
+import { createHash } from 'node:crypto'
 import { createServiceRoleClient } from '@/lib/supabase/admin'
 import { sendEmail } from '@/lib/sendgrid'
 import { welcomeEmail } from '@/lib/email-templates'
+
+// ── Trial fingerprint helpers ─────────────────────────────────────────────────
+
+// Free/consumer email providers — we skip domain-level fingerprinting for these
+// because the same domain can host millions of unrelated users.
+const FREE_EMAIL_DOMAINS = new Set([
+  'gmail.com', 'googlemail.com', 'yahoo.com', 'yahoo.co.uk', 'yahoo.ie',
+  'hotmail.com', 'hotmail.co.uk', 'hotmail.ie', 'outlook.com', 'outlook.ie',
+  'live.com', 'live.ie', 'icloud.com', 'me.com', 'msn.com', 'aol.com',
+  'mail.com', 'protonmail.com', 'proton.me', 'fastmail.com', 'gmx.com',
+  'gmx.net', 'ymail.com', 'rocketmail.com', 'btinternet.com', 'sky.com',
+])
+
+function sha256hex(value: string): string {
+  return createHash('sha256').update(value.toLowerCase()).digest('hex')
+}
+
+function getSignupIp(request: Request): string | null {
+  const h = request.headers
+  return (
+    (h as Headers).get('x-real-ip') ||
+    (h as Headers).get('x-forwarded-for')?.split(',')[0]?.trim() ||
+    null
+  )
+}
 
 export async function POST(request: Request) {
   try {
@@ -44,7 +70,50 @@ export async function POST(request: Request) {
 
     const admin = createServiceRoleClient()
 
-    // 1. Create Supabase auth user and generate confirmation link
+    // 1a. Trial abuse fingerprint check (non-owner signups only)
+    const emailDomain    = email.toLowerCase().split('@')[1] ?? ''
+    const isBusinessDomain = !FREE_EMAIL_DOMAINS.has(emailDomain)
+    const ipAddress      = getSignupIp(request)
+    const emailDomainHash = isBusinessDomain ? sha256hex(emailDomain) : null
+    const ipHash          = ipAddress ? sha256hex(ipAddress) : null
+
+    if (!isOwner) {
+      if (emailDomainHash) {
+        const { data: domainMatch } = await admin
+          .from('trial_fingerprints')
+          .select('id')
+          .eq('email_domain_hash', emailDomainHash)
+          .limit(1)
+          .maybeSingle()
+
+        if (domainMatch) {
+          console.warn('[signup] trial fingerprint match (email domain):', emailDomain)
+          return NextResponse.json(
+            { error: 'A free trial has already been used for this business. Please subscribe to continue at tilltalk.ie' },
+            { status: 409 },
+          )
+        }
+      }
+
+      if (ipHash) {
+        const { data: ipMatch } = await admin
+          .from('trial_fingerprints')
+          .select('id')
+          .eq('ip_hash', ipHash)
+          .limit(1)
+          .maybeSingle()
+
+        if (ipMatch) {
+          console.warn('[signup] trial fingerprint match (IP) for:', email)
+          return NextResponse.json(
+            { error: 'A free trial has already been used from this location. Please subscribe to continue at tilltalk.ie' },
+            { status: 409 },
+          )
+        }
+      }
+    }
+
+    // 1b. Create Supabase auth user and generate confirmation link
     console.log('[signup] calling supabase generateLink for:', email)
     const { data: authData, error: authError } = await admin.auth.admin.generateLink({
       type: 'signup',
@@ -158,6 +227,16 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Failed to create profile. ' + profileError.message }, { status: 500 })
     }
     console.log('[signup] profile inserted for userId:', userId)
+
+    // 3a. Store trial fingerprint so future signups with the same domain/IP are blocked
+    if (!isOwner && (emailDomainHash || ipHash)) {
+      admin.from('trial_fingerprints').insert({
+        ...(emailDomainHash ? { email_domain_hash: emailDomainHash } : {}),
+        ...(ipHash          ? { ip_hash: ipHash }                    : {}),
+      }).then(({ error: fpErr }) => {
+        if (fpErr) console.error('[signup] fingerprint store failed (non-fatal):', fpErr)
+      })
+    }
 
     // 4. Send welcome email with confirmation button
     const welcome = welcomeEmail(

@@ -333,6 +333,45 @@ ${divider()}
 }
 
 // ---------------------------------------------------------------------------
+// Payment failed email — sent when a Stripe payment attempt fails
+// ---------------------------------------------------------------------------
+
+export function paymentFailedEmail(
+  name: string,
+): { subject: string; html: string; text: string } {
+  const content = `
+<h1 style="font-size:24px;font-weight:800;color:#111827;margin:0 0 8px;">Payment failed</h1>
+<p style="font-size:15px;color:#6b7280;margin:0 0 24px;line-height:1.6;">Hi ${name},</p>
+
+${alertBox(
+  'We weren\'t able to process your payment and your TillTalk access has been paused. Your data is safe — reactivating is quick and easy.',
+  'danger',
+)}
+
+<p style="font-size:15px;color:#374151;margin:20px 0;line-height:1.6;">
+  To restore access, get in touch and we'll sort out billing right away.
+</p>
+
+${primaryButton('Reactivate my account', 'mailto:hello@tilltalk.ie?subject=Payment issue - reactivate my TillTalk account')}
+
+${divider()}
+
+<p style="font-size:14px;color:#6b7280;line-height:1.6;margin:0;">
+  Your POS connection and all your data are still intact — nothing is lost.
+  Once billing is resolved, you'll have full access again immediately.
+</p>
+<p style="font-size:14px;color:#6b7280;margin:12px 0 0;">
+  Questions? <a href="mailto:hello@tilltalk.ie" style="color:#16a34a;">hello@tilltalk.ie</a>
+</p>`
+
+  return {
+    subject: 'Payment failed — your TillTalk access has been paused',
+    html: baseEmail(content),
+    text: `Hi ${name},\n\nWe weren't able to process your TillTalk payment and your access has been paused.\n\nTo reactivate, contact hello@tilltalk.ie.\n\nYour data is safe and your POS connection is intact.\n\nhello@tilltalk.ie`,
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Invoice email — sent when a card is successfully charged
 // ---------------------------------------------------------------------------
 
