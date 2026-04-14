@@ -297,6 +297,7 @@ export default function DashboardClient({ user, profile }: Props) {
 
   // Data state
   const [salesData,   setSalesData]   = useState<SalesData | null>(null)
+  const [reminders,   setReminders]   = useState<ReminderItem[]>([])
   const [notesData,   setNotesData]   = useState<{ reminders: ReminderItem[]; notes: NoteItem[] }>({ reminders: [], notes: [] })
   const [locations,   setLocations]   = useState<LocationItem[]>([])
   const [salesLoading,  setSalesLoading]  = useState(true)
@@ -398,6 +399,10 @@ export default function DashboardClient({ user, profile }: Props) {
     fetch('/api/dashboard/sales')
       .then(r => (r.ok ? r.json() : null)).catch(() => null)
       .then(d => { setSalesData(d); setSalesLoading(false) })
+
+    fetch('/api/dashboard/reminders')
+      .then(r => (r.ok ? r.json() : null)).catch(() => null)
+      .then(d => { setReminders(d?.reminders || []) })
 
     fetch('/api/dashboard/notes')
       .then(r => (r.ok ? r.json() : null)).catch(() => null)
@@ -621,7 +626,7 @@ export default function DashboardClient({ user, profile }: Props) {
             </div>
           ) : (
             <CalendarSection
-              reminders={notesData.reminders}
+              reminders={reminders}
               locations={locations}
             />
           )}
