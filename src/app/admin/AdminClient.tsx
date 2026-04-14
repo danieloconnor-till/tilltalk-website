@@ -829,7 +829,7 @@ function ClientsSection({
                           Extend
                         </button>
                         {p.email !== 'daniel@tilltalk.ie' && (
-                          p.deactivated_at ? (
+                          !p.active ? (
                             <button
                               onClick={() => onReactivate(p.id)}
                               className="text-xs px-2.5 py-1 rounded-lg transition-colors whitespace-nowrap bg-green-50 hover:bg-green-100 text-green-700"
