@@ -7,6 +7,7 @@ import {
   AlertTriangle, Clock, Wifi, WifiOff, RefreshCw,
   Activity, Globe, Smartphone, DollarSign, BarChart2,
   ChevronRight, BadgeAlert, CheckCircle, Minus,
+  MessageSquareWarning, Zap, ClipboardCopy,
 } from 'lucide-react'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -1014,6 +1015,183 @@ function ExtendModal({
 
 // ─── Section nav ──────────────────────────────────────────────────────────────
 
+// ─── Section: Failed Queries ──────────────────────────────────────────────────
+
+interface FailedQuery {
+  id: number
+  client_id: number
+  client_name: string
+  phone_number: string | null
+  original_query: string
+  original_response: string | null
+  retry_response: string | null
+  created_at: string
+}
+
+function FailedQueriesSection() {
+  const [queries, setQueries] = useState<FailedQuery[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [analysing, setAnalysing] = useState<Record<number, boolean>>({})
+  const [analyses, setAnalyses] = useState<Record<number, string>>({})
+  const [copied, setCopied] = useState<Record<number, boolean>>({})
+
+  useEffect(() => {
+    fetch('/api/admin/failed-queries')
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.error) setError(d.error)
+        else setQueries(d.queries ?? [])
+      })
+      .catch(() => setError('Failed to load'))
+      .finally(() => setLoading(false))
+  }, [])
+
+  async function handleAnalyse(q: FailedQuery) {
+    setAnalysing((p) => ({ ...p, [q.id]: true }))
+    try {
+      const res = await fetch('/api/admin/analyse-query', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          originalQuery: q.original_query,
+          originalResponse: q.original_response,
+          retryResponse: q.retry_response,
+          clientName: q.client_name,
+        }),
+      })
+      const data = await res.json()
+      setAnalyses((p) => ({ ...p, [q.id]: data.analysis ?? data.error ?? 'No analysis returned' }))
+    } catch {
+      setAnalyses((p) => ({ ...p, [q.id]: 'Request failed — check console' }))
+    } finally {
+      setAnalysing((p) => ({ ...p, [q.id]: false }))
+    }
+  }
+
+  function buildClaudePrompt(q: FailedQuery, analysis: string): string {
+    return `# TillTalk Bot Fix — Failed Query
+
+## Context
+Client: ${q.client_name}
+Timestamp: ${new Date(q.created_at).toLocaleString('en-IE')}
+
+## Failed Interaction
+**Original query:** ${q.original_query}
+
+**Original response (Haiku):**
+${q.original_response ?? '(none)'}
+
+**Retry response (Sonnet):**
+${q.retry_response ?? '(none)'}
+
+## Opus Analysis
+${analysis}
+
+## Task
+Implement the fix described above in the TillTalk bot codebase. Make the minimum necessary change to resolve this failure class. Commit and push when done.`
+  }
+
+  function handleCopy(q: FailedQuery) {
+    const analysis = analyses[q.id] ?? ''
+    const prompt = buildClaudePrompt(q, analysis)
+    navigator.clipboard.writeText(prompt).then(() => {
+      setCopied((p) => ({ ...p, [q.id]: true }))
+      setTimeout(() => setCopied((p) => ({ ...p, [q.id]: false })), 2000)
+    })
+  }
+
+  return (
+    <div className="space-y-4">
+      <SectionHeader id="failed-queries" title="Failed Queries" icon={MessageSquareWarning} />
+
+      {loading && (
+        <Card>
+          <p className="text-sm text-gray-400 text-center py-4">Loading…</p>
+        </Card>
+      )}
+
+      {error && (
+        <Card>
+          <p className="text-sm text-red-500 text-center py-4">{error}</p>
+        </Card>
+      )}
+
+      {!loading && !error && queries.length === 0 && (
+        <Card>
+          <p className="text-sm text-gray-400 text-center py-6">No failed queries yet. 🎉</p>
+        </Card>
+      )}
+
+      {queries.map((q) => (
+        <Card key={q.id} className="space-y-3">
+          {/* Header */}
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <p className="text-sm font-semibold text-gray-900">{q.client_name}</p>
+              <p className="text-xs text-gray-400 mt-0.5">
+                {new Date(q.created_at).toLocaleString('en-IE', {
+                  day: 'numeric', month: 'short', year: 'numeric',
+                  hour: '2-digit', minute: '2-digit',
+                })}
+              </p>
+            </div>
+            <button
+              onClick={() => handleAnalyse(q)}
+              disabled={analysing[q.id]}
+              className="flex items-center gap-1.5 text-xs bg-purple-600 hover:bg-purple-700 disabled:opacity-60 text-white px-3 py-1.5 rounded-lg transition-colors shrink-0"
+            >
+              <Zap size={12} />
+              {analysing[q.id] ? 'Analysing…' : 'Analyse & Fix'}
+            </button>
+          </div>
+
+          {/* Query / responses */}
+          <div className="space-y-2 text-sm">
+            <div>
+              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Original query</p>
+              <p className="text-gray-800 bg-gray-50 rounded-lg px-3 py-2">{q.original_query}</p>
+            </div>
+            <div>
+              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Haiku response</p>
+              <p className="text-gray-600 bg-gray-50 rounded-lg px-3 py-2 whitespace-pre-wrap text-xs">
+                {q.original_response ?? <span className="italic text-gray-400">None recorded</span>}
+              </p>
+            </div>
+            {q.retry_response && (
+              <div>
+                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Sonnet retry</p>
+                <p className="text-gray-600 bg-blue-50 rounded-lg px-3 py-2 whitespace-pre-wrap text-xs">
+                  {q.retry_response}
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* Opus analysis */}
+          {analyses[q.id] && (
+            <div className="border-t border-gray-100 pt-3 space-y-2">
+              <p className="text-xs font-medium text-purple-700 uppercase tracking-wide">Opus Analysis</p>
+              <p className="text-sm text-gray-800 whitespace-pre-wrap bg-purple-50 rounded-lg px-3 py-2">
+                {analyses[q.id]}
+              </p>
+              <button
+                onClick={() => handleCopy(q)}
+                className="flex items-center gap-1.5 text-xs bg-gray-800 hover:bg-gray-700 text-white px-3 py-1.5 rounded-lg transition-colors"
+              >
+                <ClipboardCopy size={12} />
+                {copied[q.id] ? 'Copied!' : 'Approve Fix — Copy as Claude Code Prompt'}
+              </button>
+            </div>
+          )}
+        </Card>
+      ))}
+    </div>
+  )
+}
+
+// ─── Section nav ──────────────────────────────────────────────────────────────
+
 const NAV_ITEMS = [
   { id: 'metrics', label: 'Metrics' },
   { id: 'trials', label: 'Trials' },
@@ -1023,6 +1201,7 @@ const NAV_ITEMS = [
   { id: 'marketing', label: 'Marketing' },
   { id: 'pos', label: 'POS' },
   { id: 'clients', label: 'Clients' },
+  { id: 'failed-queries', label: 'Quality' },
 ]
 
 // ─── Root component ───────────────────────────────────────────────────────────
@@ -1117,6 +1296,7 @@ export default function AdminClient({ profiles, stats, signupsPerDay, posBreakdo
           onExtend={(id, name) => setExtendTarget({ id, name })}
           onToggleActive={handleToggleActive}
         />
+        <FailedQueriesSection />
       </div>
 
       {/* Toast */}
