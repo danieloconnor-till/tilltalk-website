@@ -204,6 +204,7 @@ async function fetchHourlyWindows(lat: number, lng: number): Promise<Record<stri
 // ---------------------------------------------------------------------------
 
 interface ReminderItem { id: number; text: string; remind_at: string }
+
 interface EventItem {
   name:        string
   venue:       string
@@ -219,7 +220,6 @@ interface EventItem {
 interface LocationItem { id: number; nickname: string; address: string | null }
 
 interface CalendarProps {
-  reminders: ReminderItem[]
   locations: LocationItem[]
 }
 
@@ -273,7 +273,7 @@ function staffingSuggestion(
 // Component
 // ---------------------------------------------------------------------------
 
-export default function CalendarSection({ reminders, locations }: CalendarProps) {
+export default function CalendarSection({ locations }: CalendarProps) {
   const today  = new Date()
   const [year,  setYear]  = useState(today.getFullYear())
   const [month, setMonth] = useState(today.getMonth())
@@ -292,6 +292,28 @@ export default function CalendarSection({ reminders, locations }: CalendarProps)
   const [eventsLoading,   setEventsLoading]   = useState(false)
   const [refreshing,      setRefreshing]      = useState(false)
   const [locationLabel,   setLocationLabel]   = useState<string | null>(null)
+
+  // Reminders — fetched independently and polled every 30 s so new reminders
+  // set via WhatsApp appear without a page reload.
+  const [reminders, setReminders] = useState<ReminderItem[]>([])
+
+  const fetchReminders = useCallback(async () => {
+    try {
+      const res = await fetch('/api/dashboard/reminders')
+      if (res.ok) {
+        const data = await res.json()
+        setReminders(data?.reminders || [])
+      }
+    } catch {
+      // silently fail — calendar still works without reminders
+    }
+  }, [])
+
+  useEffect(() => {
+    fetchReminders()
+    const id = setInterval(fetchReminders, 30_000)
+    return () => clearInterval(id)
+  }, [fetchReminders])
 
   const activeLoc = locations.find(l => l.id === activeLocId) ?? locations[0] ?? null
 
