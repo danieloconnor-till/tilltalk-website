@@ -18,9 +18,6 @@ export default withSentryConfig(nextConfig, {
   // Leave widenClientFileUpload false until auth token is configured
   widenClientFileUpload: false,
 
-  // Hides the Sentry SDK from browser bundle to avoid ad-blockers stripping it
-  hideSourceMaps: true,
-
   // Automatically tree-shake Sentry logger statements in production
   disableLogger: true,
 

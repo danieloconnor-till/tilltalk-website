@@ -17,6 +17,8 @@ import ManageSection from './ManageSection'
 import AnalyticsSection from './AnalyticsSection'
 import NotesSection from './NotesSection'
 import QueryChat from './QueryChat'
+import SubscriptionTab from './SubscriptionTab'
+import AccountTab from './AccountTab'
 
 declare global {
   interface Window { Plotly: PlotlyInstance }
@@ -109,8 +111,10 @@ function StatCardSkeleton() {
 
 // Top-level tabs
 const TAB_ITEMS = [
-  { id: 'dashboard', label: 'Dashboard' },
-  { id: 'analytics', label: 'Analytics' },
+  { id: 'dashboard',    label: 'Dashboard'    },
+  { id: 'analytics',   label: 'Analytics'    },
+  { id: 'subscription', label: 'Subscription' },
+  { id: 'account',     label: 'Account'      },
 ] as const
 type TabId = typeof TAB_ITEMS[number]['id']
 
@@ -895,6 +899,25 @@ export default function DashboardClient({ user, profile }: Props) {
           </div>
 
         </>)} {/* end activeTab === 'analytics' */}
+
+        {/* ═══════════════════════════════════════════════════════════════
+            TAB 3 — Subscription
+        ════════════════════════════════════════════════════════════════ */}
+        {activeTab === 'subscription' && (
+          <SubscriptionTab profile={profile} />
+        )}
+
+        {/* ═══════════════════════════════════════════════════════════════
+            TAB 4 — Account
+        ════════════════════════════════════════════════════════════════ */}
+        {activeTab === 'account' && (
+          <AccountTab
+            profile={profile}
+            user={user}
+            onProfileUpdate={() => router.refresh()}
+            onGoToManage={() => { setActiveTab('dashboard'); setActiveSection('manage') }}
+          />
+        )}
 
       </div>
 
