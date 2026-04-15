@@ -724,11 +724,13 @@ function ClientsSection({
   onExtend,
   onDeactivate,
   onReactivate,
+  onRepairSync,
 }: {
   profiles: Profile[]
   onExtend: (id: string, name: string) => void
   onDeactivate: (id: string, name: string, email: string) => void
   onReactivate: (id: string) => void
+  onRepairSync: (id: string, name: string) => void
 }) {
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<'all' | 'trial' | 'paid' | 'expired' | 'inactive' | 'deactivated'>('all')
@@ -838,12 +840,21 @@ function ClientsSection({
                               Reactivate
                             </button>
                           ) : (
-                            <button
-                              onClick={() => onDeactivate(p.id, p.restaurant_name || p.full_name || p.email, p.email)}
-                              className="text-xs px-2.5 py-1 rounded-lg transition-colors whitespace-nowrap bg-red-50 hover:bg-red-100 text-red-700"
-                            >
-                              Deactivate
-                            </button>
+                            <>
+                              <button
+                                onClick={() => onDeactivate(p.id, p.restaurant_name || p.full_name || p.email, p.email)}
+                                className="text-xs px-2.5 py-1 rounded-lg transition-colors whitespace-nowrap bg-red-50 hover:bg-red-100 text-red-700"
+                              >
+                                Deactivate
+                              </button>
+                              <button
+                                title="Force-sync Railway if dashboard shows empty after reactivation"
+                                onClick={() => onRepairSync(p.id, p.restaurant_name || p.full_name || p.email)}
+                                className="text-xs px-2 py-1 rounded-lg transition-colors whitespace-nowrap bg-amber-50 hover:bg-amber-100 text-amber-700"
+                              >
+                                Repair Sync
+                              </button>
+                            </>
                           )
                         )}
                       </div>
@@ -1277,8 +1288,26 @@ export default function AdminClient({ profiles, stats, signupsPerDay, posBreakdo
       })
       const data = await res.json()
       if (data.error) { showToast('Error: ' + data.error) }
+      else if (data.railwaySyncFailed) {
+        showToast('Supabase reactivated — Railway sync failed. Use Repair Sync.')
+        router.refresh()
+      }
       else { showToast('Account reactivated'); router.refresh() }
     } catch { showToast('Network error') }
+  }
+
+  async function handleRepairSync(profileId: string, name: string) {
+    showToast(`Repairing ${name}…`)
+    try {
+      const res = await fetch('/api/admin/repair-account', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ profileId }),
+      })
+      const data = await res.json()
+      if (data.error) { showToast('Repair failed: ' + data.error) }
+      else { showToast(data.message || 'Repair complete'); router.refresh() }
+    } catch { showToast('Network error during repair') }
   }
 
   function scrollTo(id: string) {
@@ -1336,6 +1365,7 @@ export default function AdminClient({ profiles, stats, signupsPerDay, posBreakdo
           onExtend={(id, name) => setExtendTarget({ id, name })}
           onDeactivate={(id, name, email) => setDeactivateTarget({ id, name, email })}
           onReactivate={handleReactivate}
+          onRepairSync={handleRepairSync}
         />
         <FailedQueriesSection />
         <SandboxSection />

@@ -79,15 +79,24 @@ export async function POST(request: Request) {
       if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
       // Restore Railway's clients.active = true (non-fatal if Railway is down)
-      const { wasInactive } = await railwayReactivate(profileId)
+      const { ok: railwayOk, wasInactive } = await railwayReactivate(profileId)
       if (wasInactive) {
         console.log(`[toggle-active] Restored Railway clients.active for ${profile.email} (was inactive in Railway)`)
+      }
+      if (!railwayOk) {
+        console.warn(`[toggle-active] Railway reactivation failed for ${profile.email} — dashboard manage panel may show empty until repaired`)
       }
 
       // Async integrity check — warns to Sentry if Railway data appears missing
       verifyRailwayDataIntegrity(profileId, profile.email, profileId)
 
-      return NextResponse.json({ success: true, active: true, deactivated: false })
+      return NextResponse.json({
+        success: true,
+        active: true,
+        deactivated: false,
+        // Surface Railway sync failure so the admin UI can prompt a repair
+        railwaySyncFailed: !railwayOk,
+      })
     }
 
   } catch (err) {
