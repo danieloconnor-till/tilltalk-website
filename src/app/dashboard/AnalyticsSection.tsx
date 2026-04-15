@@ -141,12 +141,15 @@ function Skeleton({ className = '' }: { className?: string }) {
 // Sub-section: Sales Analytics
 // ---------------------------------------------------------------------------
 
-function SalesAnalytics({ locations }: { locations: LocationItem[] }) {
+function SalesAnalytics({ locations, initialLocId }: { locations: LocationItem[]; initialLocId?: number | null }) {
   const hasMultiLoc = locations.length > 1
 
-  const [activeLocId, setActiveLocId]   = useState<number | null>(
-    locations.length ? locations[0].id : null
-  )
+  // Default to All Locations (null) when multi-location, else first location
+  const defaultLocId = initialLocId !== undefined
+    ? initialLocId
+    : (locations.length > 1 ? null : (locations[0]?.id ?? null))
+
+  const [activeLocId, setActiveLocId]   = useState<number | null>(defaultLocId)
   const [dateFrom, setDateFrom]         = useState(isoMinus(29))
   const [dateTo,   setDateTo]           = useState(isoToday())
   const [granularity, setGranularity]   = useState<'daily' | 'weekly' | 'monthly'>('daily')
@@ -270,6 +273,16 @@ function SalesAnalytics({ locations }: { locations: LocationItem[] }) {
       {/* Location selector */}
       {hasMultiLoc && (
         <div className="flex flex-wrap gap-2">
+          <button
+            onClick={() => setActiveLocId(null)}
+            className={`px-3 py-1.5 text-sm font-medium rounded-lg border transition-colors ${
+              activeLocId === null
+                ? 'bg-green-600 text-white border-green-600'
+                : 'bg-white text-gray-600 border-gray-200 hover:border-green-300'
+            }`}
+          >
+            All Locations
+          </button>
           {locations.map(loc => (
             <button
               key={loc.id}
@@ -791,7 +804,9 @@ function PayrollSection({ locations }: { locations: LocationItem[] }) {
 // ---------------------------------------------------------------------------
 
 export default function AnalyticsSection({ locations }: Props) {
-  const [tab, setTab] = useState<'sales' | 'payroll'>('sales')
+  const [tab, setTab]             = useState<'sales' | 'payroll'>('sales')
+  const [compareMode, setCompare] = useState(false)
+  const hasMultiLoc               = locations.length > 1
 
   const TABS = [
     { id: 'sales'   as const, label: 'Sales Analytics', Icon: BarChart2   },
@@ -802,25 +817,61 @@ export default function AnalyticsSection({ locations }: Props) {
     <div className="space-y-4">
       <h2 className="text-base font-semibold text-gray-900">Analytics</h2>
 
-      {/* Sub-tab bar */}
-      <div className="flex gap-1 bg-gray-100 rounded-xl p-1 w-fit">
-        {TABS.map(({ id, label, Icon }) => (
+      {/* Sub-tab bar + compare toggle */}
+      <div className="flex items-center justify-between gap-4 flex-wrap">
+        <div className="flex gap-1 bg-gray-100 rounded-xl p-1 w-fit">
+          {TABS.map(({ id, label, Icon }) => (
+            <button
+              key={id}
+              onClick={() => setTab(id)}
+              className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+                tab === id
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              <Icon size={15} />
+              {label}
+            </button>
+          ))}
+        </div>
+
+        {/* Compare mode toggle — only visible on Sales tab with multiple locations */}
+        {tab === 'sales' && hasMultiLoc && (
           <button
-            key={id}
-            onClick={() => setTab(id)}
-            className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
-              tab === id
-                ? 'bg-white text-gray-900 shadow-sm'
-                : 'text-gray-500 hover:text-gray-700'
+            onClick={() => setCompare(c => !c)}
+            className={`flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg border transition-colors ${
+              compareMode
+                ? 'bg-green-600 text-white border-green-600'
+                : 'bg-white text-gray-600 border-gray-200 hover:border-green-300'
             }`}
           >
-            <Icon size={15} />
-            {label}
+            <BarChart2 size={14} />
+            Compare locations
           </button>
-        ))}
+        )}
       </div>
 
-      {tab === 'sales'   && <SalesAnalytics   locations={locations} />}
+      {tab === 'sales' && !compareMode && <SalesAnalytics locations={locations} />}
+
+      {tab === 'sales' && compareMode && (
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+          {/* Default first two locations side-by-side; each panel is fully independent */}
+          <div className="space-y-2">
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+              {locations[0]?.nickname ?? 'Location A'}
+            </p>
+            <SalesAnalytics locations={locations} initialLocId={locations[0]?.id ?? null} />
+          </div>
+          <div className="space-y-2">
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+              {locations[1]?.nickname ?? 'Location B'}
+            </p>
+            <SalesAnalytics locations={locations} initialLocId={locations[1]?.id ?? null} />
+          </div>
+        </div>
+      )}
+
       {tab === 'payroll' && <PayrollSection    locations={locations} />}
     </div>
   )

@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import {
   Plus, Trash2, Eye, EyeOff, HelpCircle, X,
   Phone, MapPin, Lock, Users, Shield, CheckCircle2,
-  AlertCircle, ToggleLeft, ToggleRight, Pencil, Play,
+  AlertCircle, ToggleLeft, ToggleRight, Pencil, Play, Info,
 } from 'lucide-react'
 import { PLANS } from '@/lib/plans'
 import AddressAutocomplete from '@/components/AddressAutocomplete'
@@ -887,6 +887,15 @@ function PermissionsTab({ plan }: { plan: string | null | undefined }) {
             </ul>
           </div>
         ))}
+      </div>
+
+      {/* Dashboard access notice */}
+      <div className="flex items-start gap-2 bg-blue-50 border border-blue-100 rounded-xl px-4 py-3">
+        <Info size={15} className="text-blue-500 shrink-0 mt-0.5" />
+        <p className="text-xs text-blue-800">
+          <span className="font-semibold">Dashboard access is for owners only.</span>{' '}
+          Staff and manager numbers are for WhatsApp access only — they cannot log in to the dashboard.
+        </p>
       </div>
 
       {/* Quick role edit table */}

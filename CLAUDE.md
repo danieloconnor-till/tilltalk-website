@@ -4,7 +4,7 @@
 
 ## Last Updated
 
-**2026-04-09** — Update this file at the end of every Claude Code session with what was built, changed, or decided.
+**2026-04-15** — Update this file at the end of every Claude Code session with what was built, changed, or decided.
 
 ## What This Is
 
@@ -343,6 +343,10 @@ The T&Cs (src/app/terms/page.tsx) and Privacy Policy (src/app/privacy/page.tsx) 
   - Quick-question chips, typing indicator, escape-to-close, keyboard-friendly
   - `@anthropic-ai/sdk ^0.82.0` added to `package.json`
   - **Note: `ANTHROPIC_API_KEY` must be added to Vercel** — copy from Railway env vars: `npx vercel env add ANTHROPIC_API_KEY`
+
+### Session 7 (2026-04-15) — Multi-location analytics + owner-only dashboard notice
+- **AnalyticsSection.tsx**: `SalesAnalytics` now accepts `initialLocId` prop; multi-location clients default to "All Locations" (null `activeLocId`, no `location_id` param → Railway merges all); "All Locations" button added to location selector; compare mode toggle (visible on Sales tab with multiple locations) renders two independent `SalesAnalytics` panels side-by-side, each with its own location selector and date range
+- **ManageSection.tsx**: Added "Dashboard access is for owners only" info notice in the Permissions tab between the role legend and the quick-edit table; added `Info` icon import
 
 ### Session 6 (2026-04-09) — Signup hardening, dashboard cleanup, GDPR export
 - **Supabase RLS INSERT policy**: added `INSERT` policy to `profiles` table so the service-role client can write during signup without RLS blocking it
