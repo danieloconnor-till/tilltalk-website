@@ -9,6 +9,7 @@ import {
   ChevronRight, BadgeAlert, CheckCircle, Minus,
   MessageSquareWarning, Zap, ClipboardCopy,
 } from 'lucide-react'
+import SandboxSection from './SandboxSection'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -1226,6 +1227,7 @@ const NAV_ITEMS = [
   { id: 'pos', label: 'POS' },
   { id: 'clients', label: 'Clients' },
   { id: 'failed-queries', label: 'Quality' },
+  { id: 'sandbox', label: 'Sandbox' },
 ]
 
 // ─── Root component ───────────────────────────────────────────────────────────
@@ -1336,6 +1338,7 @@ export default function AdminClient({ profiles, stats, signupsPerDay, posBreakdo
           onReactivate={handleReactivate}
         />
         <FailedQueriesSection />
+        <SandboxSection />
       </div>
 
       {/* Toast */}
