@@ -10,6 +10,7 @@ import {
   MessageSquareWarning, Zap, ClipboardCopy, Gift,
 } from 'lucide-react'
 import SandboxSection from './SandboxSection'
+import QueryIntelligenceSection from './QueryIntelligenceSection'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -1358,6 +1359,7 @@ const NAV_ITEMS = [
   { id: 'pos', label: 'POS' },
   { id: 'clients', label: 'Clients' },
   { id: 'referrals', label: 'Referrals' },
+  { id: 'query-intelligence', label: 'Query Intel' },
   { id: 'failed-queries', label: 'Quality' },
   { id: 'sandbox', label: 'Sandbox' },
 ]
@@ -1489,6 +1491,7 @@ export default function AdminClient({ profiles, stats, signupsPerDay, posBreakdo
           onRepairSync={handleRepairSync}
         />
         <ReferralsSection />
+        <QueryIntelligenceSection />
         <FailedQueriesSection />
         <SandboxSection />
       </div>

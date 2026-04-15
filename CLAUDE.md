@@ -6,6 +6,17 @@
 
 **2026-04-15** — Update this file at the end of every Claude Code session with what was built, changed, or decided.
 
+### Session 9 changes (2026-04-15) — Query Intelligence admin panel (Phase 1 AI cost optimisation)
+- **`supabase/migrations/009_query_logs.sql`** (new): `query_logs` table with 50+ columns covering query identity, content, channel/client context, response metrics, model/performance, classification, quality signals. Indexes on `client_id`, `created_at desc`, `intent_type`, `classified_at` (where null), `channel`. RLS enabled — users can SELECT their own rows; service role bypasses for all writes. Raw data columns (`raw_query`, `raw_response`) are nulled after 90 days. **Must push: `SUPABASE_ACCESS_TOKEN=<token> npx supabase db push`**
+- **`src/app/api/admin/query-intelligence/route.ts`** (new): Admin-only GET endpoint. Accepts `?days=30`. Runs 16 parallel Supabase queries and returns aggregated data: `{overview, intent_breakdown, model_breakdown, complexity_breakdown, channel_breakdown, pos_breakdown, daily_counts, daily_cost, top_queries, follow_up_by_intent, slowest_queries, deterministic_candidates, avg_time_by_model}`.
+- **`src/app/api/cron/classify-queries/route.ts`** (new): POST, authenticated with `CRON_SECRET`. Calls Railway `/api/admin/classify-queries` with 120s timeout. Triggers Haiku batch classification of unclassified query rows.
+- **`src/app/api/cron/cleanup-query-logs/route.ts`** (new): POST, authenticated with `CRON_SECRET`. Calls Railway `/api/cron/cleanup-raw-queries` with 30s timeout. Nulls raw text older than 90 days.
+- **`src/app/api/chat/route.ts`** (modified): removed the fire-and-forget `/api/log-query` call (was double-logging). Dashboard logging now happens inside Railway's `process_query` via the `_channel='dashboard'` injection in `chat.py`.
+- **`vercel.json`** (modified): added two new cron jobs: `0 2 * * *` → `/api/cron/classify-queries`; `0 3 * * *` → `/api/cron/cleanup-query-logs`.
+- **`src/app/admin/QueryIntelligenceSection.tsx`** (new): self-contained admin panel section. Day-range selector (7/14/30/90d). Overview stat cards (queries, AI cost, projected monthly, queries/day, cost/day). Spark bar charts for queries-per-day and cost-per-day. Model/channel/complexity/avg-response-time breakdown bars. Intent breakdown (classified rows only). Follow-up rate table by intent. Top 30 anonymised queries table. Slowest 20 queries table. Deterministic candidates table.
+- **`src/app/admin/AdminClient.tsx`** (modified): imports `QueryIntelligenceSection`; added `query-intelligence` to `NAV_ITEMS`; renders `<QueryIntelligenceSection />` between Referrals and Quality sections.
+- **Railway env vars needed**: `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` must be added to Railway environment variables for query logging to work.
+
 ### Session 8 changes (2026-04-15) — Referral programme
 - **`supabase/migrations/008_referrals.sql`**: adds `referral_code TEXT UNIQUE` to `profiles`; creates `referrals` table (`id, referrer_id, referred_id, referred_email, status, stripe_credit_cents, created_at, converted_at, credited_at`). Status enum: `signed_up → converted → credited` or `manual_pending`. RLS enabled (users can read their own rows; service role bypasses).
 - **`src/app/ref/[code]/route.ts`** (new): GET handler for `/ref/[code]` — sets 30-day `tilltalk_referral` cookie and redirects to `/signup?ref=[code]`.

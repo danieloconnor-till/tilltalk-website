@@ -46,7 +46,14 @@ export async function POST(request: Request) {
       )
     }
 
-    const data = await res.json()
+    const data = await res.json() as {
+      response?: string
+      model_id?: string
+      input_tokens?: number
+      output_tokens?: number
+      was_suggested_prompt?: boolean
+    }
+
     return NextResponse.json(data)
   } catch {
     return NextResponse.json({ error: 'Chat service unavailable' }, { status: 503 })

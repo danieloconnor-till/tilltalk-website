@@ -7,6 +7,14 @@
     {
       "path": "/api/cron/expire-trials",
       "schedule": "0 0 * * *"
+    },
+    {
+      "path": "/api/cron/classify-queries",
+      "schedule": "0 2 * * *"
+    },
+    {
+      "path": "/api/cron/cleanup-query-logs",
+      "schedule": "0 3 * * *"
     }
   ]
 }
