@@ -6,6 +6,18 @@
 
 **2026-04-15** — Update this file at the end of every Claude Code session with what was built, changed, or decided.
 
+### Session 8 changes (2026-04-15) — Referral programme
+- **`supabase/migrations/008_referrals.sql`**: adds `referral_code TEXT UNIQUE` to `profiles`; creates `referrals` table (`id, referrer_id, referred_id, referred_email, status, stripe_credit_cents, created_at, converted_at, credited_at`). Status enum: `signed_up → converted → credited` or `manual_pending`. RLS enabled (users can read their own rows; service role bypasses).
+- **`src/app/ref/[code]/route.ts`** (new): GET handler for `/ref/[code]` — sets 30-day `tilltalk_referral` cookie and redirects to `/signup?ref=[code]`.
+- **`src/app/api/signup/route.ts`**: generates unique 8-char alphanumeric `referral_code` (via `crypto.randomBytes`) for every new non-owner signup; stores to `profiles.referral_code`; passes `referral_code` to Railway `/api/onboard`; reads `refCode` from POST body and creates a `referrals` record linking referrer → new signup (fully non-fatal, fire-and-forget).
+- **`src/app/api/referrals/my/route.ts`** (new): GET — returns `referral_code`, `referral_url`, stats (`total/pending/converted/credited/total_credit_cents`), and enriched referrals list (includes referred business name).
+- **`src/app/api/referrals/claim/route.ts`** (new): POST `{ email }` — manual referral claim by email lookup; creates `referrals` record with `status='manual_pending'`.
+- **`src/app/api/admin/referrals/route.ts`** (new): admin-only GET — all referral records with enriched profile names map.
+- **`src/app/api/billing/webhook/route.ts`**: on `checkout.session.completed`, calls `applyReferralCredit()` — looks up `referrals` record with `status='signed_up'` for the new subscriber; applies €30 Stripe balance credit to referrer via `stripe.customers.createBalanceTransaction`; marks `status='credited'`; notifies referrer via Railway `/api/referral-credit-notify`.
+- **`src/app/dashboard/AccountTab.tsx`**: added "Refer a Friend" card between WhatsApp Numbers and Danger Zone — shows referral URL with copy button, 4-stat row (total/signed up/subscribed/credits €), referrals list (last 5), manual claim form.
+- **`src/app/signup/page.tsx`**: reads `?ref=` param; shows attribution banner "You were invited to TillTalk!" when present; passes `refCode` to `/api/signup`.
+- **`src/app/admin/AdminClient.tsx`**: `ReferralsSection` with stats row + full table (referrer, referred, status badge, credit, date); added to NAV_ITEMS and render order (before Quality).
+
 ## What This Is
 
 The marketing and customer-facing web app for TillTalk: a service that lets hospitality and retail businesses query their POS system via WhatsApp. This repo handles the landing page, signup flow, user dashboard, and admin panel. The bot itself lives in a separate repo (`C:\Users\User\Documents\tilltalk`), deployed on Railway.
