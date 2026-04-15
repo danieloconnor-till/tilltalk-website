@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import {
   User, Mail, Lock, MapPin, Phone, Trash2,
-  CheckCircle2, AlertCircle, RefreshCw, Pencil, X,
+  CheckCircle2, AlertCircle, RefreshCw, Pencil, X, Gift, Copy, Check,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import type { User as SupabaseUser } from '@supabase/supabase-js'
@@ -173,6 +173,78 @@ export default function AccountTab({
         setNumbersLoading(false)
       })
   }, [])
+
+  // ── Referral programme ───────────────────────────────────────────────────
+
+  interface ReferralStats {
+    total: number
+    pending: number
+    converted: number
+    credited: number
+    total_credit_cents: number
+  }
+  interface ReferralRow {
+    id: string
+    referred_email: string | null
+    referred_business: string | null
+    status: string
+    stripe_credit_cents: number | null
+    created_at: string
+  }
+
+  const [referralCode,  setReferralCode]  = useState<string | null>(null)
+  const [referralUrl,   setReferralUrl]   = useState<string | null>(null)
+  const [referralStats, setReferralStats] = useState<ReferralStats | null>(null)
+  const [referrals,     setReferrals]     = useState<ReferralRow[]>([])
+  const [referralLoading, setReferralLoading] = useState(true)
+  const [copied,        setCopied]        = useState(false)
+  const [claimEmail,    setClaimEmail]    = useState('')
+  const [claimLoading,  setClaimLoading]  = useState(false)
+  const [claimMsg,      setClaimMsg]      = useState('')
+
+  useEffect(() => {
+    fetch('/api/referrals/my')
+      .then(r => r.ok ? r.json() : null).catch(() => null)
+      .then(d => {
+        if (d) {
+          setReferralCode(d.referral_code)
+          setReferralUrl(d.referral_url)
+          setReferralStats(d.stats)
+          setReferrals(d.referrals ?? [])
+        }
+        setReferralLoading(false)
+      })
+  }, [])
+
+  async function handleCopyLink() {
+    if (!referralUrl) return
+    try {
+      await navigator.clipboard.writeText(referralUrl)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      // fallback: select
+    }
+  }
+
+  async function handleClaimReferral() {
+    if (!claimEmail) return
+    setClaimLoading(true); setClaimMsg('')
+    try {
+      const res = await fetch('/api/referrals/claim', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: claimEmail }),
+      })
+      const data = await res.json()
+      if (!res.ok) { setClaimMsg(data.error || 'Something went wrong.') }
+      else          { setClaimMsg("Claim submitted! We'll review and credit your account if eligible."); setClaimEmail('') }
+    } catch {
+      setClaimMsg('Network error. Please try again.')
+    } finally {
+      setClaimLoading(false)
+    }
+  }
 
   // ── Delete account ───────────────────────────────────────────────────────
   const [showDeleteModal, setShowDeleteModal] = useState(false)
@@ -472,6 +544,108 @@ export default function AccountTab({
             >
               Manage all numbers →
             </button>
+          </div>
+        )}
+      </Card>
+
+      {/* ── Refer a friend ────────────────────────────────────────────── */}
+      <Card>
+        <SectionHeader icon={Gift} title="Refer a Friend" />
+        <p className="text-sm text-gray-500 mb-4">
+          Share your unique link. When a friend subscribes, you&apos;ll receive a <strong className="text-gray-700">€30 credit</strong> applied to your next invoice.
+        </p>
+
+        {referralLoading ? (
+          <div className="space-y-2">
+            <div className="h-10 bg-gray-100 rounded-lg animate-pulse" />
+            <div className="h-16 bg-gray-100 rounded-lg animate-pulse" />
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {/* Referral link */}
+            {referralUrl ? (
+              <div className="flex items-center gap-2">
+                <div className="flex-1 min-w-0 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5">
+                  <p className="text-sm text-gray-700 truncate font-mono">{referralUrl}</p>
+                </div>
+                <button
+                  onClick={handleCopyLink}
+                  className="flex items-center gap-1.5 text-sm text-green-600 hover:text-green-700 border border-green-200 hover:border-green-300 px-3 py-2.5 rounded-lg transition-colors shrink-0"
+                >
+                  {copied ? <Check size={14} /> : <Copy size={14} />}
+                  {copied ? 'Copied!' : 'Copy'}
+                </button>
+              </div>
+            ) : (
+              <p className="text-sm text-gray-400">Your referral link is being generated…</p>
+            )}
+
+            {/* Stats row */}
+            {referralStats && (
+              <div className="grid grid-cols-4 gap-2">
+                {[
+                  { label: 'Total',     value: referralStats.total },
+                  { label: 'Signed up', value: referralStats.pending },
+                  { label: 'Subscribed', value: referralStats.converted },
+                  { label: 'Credited',  value: `€${(referralStats.total_credit_cents / 100).toFixed(0)}` },
+                ].map(({ label, value }) => (
+                  <div key={label} className="bg-gray-50 rounded-xl px-3 py-2.5 text-center">
+                    <p className="text-base font-semibold text-gray-900">{value}</p>
+                    <p className="text-xs text-gray-500 mt-0.5">{label}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Referrals list */}
+            {referrals.length > 0 && (
+              <div className="space-y-1.5">
+                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Your referrals</p>
+                {referrals.slice(0, 5).map(r => (
+                  <div key={r.id} className="flex items-center justify-between gap-3 border border-gray-100 rounded-lg px-3 py-2">
+                    <div className="min-w-0">
+                      <p className="text-sm text-gray-800 truncate">{r.referred_business || r.referred_email || 'Unknown'}</p>
+                      <p className="text-xs text-gray-400">{new Date(r.created_at).toLocaleDateString('en-IE', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
+                    </div>
+                    <span className={`text-xs font-medium px-2 py-0.5 rounded-full shrink-0 ${
+                      r.status === 'credited'  ? 'bg-green-100 text-green-700' :
+                      r.status === 'converted' ? 'bg-blue-100 text-blue-700'  :
+                      r.status === 'manual_pending' ? 'bg-amber-100 text-amber-700' :
+                      'bg-gray-100 text-gray-600'
+                    }`}>
+                      {r.status === 'credited'  ? `€${((r.stripe_credit_cents ?? 0) / 100).toFixed(0)} credited` :
+                       r.status === 'converted' ? 'Subscribed' :
+                       r.status === 'manual_pending' ? 'Pending review' :
+                       'Signed up'}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Manual claim */}
+            <div className="border-t border-gray-100 pt-4">
+              <p className="text-xs font-medium text-gray-700 mb-2">Didn&apos;t use your link? Claim a referral by email</p>
+              <div className="flex gap-2">
+                <input
+                  type="email"
+                  value={claimEmail}
+                  onChange={e => setClaimEmail(e.target.value)}
+                  placeholder="friend@business.com"
+                  className="flex-1 min-w-0 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                />
+                <button
+                  onClick={handleClaimReferral}
+                  disabled={claimLoading || !claimEmail}
+                  className="flex items-center gap-1.5 bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors shrink-0"
+                >
+                  {claimLoading ? <RefreshCw size={13} className="animate-spin" /> : 'Claim'}
+                </button>
+              </div>
+              {claimMsg && (
+                <p className={`text-xs mt-2 ${claimMsg.startsWith("Claim submitted") ? 'text-green-600' : 'text-red-600'}`}>{claimMsg}</p>
+              )}
+            </div>
           </div>
         )}
       </Card>

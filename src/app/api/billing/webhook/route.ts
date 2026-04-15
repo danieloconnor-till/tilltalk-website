@@ -4,6 +4,80 @@ import { createServiceRoleClient } from '@/lib/supabase/admin'
 import { railwayDeactivate, railwayReactivate } from '@/lib/railway'
 import Stripe from 'stripe'
 
+// Referral credit: €30 per conversion (in cents)
+const REFERRAL_CREDIT_CENTS = 3000
+
+async function applyReferralCredit(admin: ReturnType<typeof createServiceRoleClient>, userId: string) {
+  try {
+    // Find a 'signed_up' referral for this user
+    const { data: referral } = await admin
+      .from('referrals')
+      .select('id, referrer_id')
+      .eq('referred_id', userId)
+      .eq('status', 'signed_up')
+      .maybeSingle()
+
+    if (!referral) return
+
+    // Get referrer's Stripe customer ID
+    const { data: referrerProfile } = await admin
+      .from('profiles')
+      .select('stripe_customer_id, restaurant_name')
+      .eq('id', referral.referrer_id)
+      .maybeSingle()
+
+    if (!referrerProfile?.stripe_customer_id) {
+      // Mark converted even without credit (referrer may not be a paying customer yet)
+      await admin.from('referrals').update({ status: 'converted', converted_at: new Date().toISOString() }).eq('id', referral.id)
+      console.log('[webhook/referral] referrer has no Stripe customer — marked converted without credit')
+      return
+    }
+
+    // Apply balance credit to referrer's Stripe account
+    const creditTx = await stripe.customers.createBalanceTransaction(
+      referrerProfile.stripe_customer_id,
+      {
+        amount:   -REFERRAL_CREDIT_CENTS,   // negative = credit
+        currency: 'eur',
+        description: `Referral credit — new subscriber joined via your link`,
+      },
+    )
+    console.log('[webhook/referral] credit applied:', creditTx.id, 'for referrer', referral.referrer_id)
+
+    // Mark credited in Supabase
+    await admin.from('referrals').update({
+      status: 'credited',
+      converted_at: new Date().toISOString(),
+      credited_at: new Date().toISOString(),
+      stripe_credit_cents: REFERRAL_CREDIT_CENTS,
+    }).eq('id', referral.id)
+
+    // Notify referrer via Railway WhatsApp
+    const railwayUrl = process.env.RAILWAY_ONBOARDING_URL
+    const onboardingKey = process.env.ONBOARDING_API_KEY
+    if (railwayUrl && onboardingKey) {
+      const { data: referred } = await admin
+        .from('profiles')
+        .select('restaurant_name')
+        .eq('id', userId)
+        .maybeSingle()
+
+      fetch(`${railwayUrl}/api/referral-credit-notify`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Onboarding-Key': onboardingKey },
+        body: JSON.stringify({
+          referrer_profile_id: referral.referrer_id,
+          referred_name: referred?.restaurant_name ?? 'Someone',
+          credit_euros: REFERRAL_CREDIT_CENTS / 100,
+        }),
+        signal: AbortSignal.timeout(8000),
+      }).catch((e: unknown) => console.error('[webhook/referral] notify error (non-fatal):', e))
+    }
+  } catch (err) {
+    console.error('[webhook/referral] applyReferralCredit error (non-fatal):', err)
+  }
+}
+
 // Stripe requires the raw body for signature verification — do not parse as JSON
 export const config = { api: { bodyParser: false } }
 
@@ -71,6 +145,11 @@ export async function POST(req: NextRequest) {
 
           railwayReactivate(userId).catch((e: unknown) =>
             console.error('[webhook] Railway reactivate after checkout error:', e)
+          )
+
+          // Apply referral credit if this user was referred (non-fatal)
+          applyReferralCredit(admin, userId).catch((e: unknown) =>
+            console.error('[webhook] referral credit error (non-fatal):', e)
           )
         }
         break

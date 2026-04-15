@@ -1,8 +1,17 @@
 import { NextResponse } from 'next/server'
-import { createHash } from 'node:crypto'
+import { createHash, randomBytes } from 'node:crypto'
 import { createServiceRoleClient } from '@/lib/supabase/admin'
 import { sendEmail } from '@/lib/sendgrid'
 import { welcomeEmail } from '@/lib/email-templates'
+
+// ── Referral code helpers ─────────────────────────────────────────────────────
+
+const REFERRAL_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+
+function generateReferralCode(): string {
+  const bytes = randomBytes(8)
+  return Array.from(bytes).map(b => REFERRAL_CHARS[b % REFERRAL_CHARS.length]).join('')
+}
 
 // ── Trial fingerprint helpers ─────────────────────────────────────────────────
 
@@ -32,7 +41,7 @@ function getSignupIp(request: Request): string | null {
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    const { email, password, fullName, restaurantName, posType, whatsappNumber, plan, turnstileToken, utmSource } = body
+    const { email, password, fullName, restaurantName, posType, whatsappNumber, plan, turnstileToken, utmSource, refCode } = body
 
     console.log('[signup] request received:', { email, fullName, restaurantName, posType, whatsappNumber, plan })
 
@@ -147,6 +156,10 @@ export async function POST(request: Request) {
     // The only non-error early-return is a 409 (duplicate trial).
     const railwayUrl = process.env.RAILWAY_ONBOARDING_URL
     const onboardingKey = process.env.ONBOARDING_API_KEY
+
+    // Generate referral code for this new user (owner accounts don't get one)
+    const newReferralCode = isOwner ? null : generateReferralCode()
+
     if (!isOwner) {
       if (!railwayUrl || !onboardingKey) {
         console.error('[signup] RAILWAY_ONBOARDING_URL or ONBOARDING_API_KEY not configured — aborting signup')
@@ -170,6 +183,7 @@ export async function POST(request: Request) {
             whatsapp_number: whatsappNumber,
             plan: plan || 'pro',
             supabase_user_id: userId,
+            referral_code: newReferralCode,
           }),
           signal: AbortSignal.timeout(12000),
         })
@@ -207,6 +221,7 @@ export async function POST(request: Request) {
     }
 
     // 3. Insert Supabase profile
+
     console.log('[signup] inserting profile for userId:', userId)
     const { error: profileError } = await admin.from('profiles').insert({
       id: userId,
@@ -216,6 +231,7 @@ export async function POST(request: Request) {
       pos_type: posType,
       whatsapp_number: whatsappNumber,
       plan: isOwner ? 'owner' : (plan || 'pro'),
+      referral_code: newReferralCode,
       // Owner account: no trial expiry
       ...(isOwner ? { trial_start: null, trial_end: null } : {}),
       ...(utmSource ? { utm_source: utmSource } : {}),
@@ -236,6 +252,35 @@ export async function POST(request: Request) {
       }).then(({ error: fpErr }) => {
         if (fpErr) console.error('[signup] fingerprint store failed (non-fatal):', fpErr)
       })
+    }
+
+    // 3b. Referral attribution — if a refCode was supplied, create a referrals record (non-fatal)
+    if (!isOwner && refCode && typeof refCode === 'string') {
+      ;(async () => {
+        try {
+          const { data: referrer } = await admin
+            .from('profiles')
+            .select('id')
+            .eq('referral_code', refCode.trim().toUpperCase())
+            .maybeSingle()
+
+          if (referrer && referrer.id !== userId) {
+            const { error: refErr } = await admin.from('referrals').insert({
+              referrer_id:    referrer.id,
+              referred_id:    userId,
+              referred_email: email,
+              status:         'signed_up',
+            })
+            if (refErr) {
+              console.error('[signup] referral record insert failed (non-fatal):', refErr)
+            } else {
+              console.log('[signup] referral attributed: referrer', referrer.id, '→ referred', userId)
+            }
+          }
+        } catch (refAttrErr) {
+          console.error('[signup] referral attribution error (non-fatal):', refAttrErr)
+        }
+      })()
     }
 
     // 4. Send welcome email with confirmation button

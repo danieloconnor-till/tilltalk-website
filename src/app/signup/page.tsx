@@ -41,6 +41,7 @@ function SignupForm() {
   const searchParams = useSearchParams()
   const defaultPlan = (searchParams.get('plan') as 'starter' | 'pro' | 'business') || 'pro'
   const utmSource = searchParams.get('utm_source') || ''
+  const refCode = searchParams.get('ref') || ''
   const [form, setForm] = useState({
     fullName: '',
     email: '',
@@ -139,7 +140,7 @@ function SignupForm() {
       const res = await fetch('/api/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...form, turnstileToken, utmSource }),
+        body: JSON.stringify({ ...form, turnstileToken, utmSource, refCode: refCode || undefined }),
       })
       const data = await res.json()
       if (!res.ok || data.error) {
@@ -160,6 +161,16 @@ function SignupForm() {
         <h1 className="text-3xl font-bold text-gray-900">Start your free trial</h1>
         <p className="mt-2 text-gray-600">14 days free — no credit card required</p>
       </div>
+
+      {refCode && (
+        <div className="mb-4 flex items-start gap-3 bg-green-50 border border-green-200 rounded-xl px-4 py-3">
+          <span className="text-green-600 text-lg leading-none mt-0.5">🎉</span>
+          <p className="text-sm text-green-800">
+            <span className="font-semibold">You were invited to TillTalk!</span>{' '}
+            Your 14-day free trial is ready — no credit card required.
+          </p>
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 space-y-6">
         {/* Full Name */}

@@ -7,7 +7,7 @@ import {
   AlertTriangle, Clock, Wifi, WifiOff, RefreshCw,
   Activity, Globe, Smartphone, DollarSign, BarChart2,
   ChevronRight, BadgeAlert, CheckCircle, Minus,
-  MessageSquareWarning, Zap, ClipboardCopy,
+  MessageSquareWarning, Zap, ClipboardCopy, Gift,
 } from 'lucide-react'
 import SandboxSection from './SandboxSection'
 
@@ -1051,6 +1051,126 @@ function ExtendModal({
 
 // ─── Section nav ──────────────────────────────────────────────────────────────
 
+// ─── Section: Referrals ───────────────────────────────────────────────────────
+
+interface AdminReferral {
+  id: string
+  referrer_id: string | null
+  referred_id: string | null
+  referred_email: string | null
+  status: string
+  stripe_credit_cents: number | null
+  created_at: string
+  converted_at: string | null
+  credited_at: string | null
+}
+
+function ReferralsSection() {
+  const [referrals, setReferrals] = useState<AdminReferral[]>([])
+  const [loading, setLoading]     = useState(true)
+  const [error, setError]         = useState<string | null>(null)
+  const [profiles, setProfiles]   = useState<Record<string, string>>({})  // id → restaurant_name
+
+  useEffect(() => {
+    fetch('/api/admin/referrals')
+      .then(r => r.ok ? r.json() : Promise.reject(r.statusText))
+      .then(d => {
+        setReferrals(d.referrals ?? [])
+        setProfiles(d.profiles ?? {})
+        setLoading(false)
+      })
+      .catch(e => { setError(String(e)); setLoading(false) })
+  }, [])
+
+  const stats = {
+    total:     referrals.length,
+    signed_up: referrals.filter(r => r.status === 'signed_up').length,
+    converted: referrals.filter(r => r.status === 'converted' || r.status === 'credited').length,
+    credited:  referrals.filter(r => r.status === 'credited').length,
+    pending_manual: referrals.filter(r => r.status === 'manual_pending').length,
+    total_credit:   referrals.reduce((s, r) => s + (r.stripe_credit_cents ?? 0), 0) / 100,
+  }
+
+  const STATUS_COLORS: Record<string, string> = {
+    signed_up:      'bg-gray-100 text-gray-600',
+    converted:      'bg-blue-100 text-blue-700',
+    credited:       'bg-green-100 text-green-700',
+    manual_pending: 'bg-amber-100 text-amber-700',
+  }
+
+  return (
+    <Card>
+      <SectionHeader id="referrals" title="Referrals" icon={Gift} />
+
+      {loading && <p className="text-sm text-gray-400">Loading…</p>}
+      {error   && <p className="text-sm text-red-500">Error: {error}</p>}
+
+      {!loading && !error && (
+        <div className="space-y-4">
+          {/* Stats row */}
+          <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+            {[
+              { label: 'Total',       value: stats.total },
+              { label: 'Signed up',   value: stats.signed_up },
+              { label: 'Subscribed',  value: stats.converted },
+              { label: 'Credited',    value: stats.credited },
+              { label: 'Manual queue', value: stats.pending_manual },
+              { label: 'Credits €',   value: `€${stats.total_credit.toFixed(0)}` },
+            ].map(({ label, value }) => (
+              <div key={label} className="bg-gray-50 rounded-xl px-3 py-2.5 text-center">
+                <p className="text-base font-semibold text-gray-900">{value}</p>
+                <p className="text-xs text-gray-500 mt-0.5">{label}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Referrals table */}
+          {referrals.length === 0 ? (
+            <p className="text-sm text-gray-400 py-4 text-center">No referrals yet.</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-left text-xs text-gray-500 border-b border-gray-100">
+                    <th className="pb-2 font-medium pr-4">Referrer</th>
+                    <th className="pb-2 font-medium pr-4">Referred</th>
+                    <th className="pb-2 font-medium pr-4">Status</th>
+                    <th className="pb-2 font-medium pr-4">Credit</th>
+                    <th className="pb-2 font-medium">Date</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {referrals.map(r => (
+                    <tr key={r.id} className="hover:bg-gray-50 transition-colors">
+                      <td className="py-2 pr-4 text-gray-800 truncate max-w-[140px]">
+                        {r.referrer_id ? (profiles[r.referrer_id] ?? r.referrer_id.slice(0, 8)) : '—'}
+                      </td>
+                      <td className="py-2 pr-4 text-gray-700 truncate max-w-[140px]">
+                        {r.referred_id ? (profiles[r.referred_id] ?? r.referred_email ?? '—') : (r.referred_email ?? '—')}
+                      </td>
+                      <td className="py-2 pr-4">
+                        <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${STATUS_COLORS[r.status] ?? 'bg-gray-100 text-gray-600'}`}>
+                          {r.status.replace('_', ' ')}
+                        </span>
+                      </td>
+                      <td className="py-2 pr-4 text-gray-700">
+                        {r.stripe_credit_cents ? `€${(r.stripe_credit_cents / 100).toFixed(0)}` : '—'}
+                      </td>
+                      <td className="py-2 text-gray-400 text-xs whitespace-nowrap">
+                        {new Date(r.created_at).toLocaleDateString('en-IE', { day: 'numeric', month: 'short', year: 'numeric' })}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
+    </Card>
+  )
+}
+
 // ─── Section: Failed Queries ──────────────────────────────────────────────────
 
 interface FailedQuery {
@@ -1237,6 +1357,7 @@ const NAV_ITEMS = [
   { id: 'marketing', label: 'Marketing' },
   { id: 'pos', label: 'POS' },
   { id: 'clients', label: 'Clients' },
+  { id: 'referrals', label: 'Referrals' },
   { id: 'failed-queries', label: 'Quality' },
   { id: 'sandbox', label: 'Sandbox' },
 ]
@@ -1367,6 +1488,7 @@ export default function AdminClient({ profiles, stats, signupsPerDay, posBreakdo
           onReactivate={handleReactivate}
           onRepairSync={handleRepairSync}
         />
+        <ReferralsSection />
         <FailedQueriesSection />
         <SandboxSection />
       </div>
