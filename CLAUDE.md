@@ -6,6 +6,17 @@
 
 **2026-04-16** — Update this file at the end of every Claude Code session with what was built, changed, or decided.
 
+### Session 14 changes (2026-04-16) — Sandbox POS testing tab (admin)
+
+The sandbox feature was previously built but undocumented. Verified and shipped:
+
+- **`supabase/migrations/007_sandbox_clients.sql`** (exists): `sandbox_clients` table — one row per `pos_type`, stores `api_token`, `merchant_id`, `api_base`, `updated_at`. Unique constraint on `pos_type`. RLS enabled, service-role only access.
+- **`src/app/api/sandbox/config/route.ts`** (exists): `GET ?pos_type=` loads saved config; `PUT` upserts on `pos_type` conflict. Admin-only.
+- **`src/app/api/sandbox/test-connection/route.ts`** (exists): proxies to Railway `/api/sandbox/test-connection`. 10s timeout.
+- **`src/app/api/sandbox/message/route.ts`** (exists, **timeout fixed 30s→60s**): proxies to Railway `/api/sandbox/message`. Increased because Claude tool-use + POS fetch can take 30–45s.
+- **`src/app/admin/SandboxSection.tsx`** (exists, **badges added**): full sandbox UI — POS tab bar (Square, Clover, Epos Now), config panel with token/merchant/base-url inputs, "Test Connection" + "Save Config" buttons, WhatsApp-style chat simulator with bounce-dot typing indicator, raw POS data collapsible panel. **POS tabs now show green "Live" badge (Square/Clover) or grey "Soon" badge (Epos Now); Epos Now tab is disabled.**
+- **Integration in `AdminClient.tsx`**: `import SandboxSection` at line 12, `{ id: 'sandbox', label: 'Sandbox' }` in NAV_ITEMS, `<SandboxSection />` rendered last in the section list.
+
 ### Session 13 changes (2026-04-16) — Wire up Analytics tab chat end-to-end
 
 - **`src/app/dashboard/QueryChat.tsx`** (modified): added `locationIds?: number[]` prop. `send()` now builds a history slice from the last 6 local messages and includes it in the API request body — enabling follow-up questions. Passes `location_ids` when provided. Fixed `useCallback` dependency array to include `messages` and `locationIds` so the history capture is never stale.
