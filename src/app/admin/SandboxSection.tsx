@@ -26,19 +26,21 @@ interface SandboxConfig {
 
 // ── POS tab config ────────────────────────────────────────────────────────────
 
-const POS_TABS: { id: PosType; label: string; merchantLabel: string; merchantPlaceholder: string; tokenLabel: string; tokenPlaceholder: string; supportsBaseUrl: boolean }[] = [
+const POS_TABS: { id: PosType; label: string; live: boolean; merchantLabel: string; merchantPlaceholder: string; tokenLabel: string; tokenPlaceholder: string; supportsBaseUrl: boolean }[] = [
   {
     id: 'square',
     label: 'Square',
+    live: true,
     merchantLabel: 'Location ID',
     merchantPlaceholder: 'L0XXXXXXXXXX (optional — uses default location)',
     tokenLabel: 'Access Token',
-    tokenPlaceholder: 'EAAAl...',
+    tokenPlaceholder: 'sandbox-... or EAAAl...',
     supportsBaseUrl: true,
   },
   {
     id: 'clover',
     label: 'Clover',
+    live: true,
     merchantLabel: 'Merchant ID',
     merchantPlaceholder: 'XXXXXXXXXXXXXXX',
     tokenLabel: 'API Key',
@@ -48,6 +50,7 @@ const POS_TABS: { id: PosType; label: string; merchantLabel: string; merchantPla
   {
     id: 'eposnow',
     label: 'Epos Now',
+    live: false,
     merchantLabel: 'Business ID',
     merchantPlaceholder: 'Not yet integrated',
     tokenLabel: 'API Token',
@@ -214,14 +217,22 @@ export default function SandboxSection() {
         {POS_TABS.map(tab => (
           <button
             key={tab.id}
-            onClick={() => setSelectedPos(tab.id)}
-            className={`px-4 py-2 text-sm font-medium rounded-t-lg transition-colors ${
-              selectedPos === tab.id
+            onClick={() => tab.live && setSelectedPos(tab.id)}
+            disabled={!tab.live}
+            className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-t-lg transition-colors ${
+              !tab.live
+                ? 'text-gray-300 cursor-not-allowed'
+                : selectedPos === tab.id
                 ? 'bg-white border border-gray-200 border-b-white text-green-700'
                 : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
             }`}
           >
             {tab.label}
+            {tab.live ? (
+              <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-green-100 text-green-700 leading-none">Live</span>
+            ) : (
+              <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-400 leading-none">Soon</span>
+            )}
           </button>
         ))}
       </div>
