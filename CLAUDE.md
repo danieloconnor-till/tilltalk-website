@@ -6,6 +6,11 @@
 
 **2026-04-16** — Update this file at the end of every Claude Code session with what was built, changed, or decided.
 
+### Session 12 changes (2026-04-16) — Fix dashboard overview POS empty state
+
+- **Root cause found and fixed on Railway side**: `src/app/api/dashboard/sales/route.ts` was already calling `${RAILWAY_URL}/api/dashboard/summary` (correct URL), but this endpoint did not exist on Railway. Railway only had `/api/analytics/summary` (different response shape). This caused every dashboard load to show "No data yet — Connect your POS to get started" even when the client had a fully connected POS.
+- **Fix**: added `GET /api/dashboard/summary` to `manage.py` on Railway. Returns `{today: {revenue, transactions, cash, card}, week: {revenue, vs_last_week}, chart: [{label, revenue}], top_items: [{name, revenue, qty}]}` — exactly matching the `SalesData` TypeScript interface. Makes 4 parallel POS fetches (today / this-week / last-week / last-7-days) plus item sales. No website changes needed.
+
 ### Session 11 changes (2026-04-16) — Notes/reminders Supabase sync + stock alerts + alert settings UI
 
 - **`supabase/migrations/011_notes_reminders.sql`** (new): `notes` table (uuid PK, client_id FK→profiles, note_text, is_complete, created_at) and `reminders` table (uuid PK, client_id FK→profiles, reminder_text, remind_at, appointment_at, is_sent, phone_number for delivery, created_at). RLS: users manage own rows; service_role bypasses. **Pushed to Supabase.**
