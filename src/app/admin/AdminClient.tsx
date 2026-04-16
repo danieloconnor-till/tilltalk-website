@@ -11,6 +11,7 @@ import {
 } from 'lucide-react'
 import SandboxSection from './SandboxSection'
 import QueryIntelligenceSection from './QueryIntelligenceSection'
+import FlagsSection from './FlagsSection'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -1360,6 +1361,7 @@ const NAV_ITEMS = [
   { id: 'clients', label: 'Clients' },
   { id: 'referrals', label: 'Referrals' },
   { id: 'query-intelligence', label: 'Query Intel' },
+  { id: 'flags', label: 'Flags' },
   { id: 'failed-queries', label: 'Quality' },
   { id: 'sandbox', label: 'Sandbox' },
 ]
@@ -1492,6 +1494,7 @@ export default function AdminClient({ profiles, stats, signupsPerDay, posBreakdo
         />
         <ReferralsSection />
         <QueryIntelligenceSection />
+        <FlagsSection />
         <FailedQueriesSection />
         <SandboxSection />
       </div>

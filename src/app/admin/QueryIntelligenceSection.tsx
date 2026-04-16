@@ -21,6 +21,8 @@ interface FollowUpItem { intent: string; total: number; follow_up: number; rate:
 interface SlowQuery { anonymised_query: string; response_time_ms: number; model_used: string; intent_type: string | null }
 interface DeterministicItem { anonymised_query: string; intent_type: string | null; query_complexity: string | null }
 interface AvgTimeItem { model: string; avg_ms: number }
+interface FlagRateItem { intent?: string; pos?: string; total: number; flagged: number; rate: number }
+interface FlagTrendDay { date: string; total: number; types: Record<string, number> }
 
 interface QueryIntelligenceData {
   overview: Overview
@@ -36,6 +38,9 @@ interface QueryIntelligenceData {
   slowest_queries: SlowQuery[]
   deterministic_candidates: DeterministicItem[]
   avg_time_by_model: AvgTimeItem[]
+  flag_rate_by_intent: FlagRateItem[]
+  flag_rate_by_pos: FlagRateItem[]
+  flag_trend: FlagTrendDay[]
 }
 
 // ─── Mini-charts ──────────────────────────────────────────────────────────────
@@ -440,6 +445,87 @@ export default function QueryIntelligenceSection() {
                 </table>
               </div>
             </Card>
+          )}
+
+          {/* Flag Rates */}
+          {((data.flag_rate_by_intent?.length ?? 0) > 0 || (data.flag_trend?.length ?? 0) > 0) && (
+            <div className="space-y-4">
+              <h3 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                🚩 Flag Rates
+              </h3>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {(data.flag_rate_by_intent?.length ?? 0) > 0 && (
+                  <Card>
+                    <p className="text-xs font-semibold text-gray-600 mb-3">Flag Rate by Intent</p>
+                    <table className="w-full text-xs">
+                      <thead>
+                        <tr className="text-gray-400 border-b border-gray-100">
+                          <th className="text-left py-1.5 font-medium">Intent</th>
+                          <th className="text-right py-1.5 font-medium">Queries</th>
+                          <th className="text-right py-1.5 font-medium">Flagged</th>
+                          <th className="text-right py-1.5 font-medium">Rate</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {data.flag_rate_by_intent.map(({ intent, total, flagged, rate }) => (
+                          <tr key={intent} className="border-b border-gray-50 last:border-0">
+                            <td className="py-1.5 font-medium text-gray-800">{intent}</td>
+                            <td className="py-1.5 text-right text-gray-500">{total}</td>
+                            <td className="py-1.5 text-right text-gray-500">{flagged}</td>
+                            <td className={`py-1.5 text-right font-semibold ${rate > 5 ? 'text-red-600' : rate > 2 ? 'text-amber-600' : 'text-gray-600'}`}>
+                              {rate}%
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </Card>
+                )}
+
+                {(data.flag_rate_by_pos?.length ?? 0) > 0 && (
+                  <Card>
+                    <p className="text-xs font-semibold text-gray-600 mb-3">Flag Rate by POS Type</p>
+                    <table className="w-full text-xs">
+                      <thead>
+                        <tr className="text-gray-400 border-b border-gray-100">
+                          <th className="text-left py-1.5 font-medium">POS</th>
+                          <th className="text-right py-1.5 font-medium">Queries</th>
+                          <th className="text-right py-1.5 font-medium">Flagged</th>
+                          <th className="text-right py-1.5 font-medium">Rate</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {data.flag_rate_by_pos.map(({ pos, total, flagged, rate }) => (
+                          <tr key={pos} className="border-b border-gray-50 last:border-0">
+                            <td className="py-1.5 font-medium text-gray-800 uppercase">{pos}</td>
+                            <td className="py-1.5 text-right text-gray-500">{total}</td>
+                            <td className="py-1.5 text-right text-gray-500">{flagged}</td>
+                            <td className={`py-1.5 text-right font-semibold ${rate > 5 ? 'text-red-600' : rate > 2 ? 'text-amber-600' : 'text-gray-600'}`}>
+                              {rate}%
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </Card>
+                )}
+              </div>
+
+              {(data.flag_trend?.length ?? 0) > 0 && (
+                <Card>
+                  <p className="text-xs font-semibold text-gray-600 mb-3">Daily Flag Volume</p>
+                  <SparkBars
+                    data={data.flag_trend.map(d => d.total)}
+                    color="bg-red-500"
+                  />
+                  <div className="flex justify-between text-xs text-gray-400 mt-1">
+                    <span>{data.flag_trend[0]?.date}</span>
+                    <span>{data.flag_trend[data.flag_trend.length - 1]?.date}</span>
+                  </div>
+                </Card>
+              )}
+            </div>
           )}
         </div>
       )}

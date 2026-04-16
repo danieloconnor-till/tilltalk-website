@@ -340,6 +340,10 @@ export default function DashboardClient({ user, profile }: Props) {
   // Mobile nav
   const [activeSection, setActiveSection] = useState<SectionId>('overview')
 
+  // Flag banner
+  const [hasOpenFlags,     setHasOpenFlags]     = useState(false)
+  const [flagBannerDismissed, setFlagBannerDismissed] = useState(false)
+
   const posType = (profile?.pos_type || '').toLowerCase()
 
   // ── Helpers ──────────────────────────────────────────────────────────────
@@ -424,6 +428,14 @@ export default function DashboardClient({ user, profile }: Props) {
   }, [])
 
   useEffect(() => { fetchData() }, [fetchData])
+
+  // Check for open flags (non-fatal — banner is purely informational)
+  useEffect(() => {
+    fetch('/api/dashboard/flags')
+      .then(r => (r.ok ? r.json() : null))
+      .then(d => { if (d?.has_flags) setHasOpenFlags(true) })
+      .catch(() => {})
+  }, [])
 
   // Show toast if redirected back from Stripe with ?upgraded=true
   useEffect(() => {
@@ -553,6 +565,20 @@ export default function DashboardClient({ user, profile }: Props) {
             TAB 1 — Dashboard
         ════════════════════════════════════════════════════════════════ */}
         {activeTab === 'dashboard' && (<>
+
+        {/* Flag support banner — shown when there are unresolved flags */}
+        {hasOpenFlags && !flagBannerDismissed && (
+          <div className="flex items-center gap-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-sm text-amber-800">
+            <AlertCircle size={16} className="text-amber-500 shrink-0" />
+            <span className="flex-1">
+              Having trouble? Reply to TillTalk on WhatsApp or email{' '}
+              <a href="mailto:hello@tilltalk.ie" className="underline font-medium hover:text-amber-900">hello@tilltalk.ie</a>
+            </span>
+            <button onClick={() => setFlagBannerDismissed(true)} className="text-amber-400 hover:text-amber-600 shrink-0">
+              <X size={14} />
+            </button>
+          </div>
+        )}
 
         {/* SECTION 1 — Sales Overview */}
         <Section id="overview" sectionRef={overviewRef}>

@@ -41,6 +41,9 @@ export async function GET(req: Request) {
     deterministicCandidates,
     avgResponseTimes,
     followUpByIntent,
+    flagByIntent,
+    flagByPos,
+    flagTrend,
   ] = await Promise.all([
     // Total all time
     admin.from('query_logs').select('id', { count: 'exact', head: true }),
@@ -120,6 +123,20 @@ export async function GET(req: Request) {
     admin.from('query_logs').select('intent_type, follow_up_within_5min')
       .gte('created_at', cutoff)
       .not('intent_type', 'is', null),
+
+    // Flag rate by intent (was_flagged=true joined with intent)
+    admin.from('query_logs').select('intent_type, was_flagged')
+      .gte('created_at', cutoff)
+      .not('intent_type', 'is', null),
+
+    // Flag rate by POS type
+    admin.from('query_logs').select('pos_type, was_flagged')
+      .gte('created_at', cutoff),
+
+    // Flag trend: daily flag counts
+    admin.from('flags').select('created_at, flag_type')
+      .gte('created_at', cutoff)
+      .order('created_at', { ascending: true }),
   ])
 
   // ── Aggregate ──────────────────────────────────────────────────────────────
@@ -218,6 +235,53 @@ export async function GET(req: Request) {
     .sort((a, b) => b.rate - a.rate)
     .slice(0, 20)
 
+  // Flag rate by intent
+  const intentFlagMap: Record<string, { total: number; flagged: number }> = {}
+  for (const r of flagByIntent.data ?? []) {
+    const k = r.intent_type || 'unknown'
+    if (!intentFlagMap[k]) intentFlagMap[k] = { total: 0, flagged: 0 }
+    intentFlagMap[k].total++
+    if (r.was_flagged) intentFlagMap[k].flagged++
+  }
+  const flagRateByIntent = Object.entries(intentFlagMap)
+    .filter(([, v]) => v.total >= 5)
+    .map(([intent, { total, flagged }]) => ({
+      intent,
+      total,
+      flagged,
+      rate: Math.round((flagged / total) * 1000) / 10,  // percentage to 1dp
+    }))
+    .sort((a, b) => b.rate - a.rate)
+
+  // Flag rate by POS type
+  const posFlagMap: Record<string, { total: number; flagged: number }> = {}
+  for (const r of flagByPos.data ?? []) {
+    const k = r.pos_type || 'unknown'
+    if (!posFlagMap[k]) posFlagMap[k] = { total: 0, flagged: 0 }
+    posFlagMap[k].total++
+    if (r.was_flagged) posFlagMap[k].flagged++
+  }
+  const flagRateByPos = Object.entries(posFlagMap)
+    .map(([pos, { total, flagged }]) => ({
+      pos,
+      total,
+      flagged,
+      rate: total > 0 ? Math.round((flagged / total) * 1000) / 10 : 0,
+    }))
+    .sort((a, b) => b.rate - a.rate)
+
+  // Daily flag counts by type
+  const flagDayMap: Record<string, Record<string, number>> = {}
+  for (const r of flagTrend.data ?? []) {
+    const d = (r.created_at as string).slice(0, 10)
+    if (!flagDayMap[d]) flagDayMap[d] = {}
+    const t = (r.flag_type as string) || 'other'
+    flagDayMap[d][t] = (flagDayMap[d][t] || 0) + 1
+  }
+  const flagTrendArr = Object.entries(flagDayMap)
+    .map(([date, types]) => ({ date, total: Object.values(types).reduce((s, n) => s + n, 0), types }))
+    .sort((a, b) => a.date.localeCompare(b.date))
+
   // Avg response time by model
   const modelTimes: Record<string, number[]> = {}
   for (const r of avgResponseTimes.data ?? []) {
@@ -248,9 +312,12 @@ export async function GET(req: Request) {
     daily_counts:        dailyArr,
     daily_cost:          dailyCostArr,
     top_queries:         topQueriesArr,
-    follow_up_by_intent: followUpArr,
-    slowest_queries:     slowQueries.data ?? [],
+    follow_up_by_intent:  followUpArr,
+    slowest_queries:      slowQueries.data ?? [],
     deterministic_candidates: deterministicCandidates.data ?? [],
-    avg_time_by_model:   avgTimeByModel,
+    avg_time_by_model:    avgTimeByModel,
+    flag_rate_by_intent:  flagRateByIntent,
+    flag_rate_by_pos:     flagRateByPos,
+    flag_trend:           flagTrendArr,
   })
 }
