@@ -1,0 +1,20 @@
+name: Sync CLAUDE.md to Don Assistant
+
+on:
+  push:
+    branches: [main]
+    paths: ['CLAUDE.md']
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Sync CLAUDE.md to Don Assistant
+        run: |
+          curl -s -X POST https://web-production-548ae.up.railway.app/sync-context \
+            -H "Authorization: Bearer ${{ secrets.DON_ASSISTANT_SYNC_SECRET }}" \
+            -H "Content-Type: application/json" \
+            -d "{\"source\": \"tilltalk-website\", \"claude_md\": $(cat CLAUDE.md | jq -Rs .)}" \
+            | tee /dev/stderr | jq -e '.ok == true'
