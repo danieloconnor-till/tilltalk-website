@@ -21,6 +21,7 @@ interface ChartSnapshot {
 
 interface Props {
   businessName?: string
+  locationIds?: number[]
 }
 
 // ---------------------------------------------------------------------------
@@ -51,7 +52,7 @@ function toFilename(title: string): string {
 // Component
 // ---------------------------------------------------------------------------
 
-export default function QueryChat({ businessName }: Props) {
+export default function QueryChat({ businessName, locationIds }: Props) {
   const [messages,      setMessages]      = useState<Message[]>([])
   const [input,         setInput]         = useState('')
   const [loading,       setLoading]       = useState(false)
@@ -75,11 +76,18 @@ export default function QueryChat({ businessName }: Props) {
     setMessages(prev => [...prev, { role: 'user', text: msg }])
     setLoading(true)
 
+    // Build history from the last 3 exchanges (6 messages) for follow-up context
+    const historySlice = messages.slice(-6).map(m => ({ role: m.role, text: m.text }))
+
     try {
       const res  = await fetch('/api/dashboard/query', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: msg }),
+        body: JSON.stringify({
+          message: msg,
+          history: historySlice,
+          ...(locationIds?.length ? { location_ids: locationIds } : {}),
+        }),
       })
       const data = await res.json().catch(() => ({}))
 
@@ -106,7 +114,7 @@ export default function QueryChat({ businessName }: Props) {
     } finally {
       setLoading(false)
     }
-  }, [loading])
+  }, [loading, messages, locationIds])
 
   function handleKey(e: React.KeyboardEvent<HTMLTextAreaElement>) {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(input) }
