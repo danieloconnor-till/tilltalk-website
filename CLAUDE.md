@@ -6,6 +6,12 @@
 
 **2026-04-16** — Update this file at the end of every Claude Code session with what was built, changed, or decided.
 
+### Session 13 changes (2026-04-16) — Wire up Analytics tab chat end-to-end
+
+- **`src/app/dashboard/QueryChat.tsx`** (modified): added `locationIds?: number[]` prop. `send()` now builds a history slice from the last 6 local messages and includes it in the API request body — enabling follow-up questions. Passes `location_ids` when provided. Fixed `useCallback` dependency array to include `messages` and `locationIds` so the history capture is never stale.
+- **`src/app/dashboard/DashboardClient.tsx`** (modified): passes `locationIds={locations.map(l => l.id)}` to `QueryChat` so the query is scoped to the client's active locations.
+- **No new routes needed**: the existing `src/app/api/dashboard/query/route.ts` proxy already forwarded all body fields via `...body`, so `history` and `location_ids` pass through transparently.
+
 ### Session 12 changes (2026-04-16) — Fix dashboard overview POS empty state
 
 - **Root cause found and fixed on Railway side**: `src/app/api/dashboard/sales/route.ts` was already calling `${RAILWAY_URL}/api/dashboard/summary` (correct URL), but this endpoint did not exist on Railway. Railway only had `/api/analytics/summary` (different response shape). This caused every dashboard load to show "No data yet — Connect your POS to get started" even when the client had a fully connected POS.
