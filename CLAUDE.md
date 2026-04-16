@@ -4,7 +4,21 @@
 
 ## Last Updated
 
-**2026-04-15** — Update this file at the end of every Claude Code session with what was built, changed, or decided.
+**2026-04-16** — Update this file at the end of every Claude Code session with what was built, changed, or decided.
+
+### Session 11 changes (2026-04-16) — Notes/reminders Supabase sync + stock alerts + alert settings UI
+
+- **`supabase/migrations/011_notes_reminders.sql`** (new): `notes` table (uuid PK, client_id FK→profiles, note_text, is_complete, created_at) and `reminders` table (uuid PK, client_id FK→profiles, reminder_text, remind_at, appointment_at, is_sent, phone_number for delivery, created_at). RLS: users manage own rows; service_role bypasses. **Pushed to Supabase.**
+- **`supabase/migrations/012_alerts.sql`** (new): `stock_alerts` table (id, client_id, item_name, threshold, active, last_triggered_at, unique on client_id+item_name) and `alert_settings` table (id, client_id unique, event_alerts_enabled, event_alert_radius_km, inventory_alerts_enabled, inventory_threshold). RLS policies on both. **Pushed to Supabase.**
+- **`src/app/api/dashboard/notes/route.ts`** (rewritten): reads `notes` and `reminders` tables directly from Supabase via service role — no Railway proxy. Returns `{ notes: [{id, note_text, created_at}], reminders: [{id, text, remind_at}] }`.
+- **`src/app/api/notes/[id]/route.ts`** (rewritten): PATCH updates `note_text`; DELETE removes row. Uses Supabase service role with `client_id = user.id` guard. Fixes the `text` vs `note_text` field name bug.
+- **`src/app/api/reminders/[id]/route.ts`** (rewritten): PATCH updates `reminder_text`/`remind_at`; DELETE removes row. Supabase direct.
+- **`src/app/api/alerts/stock/route.ts`** (new): GET lists active stock alerts; POST creates/upserts via `on_conflict=client_id,item_name`.
+- **`src/app/api/alerts/stock/[id]/route.ts`** (new): PATCH updates threshold/item_name; DELETE removes alert.
+- **`src/app/api/alerts/settings/route.ts`** (new): GET returns alert settings (defaults if not set); PATCH upserts with `on_conflict=client_id`.
+- **`src/app/dashboard/AlertsSection.tsx`** (new): dashboard "Alerts" section. Two cards: (1) Proactive alerts — toggle switches for event alerts + low stock alerts, with inline selects for radius (1–10km) and threshold (2–20 units); (2) Stock alerts — list of item-specific alerts with delete, plus "+ Add alert" modal (item name + threshold input).
+- **`src/app/dashboard/DashboardClient.tsx`** (modified): added `AlertsSection` import; added `alerts` to `NAV_ITEMS` (with Zap icon); added `alertsRef` and scroll mapping; renders `<AlertsSection />` between Notes and Manage. Fixed `NoteItem.id` and `ReminderItem.id` types from `number` → `string` (uuid).
+- **`src/app/dashboard/NotesSection.tsx`** (modified): all id types changed from `number` to `string` throughout (interfaces, state, function params).
 
 ### Session 10 changes (2026-04-15) — Flag management UI
 - **`supabase/migrations/010_flags.sql`** (new): `flags` table (id uuid PK, client_id FK→profiles, phone_number, message_text, flag_type CHECK enum, flag_reason, auto_flagged, confidence_score, resolved, resolved_at, resolved_by, resolution_notes, query_log_id FK→query_logs, created_at). Indexes on client_id, resolved, created_at DESC, flag_type. RLS enabled with service_role_all policy. Also adds `was_flagged boolean DEFAULT false` and `flag_id uuid` (no FK — avoids circular reference) to `query_logs`. **Must push: `SUPABASE_ACCESS_TOKEN=<token> npx supabase db push`**
