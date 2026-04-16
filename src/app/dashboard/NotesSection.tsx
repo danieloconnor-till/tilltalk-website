@@ -7,8 +7,8 @@ import { Bell, MessageCircle, Pencil, Trash2, Check, X, RefreshCw } from 'lucide
 // Types
 // ---------------------------------------------------------------------------
 
-interface NoteItem     { id: number; note_text: string; created_at: string }
-interface ReminderItem { id: number; text: string; remind_at: string }
+interface NoteItem     { id: string; note_text: string; created_at: string }
+interface ReminderItem { id: string; text: string; remind_at: string }
 
 interface Props {
   notes:     NoteItem[]
@@ -172,18 +172,18 @@ function RowActions({
 
 export default function NotesSection({ notes, reminders, loading, onRefresh }: Props) {
   // Edit state
-  const [editNoteId,       setEditNoteId]       = useState<number | null>(null)
+  const [editNoteId,       setEditNoteId]       = useState<string | null>(null)
   const [editNoteText,     setEditNoteText]     = useState('')
-  const [editReminderId,   setEditReminderId]   = useState<number | null>(null)
+  const [editReminderId,   setEditReminderId]   = useState<string | null>(null)
   const [editReminderText, setEditReminderText] = useState('')
 
   // Delete modal
-  const [deleteNoteId,     setDeleteNoteId]     = useState<number | null>(null)
-  const [deleteReminderId, setDeleteReminderId] = useState<number | null>(null)
+  const [deleteNoteId,     setDeleteNoteId]     = useState<string | null>(null)
+  const [deleteReminderId, setDeleteReminderId] = useState<string | null>(null)
 
   // Per-item loading
-  const [savingId,   setSavingId]   = useState<number | null>(null)
-  const [deletingId, setDeletingId] = useState<number | null>(null)
+  const [savingId,   setSavingId]   = useState<string | null>(null)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
 
   // ── Notes ────────────────────────────────────────────────────────────────
 
@@ -193,7 +193,7 @@ export default function NotesSection({ notes, reminders, loading, onRefresh }: P
     setEditNoteText(n.note_text)
   }
 
-  async function saveNote(id: number) {
+  async function saveNote(id: string) {
     if (!editNoteText.trim()) return
     setSavingId(id)
     try {
@@ -208,7 +208,7 @@ export default function NotesSection({ notes, reminders, loading, onRefresh }: P
     }
   }
 
-  async function confirmDeleteNote(id: number) {
+  async function confirmDeleteNote(id: string) {
     setDeletingId(id)
     try {
       await fetch(`/api/notes/${id}`, { method: 'DELETE' })
@@ -227,7 +227,7 @@ export default function NotesSection({ notes, reminders, loading, onRefresh }: P
     setEditReminderText(r.text)
   }
 
-  async function saveReminder(id: number) {
+  async function saveReminder(id: string) {
     if (!editReminderText.trim()) return
     setSavingId(id)
     try {
@@ -242,7 +242,7 @@ export default function NotesSection({ notes, reminders, loading, onRefresh }: P
     }
   }
 
-  async function confirmDeleteReminder(id: number) {
+  async function confirmDeleteReminder(id: string) {
     setDeletingId(id)
     try {
       await fetch(`/api/reminders/${id}`, { method: 'DELETE' })

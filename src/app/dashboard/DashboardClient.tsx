@@ -16,6 +16,7 @@ import CalendarSection from './CalendarSection'
 import ManageSection from './ManageSection'
 import AnalyticsSection from './AnalyticsSection'
 import NotesSection from './NotesSection'
+import AlertsSection from './AlertsSection'
 import QueryChat from './QueryChat'
 import SubscriptionTab from './SubscriptionTab'
 import AccountTab from './AccountTab'
@@ -61,8 +62,8 @@ interface SalesData {
   top_items: { name: string; revenue: number; qty: number }[]
 }
 
-interface ReminderItem { id: number; text: string; remind_at: string }
-interface NoteItem    { id: number; note_text: string; created_at: string }
+interface ReminderItem { id: string; text: string; remind_at: string }
+interface NoteItem    { id: string; note_text: string; created_at: string }
 interface LocationItem { id: number; nickname: string; address: string | null }
 
 interface Props {
@@ -123,6 +124,7 @@ const NAV_ITEMS = [
   { id: 'overview', label: 'Dashboard', Icon: LayoutDashboard },
   { id: 'calendar', label: 'Calendar',  Icon: Calendar },
   { id: 'notes',    label: 'Notes',     Icon: Bell },
+  { id: 'alerts',   label: 'Alerts',    Icon: Zap },
   { id: 'manage',   label: 'Manage',    Icon: Settings },
   { id: 'account',  label: 'Account',   Icon: User },
 ] as const
@@ -306,6 +308,7 @@ export default function DashboardClient({ user, profile }: Props) {
   const overviewRef  = useRef<HTMLDivElement>(null)
   const calendarRef  = useRef<HTMLDivElement>(null)
   const notesRef     = useRef<HTMLDivElement>(null)
+  const alertsRef    = useRef<HTMLDivElement>(null)
   const manageRef    = useRef<HTMLDivElement>(null)
   const accountRef   = useRef<HTMLDivElement>(null)
   const chartRef     = useRef<HTMLDivElement>(null)
@@ -488,7 +491,7 @@ export default function DashboardClient({ user, profile }: Props) {
 
   function navTo(id: SectionId) {
     setActiveSection(id)
-    const ref = { overview: overviewRef, calendar: calendarRef, notes: notesRef, manage: manageRef, account: accountRef }[id]
+    const ref = { overview: overviewRef, calendar: calendarRef, notes: notesRef, alerts: alertsRef, manage: manageRef, account: accountRef }[id]
     ref?.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
 
@@ -693,6 +696,11 @@ export default function DashboardClient({ user, profile }: Props) {
             loading={notesLoading}
             onRefresh={fetchData}
           />
+        </Section>
+
+        {/* SECTION 3b — Alerts */}
+        <Section id="alerts" sectionRef={alertsRef}>
+          <AlertsSection />
         </Section>
 
         {/* SECTION 4 — Manage */}

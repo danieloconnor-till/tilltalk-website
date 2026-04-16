@@ -1,8 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-
-const RAILWAY_URL = process.env.RAILWAY_ONBOARDING_URL || 'https://tilltalk1-production.up.railway.app'
-const KEY = process.env.ONBOARDING_API_KEY || ''
+import { createServiceRoleClient } from '@/lib/supabase/admin'
 
 async function getUser() {
   const supabase = await createClient()
@@ -16,14 +14,21 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
 
   const { id } = await params
   const body = await request.json().catch(() => ({}))
-  const res = await fetch(`${RAILWAY_URL}/api/notes/${id}`, {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json', 'X-Onboarding-Key': KEY },
-    body: JSON.stringify({ ...body, supabase_user_id: user.id }),
-    signal: AbortSignal.timeout(8_000),
-  })
-  const data = await res.json().catch(() => ({}))
-  return NextResponse.json(data, { status: res.status })
+  const note_text = (body.note_text || '').trim()
+  if (!note_text) return NextResponse.json({ error: 'note_text is required' }, { status: 400 })
+
+  const admin = createServiceRoleClient()
+  const { data, error } = await admin
+    .from('notes')
+    .update({ note_text })
+    .eq('id', id)
+    .eq('client_id', user.id)
+    .eq('is_complete', false)
+    .select('id')
+    .single()
+
+  if (error || !data) return NextResponse.json({ error: 'Note not found' }, { status: 404 })
+  return NextResponse.json({ ok: true })
 }
 
 export async function DELETE(_request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -31,12 +36,13 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { id } = await params
-  const res = await fetch(`${RAILWAY_URL}/api/notes/${id}`, {
-    method: 'DELETE',
-    headers: { 'Content-Type': 'application/json', 'X-Onboarding-Key': KEY },
-    body: JSON.stringify({ supabase_user_id: user.id }),
-    signal: AbortSignal.timeout(8_000),
-  })
-  const data = await res.json().catch(() => ({}))
-  return NextResponse.json(data, { status: res.status })
+  const admin = createServiceRoleClient()
+  const { error } = await admin
+    .from('notes')
+    .delete()
+    .eq('id', id)
+    .eq('client_id', user.id)
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  return NextResponse.json({ ok: true })
 }
