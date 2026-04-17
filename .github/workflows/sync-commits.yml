@@ -1,0 +1,22 @@
+name: Sync Git History to Don Assistant
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 15
+
+      - name: Sync recent commits to Don Assistant
+        run: |
+          COMMITS=$(git log --oneline -10 --format="%h %s (%cr)" | jq -Rs .)
+          curl -s -X POST https://web-production-548ae.up.railway.app/sync-context \
+            -H "Authorization: Bearer ${{ secrets.DON_ASSISTANT_SYNC_SECRET }}" \
+            -H "Content-Type: application/json" \
+            -d "{\"source\": \"tilltalk-website-commits\", \"claude_md\": ${COMMITS}}" \
+            | tee /dev/stderr | jq -e '.ok == true'

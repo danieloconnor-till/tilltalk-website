@@ -4,7 +4,13 @@
 
 ## Last Updated
 
-**2026-04-16** — Update this file at the end of every Claude Code session with what was built, changed, or decided.
+**2026-04-17** — Update this file at the end of every Claude Code session with what was built, changed, or decided.
+
+### Session 15 changes (2026-04-17) — Don assistant stats API + commit history sync
+
+- **`src/app/api/admin/stats/route.ts`** (new): `GET` endpoint for don-assistant to fetch live client metrics. Protected by `X-Don-Assistant-Secret` header (must match `DON_ASSISTANT_SECRET` env var in Vercel). Uses service-role Supabase client to query `profiles` table. Returns: `total_all`, `total_active`, `total_inactive`, `new_last_7d`, `trial_active`, `trial_expired`, `paid`, `by_plan` (starter/pro/business counts), `whatsapp_numbers`, `as_of` timestamp. All computation done in JS after a single profiles query.
+- **`DON_ASSISTANT_SECRET`** env var: add to Vercel with the same value set in don-assistant's Railway env. This is the shared secret for don-assistant → tilltalk.ie API calls.
+- **`.github/workflows/sync-commits.yml`** (new): triggers on every push to main, captures last 10 git commits (`git log --oneline -10`), POSTs to don-assistant `/sync-context` with source `tilltalk-website-commits`. Requires `DON_ASSISTANT_SYNC_SECRET` GitHub secret (already set).
 
 ### Session 14 changes (2026-04-16) — Sandbox POS testing tab (admin)
 
@@ -124,6 +130,7 @@ All variables are set in Vercel (project settings → Environment Variables) and
 | `NOTIFICATION_EMAIL` | `src/app/api/signup/route.ts` | Defaults to `daniel@tilltalk.ie` |
 | `NEXT_PUBLIC_SITE_URL` | — | Set to `https://tilltalk.ie` |
 | `ANTHROPIC_API_KEY` | `src/app/api/support-chat/route.ts` | Claude API key for the website support chatbot. **Must be added to Vercel.** Copy value from Railway env vars. |
+| `DON_ASSISTANT_SECRET` | `src/app/api/admin/stats/route.ts` | Shared secret for don-assistant → tilltalk.ie API calls. Must match `DON_ASSISTANT_SECRET` in don-assistant's Railway env. |
 | `VERCEL_OIDC_TOKEN` | Auto-managed by Vercel | Do not touch |
 
 **To update env vars:** `npx vercel env add <NAME>` or via Vercel dashboard. After changing, run `npx vercel env pull .env.local --yes` to sync locally.
@@ -244,6 +251,7 @@ Public routes (no protection): `/`, `/login`, `/signup`, `/signup/success`, `/fo
 | POST | `/api/signup` | `src/app/api/signup/route.ts` | None | Creates auth user, Railway record, profile, sends emails |
 | POST | `/api/admin/extend-trial` | `src/app/api/admin/extend-trial/route.ts` | Admin only | Extends `trial_end` by N days, logs to `trial_extensions` |
 | POST | `/api/admin/toggle-active` | `src/app/api/admin/toggle-active/route.ts` | Admin only | Flips `profiles.active` boolean |
+| GET | `/api/admin/stats` | `src/app/api/admin/stats/route.ts` | `X-Don-Assistant-Secret` header | Live client metrics for don-assistant (totals, plan breakdown, signups, trials, paid) |
 | GET/POST | `/api/manage/numbers` | `src/app/api/manage/numbers/route.ts` | Supabase session | Proxy to Railway `/api/manage/numbers` |
 | PATCH/DELETE | `/api/manage/numbers/[id]` | `src/app/api/manage/numbers/[id]/route.ts` | Supabase session | Proxy to Railway `/api/manage/numbers/:id` |
 | GET/POST | `/api/manage/locations` | `src/app/api/manage/locations/route.ts` | Supabase session | Proxy to Railway `/api/manage/locations` |
