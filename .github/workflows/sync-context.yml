@@ -1,15 +1,16 @@
-name: Sync CLAUDE.md to Don Assistant
+name: Sync context to Don Assistant
 
 on:
   push:
     branches: [main]
-    paths: ['CLAUDE.md']
 
 jobs:
   sync:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 15
 
       - name: Sync CLAUDE.md to Don Assistant
         run: |
@@ -17,4 +18,13 @@ jobs:
             -H "Authorization: Bearer ${{ secrets.DON_ASSISTANT_SYNC_SECRET }}" \
             -H "Content-Type: application/json" \
             -d "{\"source\": \"tilltalk-website\", \"claude_md\": $(cat CLAUDE.md | jq -Rs .)}" \
+            | tee /dev/stderr | jq -e '.ok == true'
+
+      - name: Sync recent commits to Don Assistant
+        run: |
+          COMMITS=$(git log --oneline -10 --pretty=format:"%h %ad %s" --date=short | jq -Rs .)
+          curl -s -X POST https://web-production-548ae.up.railway.app/sync-context \
+            -H "Authorization: Bearer ${{ secrets.DON_ASSISTANT_SYNC_SECRET }}" \
+            -H "Content-Type: application/json" \
+            -d "{\"source\": \"tilltalk-website-commits\", \"claude_md\": ${COMMITS}}" \
             | tee /dev/stderr | jq -e '.ok == true'
