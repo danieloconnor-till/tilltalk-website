@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Bell, Zap, Plus, Trash2, RefreshCw, Package, CalendarDays, ToggleLeft, ToggleRight, X } from 'lucide-react'
+import { Bell, Zap, Plus, Trash2, RefreshCw, Package, CalendarDays, ToggleLeft, ToggleRight, X, Clock, CloudRain, TrendingDown, BarChart2, Check } from 'lucide-react'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -21,6 +21,29 @@ interface AlertSettings {
   event_alert_radius_km:    number
   inventory_alerts_enabled: boolean
   inventory_threshold:      number
+}
+
+interface Preference {
+  enabled:       boolean
+  frequency:     'daily' | 'weekly' | 'never'
+  min_threshold: number | null
+  last_sent_at:  string | null
+}
+
+type AllPreferences = {
+  events:        Preference
+  weather:       Preference
+  slow_day:      Preference
+  inventory:     Preference
+  daily_summary: Preference
+}
+
+const PREF_DEFAULTS: AllPreferences = {
+  events:        { enabled: true,  frequency: 'weekly', min_threshold: 500, last_sent_at: null },
+  weather:       { enabled: true,  frequency: 'daily',  min_threshold: null, last_sent_at: null },
+  slow_day:      { enabled: true,  frequency: 'daily',  min_threshold: null, last_sent_at: null },
+  inventory:     { enabled: true,  frequency: 'daily',  min_threshold: 5,   last_sent_at: null },
+  daily_summary: { enabled: false, frequency: 'daily',  min_threshold: 8,   last_sent_at: null },
 }
 
 // ---------------------------------------------------------------------------
@@ -144,6 +167,11 @@ function AddAlertModal({
 export default function AlertsSection() {
   const [alerts,       setAlerts]       = useState<StockAlert[]>([])
   const [settings,     setSettings]     = useState<AlertSettings | null>(null)
+  const [prefs,        setPrefs]        = useState<AllPreferences>(PREF_DEFAULTS)
+  const [draftPrefs,   setDraftPrefs]   = useState<AllPreferences>(PREF_DEFAULTS)
+  const [prefsDirty,   setPrefsDirty]   = useState(false)
+  const [prefsSaving,  setPrefsSaving]  = useState(false)
+  const [prefsSaved,   setPrefsSaved]   = useState(false)
   const [loading,      setLoading]      = useState(true)
   const [showAddModal, setShowAddModal] = useState(false)
   const [deletingId,   setDeletingId]   = useState<string | null>(null)
@@ -151,9 +179,10 @@ export default function AlertsSection() {
 
   async function loadData() {
     setLoading(true)
-    const [alertsRes, settingsRes] = await Promise.all([
+    const [alertsRes, settingsRes, prefsRes] = await Promise.all([
       fetch('/api/alerts/stock').then(r => r.ok ? r.json() : { alerts: [] }).catch(() => ({ alerts: [] })),
       fetch('/api/alerts/settings').then(r => r.ok ? r.json() : { settings: null }).catch(() => ({ settings: null })),
+      fetch('/api/alerts/preferences').then(r => r.ok ? r.json() : { preferences: null }).catch(() => ({ preferences: null })),
     ])
     setAlerts(alertsRes.alerts ?? [])
     setSettings(settingsRes.settings ?? {
@@ -162,10 +191,65 @@ export default function AlertsSection() {
       inventory_alerts_enabled: true,
       inventory_threshold:      5,
     })
+    const loaded: AllPreferences = {
+      ...PREF_DEFAULTS,
+      ...(prefsRes.preferences ?? {}),
+    }
+    setPrefs(loaded)
+    setDraftPrefs(loaded)
     setLoading(false)
   }
 
   useEffect(() => { loadData() }, [])
+
+  function updateDraft<K extends keyof AllPreferences>(
+    type: K,
+    field: keyof Preference,
+    value: boolean | string | number | null,
+  ) {
+    setDraftPrefs(prev => ({
+      ...prev,
+      [type]: { ...prev[type], [field]: value },
+    }))
+    setPrefsDirty(true)
+    setPrefsSaved(false)
+  }
+
+  async function savePrefs() {
+    setPrefsSaving(true)
+    // Build updates — only send changed fields
+    const updates: Record<string, Partial<Preference>> = {}
+    const keys = Object.keys(PREF_DEFAULTS) as (keyof AllPreferences)[]
+    for (const type of keys) {
+      const orig = prefs[type]
+      const draft = draftPrefs[type]
+      const diff: Partial<Preference> = {}
+      if (orig.enabled       !== draft.enabled)       diff.enabled       = draft.enabled
+      if (orig.frequency     !== draft.frequency)     diff.frequency     = draft.frequency
+      if (orig.min_threshold !== draft.min_threshold) diff.min_threshold = draft.min_threshold
+      if (Object.keys(diff).length) updates[type] = diff
+    }
+    if (!Object.keys(updates).length) {
+      setPrefsDirty(false)
+      setPrefsSaving(false)
+      return
+    }
+    const res = await fetch('/api/alerts/preferences', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ updates }),
+    })
+    if (res.ok) {
+      const data = await res.json()
+      const updated: AllPreferences = { ...PREF_DEFAULTS, ...(data.preferences ?? {}) }
+      setPrefs(updated)
+      setDraftPrefs(updated)
+      setPrefsDirty(false)
+      setPrefsSaved(true)
+      setTimeout(() => setPrefsSaved(false), 3000)
+    }
+    setPrefsSaving(false)
+  }
 
   async function addAlert(item_name: string, threshold: number) {
     const res = await fetch('/api/alerts/stock', {
@@ -235,6 +319,185 @@ export default function AlertsSection() {
 
   return (
     <>
+      {/* ── Alert Preferences ────────────────────────────────────────────── */}
+      <div className="bg-white rounded-2xl border border-gray-200 p-5 sm:p-6">
+        <div className="flex items-center justify-between mb-5">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center shrink-0">
+              <Bell size={18} className="text-green-600" />
+            </div>
+            <div>
+              <h2 className="text-base font-semibold text-gray-900">Alert Preferences</h2>
+              <p className="text-xs text-gray-500 mt-0.5">Control which WhatsApp alerts you receive and how often</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="space-y-3">
+
+          {/* Nearby Events */}
+          <div className={`p-3 rounded-xl border transition-colors ${draftPrefs.events.enabled ? 'bg-gray-50 border-gray-100' : 'bg-gray-50/50 border-gray-100 opacity-60'}`}>
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-start gap-2.5">
+                <CalendarDays size={15} className="text-gray-500 mt-0.5 shrink-0" />
+                <div>
+                  <p className="text-sm font-medium text-gray-800">Nearby events</p>
+                  <p className="text-xs text-gray-500 mt-0.5">Alert when large events are near your venue within 1km</p>
+                </div>
+              </div>
+              <button
+                onClick={() => updateDraft('events', 'enabled', !draftPrefs.events.enabled)}
+                className={`flex items-center gap-1 text-xs font-medium transition-colors shrink-0 ${draftPrefs.events.enabled ? 'text-green-600' : 'text-gray-400'}`}
+              >
+                {draftPrefs.events.enabled ? <ToggleRight size={22} /> : <ToggleLeft size={22} />}
+                {draftPrefs.events.enabled ? 'On' : 'Off'}
+              </button>
+            </div>
+            {draftPrefs.events.enabled && (
+              <div className="flex items-center gap-4 mt-3 pt-3 border-t border-gray-200">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs text-gray-500">Frequency</span>
+                  <select
+                    value={draftPrefs.events.frequency}
+                    onChange={e => updateDraft('events', 'frequency', e.target.value)}
+                    className="text-xs font-medium text-green-700 border-0 bg-transparent focus:outline-none cursor-pointer"
+                  >
+                    <option value="daily">Daily</option>
+                    <option value="weekly">Weekly</option>
+                    <option value="never">Never</option>
+                  </select>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs text-gray-500">Min attendance</span>
+                  <select
+                    value={draftPrefs.events.min_threshold ?? 500}
+                    onChange={e => updateDraft('events', 'min_threshold', parseInt(e.target.value))}
+                    className="text-xs font-medium text-green-700 border-0 bg-transparent focus:outline-none cursor-pointer"
+                  >
+                    <option value={100}>100+</option>
+                    <option value={500}>500+</option>
+                    <option value={1000}>1,000+</option>
+                    <option value={2000}>2,000+</option>
+                  </select>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Weather */}
+          <div className={`p-3 rounded-xl border transition-colors ${draftPrefs.weather.enabled ? 'bg-gray-50 border-gray-100' : 'bg-gray-50/50 border-gray-100 opacity-60'}`}>
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-start gap-2.5">
+                <CloudRain size={15} className="text-gray-500 mt-0.5 shrink-0" />
+                <div>
+                  <p className="text-sm font-medium text-gray-800">Weather alerts</p>
+                  <p className="text-xs text-gray-500 mt-0.5">Notified about severe weather that may affect footfall</p>
+                </div>
+              </div>
+              <button
+                onClick={() => updateDraft('weather', 'enabled', !draftPrefs.weather.enabled)}
+                className={`flex items-center gap-1 text-xs font-medium transition-colors shrink-0 ${draftPrefs.weather.enabled ? 'text-green-600' : 'text-gray-400'}`}
+              >
+                {draftPrefs.weather.enabled ? <ToggleRight size={22} /> : <ToggleLeft size={22} />}
+                {draftPrefs.weather.enabled ? 'On' : 'Off'}
+              </button>
+            </div>
+            {draftPrefs.weather.enabled && (
+              <div className="flex items-center gap-4 mt-3 pt-3 border-t border-gray-200">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs text-gray-500">Frequency</span>
+                  <select
+                    value={draftPrefs.weather.frequency}
+                    onChange={e => updateDraft('weather', 'frequency', e.target.value)}
+                    className="text-xs font-medium text-green-700 border-0 bg-transparent focus:outline-none cursor-pointer"
+                  >
+                    <option value="daily">Daily</option>
+                    <option value="weekly">Weekly</option>
+                    <option value="never">Never</option>
+                  </select>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Slow day warnings */}
+          <div className={`p-3 rounded-xl border transition-colors ${draftPrefs.slow_day.enabled ? 'bg-gray-50 border-gray-100' : 'bg-gray-50/50 border-gray-100 opacity-60'}`}>
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-start gap-2.5">
+                <TrendingDown size={15} className="text-gray-500 mt-0.5 shrink-0" />
+                <div>
+                  <p className="text-sm font-medium text-gray-800">Slow day warnings</p>
+                  <p className="text-xs text-gray-500 mt-0.5">Alert when today&apos;s revenue is tracking below your average</p>
+                </div>
+              </div>
+              <button
+                onClick={() => updateDraft('slow_day', 'enabled', !draftPrefs.slow_day.enabled)}
+                className={`flex items-center gap-1 text-xs font-medium transition-colors shrink-0 ${draftPrefs.slow_day.enabled ? 'text-green-600' : 'text-gray-400'}`}
+              >
+                {draftPrefs.slow_day.enabled ? <ToggleRight size={22} /> : <ToggleLeft size={22} />}
+                {draftPrefs.slow_day.enabled ? 'On' : 'Off'}
+              </button>
+            </div>
+          </div>
+
+          {/* Daily revenue summary */}
+          <div className={`p-3 rounded-xl border transition-colors ${draftPrefs.daily_summary.enabled ? 'bg-gray-50 border-gray-100' : 'bg-gray-50/50 border-gray-100 opacity-60'}`}>
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-start gap-2.5">
+                <BarChart2 size={15} className="text-gray-500 mt-0.5 shrink-0" />
+                <div>
+                  <p className="text-sm font-medium text-gray-800">Daily revenue summary</p>
+                  <p className="text-xs text-gray-500 mt-0.5">Morning snapshot of yesterday&apos;s revenue sent via WhatsApp</p>
+                </div>
+              </div>
+              <button
+                onClick={() => updateDraft('daily_summary', 'enabled', !draftPrefs.daily_summary.enabled)}
+                className={`flex items-center gap-1 text-xs font-medium transition-colors shrink-0 ${draftPrefs.daily_summary.enabled ? 'text-green-600' : 'text-gray-400'}`}
+              >
+                {draftPrefs.daily_summary.enabled ? <ToggleRight size={22} /> : <ToggleLeft size={22} />}
+                {draftPrefs.daily_summary.enabled ? 'On' : 'Off'}
+              </button>
+            </div>
+            {draftPrefs.daily_summary.enabled && (
+              <div className="flex items-center gap-4 mt-3 pt-3 border-t border-gray-200">
+                <div className="flex items-center gap-1.5">
+                  <Clock size={12} className="text-gray-400" />
+                  <span className="text-xs text-gray-500">Send at</span>
+                  <select
+                    value={draftPrefs.daily_summary.min_threshold ?? 8}
+                    onChange={e => updateDraft('daily_summary', 'min_threshold', parseInt(e.target.value))}
+                    className="text-xs font-medium text-green-700 border-0 bg-transparent focus:outline-none cursor-pointer"
+                  >
+                    <option value={7}>7:00 am</option>
+                    <option value={8}>8:00 am</option>
+                    <option value={9}>9:00 am</option>
+                  </select>
+                </div>
+              </div>
+            )}
+          </div>
+
+        </div>
+
+        {/* Save button */}
+        <div className="flex items-center justify-end gap-3 mt-4 pt-4 border-t border-gray-100">
+          {prefsSaved && (
+            <span className="flex items-center gap-1.5 text-xs text-green-600 font-medium">
+              <Check size={13} />
+              Saved
+            </span>
+          )}
+          <button
+            onClick={savePrefs}
+            disabled={!prefsDirty || prefsSaving}
+            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 disabled:bg-gray-200 disabled:text-gray-400 rounded-lg transition-colors"
+          >
+            {prefsSaving ? <RefreshCw size={13} className="animate-spin" /> : null}
+            {prefsSaving ? 'Saving…' : 'Save changes'}
+          </button>
+        </div>
+      </div>
+
       {/* ── Proactive alert settings ─────────────────────────────────────── */}
       <div className="bg-white rounded-2xl border border-gray-200 p-5 sm:p-6">
         <div className="flex items-center gap-3 mb-5">
