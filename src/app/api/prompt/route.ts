@@ -57,12 +57,21 @@ export async function GET(req: NextRequest) {
     .eq('id', id)
     .single()
 
-  if (error || !data) {
+  if (error) {
+    // PGRST116 = "The result contains 0 rows" — genuine not-found, not a DB fault
+    if (error.code === 'PGRST116') {
+      return NextResponse.json({ error: 'Not found' }, { status: 404 })
+    }
+    console.error('[api/prompt] GET error — code:', error.code, 'msg:', error.message, 'details:', error.details)
+    return NextResponse.json({ error: 'Database error' }, { status: 500 })
+  }
+
+  if (!data) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 })
   }
 
   if (new Date(data.expires_at) < new Date()) {
-    return NextResponse.json({ error: 'Expired' }, { status: 404 })
+    return NextResponse.json({ error: 'Expired' }, { status: 410 })
   }
 
   return NextResponse.json({ content: data.content })

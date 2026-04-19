@@ -3,25 +3,28 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 
+type Status = 'loading' | 'ok' | 'not_found' | 'expired' | 'error'
+
 export default function PromptPage() {
   const params  = useParams()
   const id      = params?.id as string
 
-  const [content,  setContent]  = useState<string | null>(null)
-  const [notFound, setNotFound] = useState(false)
-  const [copied,   setCopied]   = useState(false)
+  const [content, setContent] = useState<string | null>(null)
+  const [status,  setStatus]  = useState<Status>('loading')
+  const [copied,  setCopied]  = useState(false)
 
   useEffect(() => {
-    if (!id) return
+    if (!id) { setStatus('not_found'); return }
     fetch(`/api/prompt?id=${encodeURIComponent(id)}`)
-      .then(res => {
-        if (!res.ok) { setNotFound(true); return null }
-        return res.json()
+      .then(async res => {
+        if (res.status === 410) { setStatus('expired'); return }
+        if (res.status === 404) { setStatus('not_found'); return }
+        if (!res.ok)            { setStatus('error'); return }
+        const data = await res.json()
+        if (data?.content) { setContent(data.content); setStatus('ok') }
+        else { setStatus('not_found') }
       })
-      .then(data => {
-        if (data?.content) setContent(data.content)
-      })
-      .catch(() => setNotFound(true))
+      .catch(() => setStatus('error'))
   }, [id])
 
   function handleCopy() {
@@ -32,10 +35,26 @@ export default function PromptPage() {
     })
   }
 
-  if (notFound) {
+  if (status === 'not_found') {
     return (
       <div style={styles.page}>
-        <p style={styles.expired}>This prompt has expired or does not exist.</p>
+        <p style={styles.expired}>This prompt does not exist.</p>
+      </div>
+    )
+  }
+
+  if (status === 'expired') {
+    return (
+      <div style={styles.page}>
+        <p style={styles.expired}>This prompt has expired (prompts are valid for 24 hours).</p>
+      </div>
+    )
+  }
+
+  if (status === 'error') {
+    return (
+      <div style={styles.page}>
+        <p style={styles.expired}>Failed to load prompt — please try again.</p>
       </div>
     )
   }
