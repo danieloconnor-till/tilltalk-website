@@ -1348,6 +1348,275 @@ Implement the fix described above in the TillTalk bot codebase. Make the minimum
   )
 }
 
+// ─── Section: POS Diagnostic ─────────────────────────────────────────────────
+
+interface DiagPayment {
+  id: string
+  created_time: string
+  amount_cents: number
+  amount_euros: number
+  tip_cents: number
+  tip_euros: number
+  refund_cents: number
+  refund_euros: number
+  tender: string
+  status: string
+  net_cents: number
+  net_euros: number
+}
+
+interface DiagSummary {
+  gross_euros: number
+  total_tips_euros: number
+  total_refunds_euros: number
+  net_sales_euros: number
+  transaction_count: number
+}
+
+interface DiagResult {
+  client_name: string
+  pos_type: string
+  period: string
+  payments: DiagPayment[]
+  summary: DiagSummary
+}
+
+function PosDiagnosticSection({ profiles }: { profiles: Profile[] }) {
+  const [profileId, setProfileId] = useState('')
+  const [startDate, setStartDate] = useState('')
+  const [endDate,   setEndDate]   = useState('')
+  const [loading,   setLoading]   = useState(false)
+  const [result,    setResult]    = useState<DiagResult | null>(null)
+  const [error,     setError]     = useState<string | null>(null)
+
+  async function handleFetch() {
+    if (!profileId || !startDate || !endDate) return
+    setLoading(true); setError(null); setResult(null)
+    try {
+      const res = await fetch('/api/admin/pos-diagnostic', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ profile_id: profileId, start_date: startDate, end_date: endDate }),
+      })
+      const data = await res.json()
+      if (!res.ok || data.error) setError(data.error || `Error ${res.status}`)
+      else setResult(data as DiagResult)
+    } catch {
+      setError('Network error')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const sortedProfiles = [...profiles]
+    .filter(p => p.pos_type)
+    .sort((a, b) => (a.restaurant_name || a.email).localeCompare(b.restaurant_name || b.email))
+
+  const fmt = (n: number) => `€${n.toFixed(2)}`
+
+  function fmtDateTime(s: string) {
+    try {
+      return new Date(s).toLocaleString('en-IE', {
+        day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit',
+      })
+    } catch { return s }
+  }
+
+  const inputCls = 'w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500'
+
+  return (
+    <div className="space-y-4">
+      <SectionHeader id="pos-diagnostic" title="POS Diagnostic" icon={Activity} />
+
+      {/* Controls */}
+      <Card>
+        <p className="text-xs text-gray-500 mb-4">
+          Live fetch of raw payment data from the POS API. No data is stored — diagnostic only.
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">Client</label>
+            <select
+              value={profileId}
+              onChange={e => setProfileId(e.target.value)}
+              className={inputCls}
+            >
+              <option value="">Select a client…</option>
+              {sortedProfiles.map(p => (
+                <option key={p.id} value={p.id}>
+                  {p.restaurant_name || p.email} ({p.pos_type})
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">Start date</label>
+            <input
+              type="date"
+              value={startDate}
+              onChange={e => setStartDate(e.target.value)}
+              className={inputCls}
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">End date</label>
+            <input
+              type="date"
+              value={endDate}
+              onChange={e => setEndDate(e.target.value)}
+              className={inputCls}
+            />
+          </div>
+        </div>
+        <button
+          onClick={handleFetch}
+          disabled={loading || !profileId || !startDate || !endDate}
+          className="flex items-center gap-2 bg-green-600 hover:bg-green-700 disabled:bg-green-300 text-white text-sm font-medium px-5 py-2.5 rounded-lg transition-colors"
+        >
+          {loading
+            ? <RefreshCw size={14} className="animate-spin" />
+            : <Activity size={14} />}
+          {loading ? 'Fetching…' : 'Fetch Raw Data'}
+        </button>
+        {error && (
+          <p className="mt-3 text-sm text-red-600 flex items-center gap-2">
+            <AlertTriangle size={14} className="shrink-0" /> {error}
+          </p>
+        )}
+      </Card>
+
+      {/* Results */}
+      {result && (
+        <div className="space-y-4">
+          {/* Summary cards */}
+          <Card>
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <p className="text-sm font-semibold text-gray-900">{result.client_name}</p>
+                <p className="text-xs text-gray-400 mt-0.5 capitalize">
+                  {result.pos_type} · {result.period}
+                </p>
+              </div>
+              <span className="text-xs bg-green-100 text-green-700 px-2.5 py-1 rounded-full font-medium">
+                {result.summary.transaction_count} transaction{result.summary.transaction_count !== 1 ? 's' : ''}
+              </span>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {[
+                {
+                  label: 'Gross sales',
+                  value: fmt(result.summary.gross_euros),
+                  sub:   'amount incl. tips, before refunds',
+                  highlight: false,
+                },
+                {
+                  label: 'Tips',
+                  value: fmt(result.summary.total_tips_euros),
+                  sub:   'excluded from net sales',
+                  highlight: false,
+                },
+                {
+                  label: 'Refunds',
+                  value: fmt(result.summary.total_refunds_euros),
+                  sub:   'subtracted from net',
+                  highlight: false,
+                },
+                {
+                  label: 'Net sales',
+                  value: fmt(result.summary.net_sales_euros),
+                  sub:   'gross − tips − refunds',
+                  highlight: true,
+                },
+              ].map(({ label, value, sub, highlight }) => (
+                <div
+                  key={label}
+                  className={`rounded-xl border px-4 py-3 ${highlight ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-100'}`}
+                >
+                  <p className={`text-xl font-bold ${highlight ? 'text-green-700' : 'text-gray-900'}`}>{value}</p>
+                  <p className="text-xs font-medium text-gray-700 mt-0.5">{label}</p>
+                  <p className="text-xs text-gray-400 mt-0.5">{sub}</p>
+                </div>
+              ))}
+            </div>
+          </Card>
+
+          {/* Raw payments table */}
+          <Card className="!p-0 overflow-hidden">
+            <div className="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
+              <p className="text-sm font-semibold text-gray-900">{result.payments.length} payments</p>
+              <p className="text-xs text-gray-400">Raw POS data · not stored</p>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50 border-b border-gray-100">
+                  <tr>
+                    {['ID', 'Created', 'Status', 'Tender', 'Amount', 'Tip', 'Refunds', 'Net'].map(h => (
+                      <th
+                        key={h}
+                        className="text-left px-4 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap"
+                      >
+                        {h}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {result.payments.length === 0 ? (
+                    <tr>
+                      <td colSpan={8} className="px-4 py-8 text-center text-sm text-gray-400">
+                        No payments found for this period.
+                      </td>
+                    </tr>
+                  ) : (
+                    result.payments.map(p => (
+                      <tr key={p.id} className="hover:bg-gray-50 transition-colors">
+                        <td className="px-4 py-2.5 font-mono text-xs text-gray-400 max-w-[90px] truncate" title={p.id}>
+                          {p.id.slice(0, 10)}…
+                        </td>
+                        <td className="px-4 py-2.5 text-xs text-gray-600 whitespace-nowrap">
+                          {fmtDateTime(p.created_time)}
+                        </td>
+                        <td className="px-4 py-2.5">
+                          <span className={`text-xs font-medium px-1.5 py-0.5 rounded ${
+                            p.status === 'SUCCESS'
+                              ? 'bg-green-100 text-green-700'
+                              : 'bg-gray-100 text-gray-600'
+                          }`}>
+                            {p.status}
+                          </span>
+                        </td>
+                        <td className="px-4 py-2.5 text-xs text-gray-600">{p.tender}</td>
+                        <td className="px-4 py-2.5 text-xs text-gray-900 font-medium">
+                          {fmt(p.amount_euros)}
+                          <span className="text-gray-400 ml-1">({p.amount_cents}¢)</span>
+                        </td>
+                        <td className="px-4 py-2.5 text-xs text-gray-600">
+                          {p.tip_euros > 0
+                            ? <>{fmt(p.tip_euros)} <span className="text-gray-400">({p.tip_cents}¢)</span></>
+                            : <span className="text-gray-300">—</span>}
+                        </td>
+                        <td className="px-4 py-2.5 text-xs">
+                          {p.refund_euros > 0
+                            ? <span className="text-red-600">{fmt(p.refund_euros)} <span className="text-red-400">({p.refund_cents}¢)</span></span>
+                            : <span className="text-gray-300">—</span>}
+                        </td>
+                        <td className="px-4 py-2.5 text-xs font-semibold text-green-700">
+                          {fmt(p.net_euros)}
+                          <span className="text-green-400 font-normal ml-1">({p.net_cents}¢)</span>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ─── Section nav ──────────────────────────────────────────────────────────────
 
 const NAV_ITEMS = [
@@ -1364,6 +1633,7 @@ const NAV_ITEMS = [
   { id: 'flags', label: 'Flags' },
   { id: 'failed-queries', label: 'Quality' },
   { id: 'sandbox', label: 'Sandbox' },
+  { id: 'pos-diagnostic', label: 'Diagnostic' },
 ]
 
 // ─── Root component ───────────────────────────────────────────────────────────
@@ -1497,6 +1767,7 @@ export default function AdminClient({ profiles, stats, signupsPerDay, posBreakdo
         <FlagsSection />
         <FailedQueriesSection />
         <SandboxSection />
+        <PosDiagnosticSection profiles={profiles} />
       </div>
 
       {/* Toast */}
