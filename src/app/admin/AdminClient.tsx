@@ -1399,7 +1399,9 @@ function PosDiagnosticSection({ profiles }: { profiles: Profile[] }) {
         body: JSON.stringify({ profile_id: profileId, start_date: startDate, end_date: endDate }),
       })
       const data = await res.json()
+      console.log('[pos-diagnostic] raw response:', data)
       if (!res.ok || data.error) setError(data.error || `Error ${res.status}`)
+      else if (!data.payments || !Array.isArray(data.payments)) setError('Unexpected response shape — missing payments array')
       else setResult(data as DiagResult)
     } catch {
       setError('Network error')
@@ -1568,10 +1570,10 @@ function PosDiagnosticSection({ profiles }: { profiles: Profile[] }) {
                       </td>
                     </tr>
                   ) : (
-                    result.payments.map(p => (
-                      <tr key={p.id} className="hover:bg-gray-50 transition-colors">
-                        <td className="px-4 py-2.5 font-mono text-xs text-gray-400 max-w-[90px] truncate" title={p.id}>
-                          {p.id.slice(0, 10)}…
+                    result.payments.map((p, i) => (
+                      <tr key={p.id || i} className="hover:bg-gray-50 transition-colors">
+                        <td className="px-4 py-2.5 font-mono text-xs text-gray-400 max-w-[90px] truncate" title={p.id || ''}>
+                          {(p.id || '').slice(0, 10)}…
                         </td>
                         <td className="px-4 py-2.5 text-xs text-gray-600 whitespace-nowrap">
                           {fmtDateTime(p.created_time)}
