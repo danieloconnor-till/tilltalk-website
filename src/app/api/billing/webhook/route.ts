@@ -124,6 +124,17 @@ export async function POST(req: NextRequest) {
 
   const admin = createServiceRoleClient()
 
+  const { data: existingEvent } = await admin
+    .from('stripe_events')
+    .select('id')
+    .eq('id', event.id)
+    .maybeSingle()
+
+  if (existingEvent) {
+    console.log('[webhook] duplicate event ignored:', event.id)
+    return NextResponse.json({ received: true })
+  }
+
   try {
     switch (event.type) {
 
@@ -263,6 +274,9 @@ export async function POST(req: NextRequest) {
       default:
         break
     }
+
+    // Record processed event for idempotency (Stripe may retry webhooks)
+    await admin.from('stripe_events').insert({ id: event.id, event_type: event.type })
   } catch (err) {
     console.error('[webhook] Handler error for', event.type, err)
     return NextResponse.json({ error: 'Handler error' }, { status: 500 })
