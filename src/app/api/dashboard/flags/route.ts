@@ -1,7 +1,5 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { createServiceRoleClient } from '@/lib/supabase/admin'
-
 // GET /api/dashboard/flags
 // Returns whether the current user has any unresolved flags.
 // Used by the dashboard to show a subtle support banner.
@@ -12,8 +10,7 @@ export async function GET() {
   if (!user) return NextResponse.json({ has_flags: false })
 
   try {
-    const admin = createServiceRoleClient()
-    const { count } = await admin
+    const { count } = await supabase
       .from('flags')
       .select('id', { count: 'exact', head: true })
       .eq('client_id', user.id)

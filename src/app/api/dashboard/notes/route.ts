@@ -1,7 +1,5 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { createServiceRoleClient } from '@/lib/supabase/admin'
-
 // GET /api/dashboard/notes
 // Returns pending reminders and open notes for the authenticated user.
 // Reads directly from Supabase — no Railway proxy needed.
@@ -11,17 +9,15 @@ export async function GET() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ reminders: [], notes: [] })
 
-  const admin = createServiceRoleClient()
-
   const [notesRes, remindersRes] = await Promise.all([
-    admin
+    supabase
       .from('notes')
       .select('id, note_text, created_at')
       .eq('client_id', user.id)
       .eq('is_complete', false)
       .order('created_at', { ascending: false }),
 
-    admin
+    supabase
       .from('reminders')
       .select('id, reminder_text, remind_at, appointment_at')
       .eq('client_id', user.id)

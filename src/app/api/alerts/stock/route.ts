@@ -1,20 +1,12 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { createServiceRoleClient } from '@/lib/supabase/admin'
-
-async function getUser() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  return user
-}
-
 // GET /api/alerts/stock — list all stock alerts for the authenticated user
 export async function GET() {
-  const user = await getUser()
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const admin = createServiceRoleClient()
-  const { data, error } = await admin
+  const { data, error } = await supabase
     .from('stock_alerts')
     .select('id, item_name, threshold, active, last_triggered_at, created_at')
     .eq('client_id', user.id)
@@ -27,7 +19,8 @@ export async function GET() {
 
 // POST /api/alerts/stock — create or update a stock alert
 export async function POST(request: Request) {
-  const user = await getUser()
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const body = await request.json().catch(() => ({}))
@@ -39,8 +32,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'threshold must be a positive integer' }, { status: 400 })
   }
 
-  const admin = createServiceRoleClient()
-  const { data, error } = await admin
+  const { data, error } = await supabase
     .from('stock_alerts')
     .upsert(
       { client_id: user.id, item_name, threshold, active: true, updated_at: new Date().toISOString() },

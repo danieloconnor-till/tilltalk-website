@@ -1,7 +1,5 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { createServiceRoleClient } from '@/lib/supabase/admin'
-
 const DEFAULTS = {
   event_alerts_enabled:     true,
   event_alert_radius_km:    2,
@@ -9,19 +7,13 @@ const DEFAULTS = {
   inventory_threshold:      5,
 }
 
-async function getUser() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  return user
-}
-
 // GET /api/alerts/settings — get current alert settings (returns defaults if not set)
 export async function GET() {
-  const user = await getUser()
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const admin = createServiceRoleClient()
-  const { data } = await admin
+  const { data } = await supabase
     .from('alert_settings')
     .select('event_alerts_enabled, event_alert_radius_km, inventory_alerts_enabled, inventory_threshold')
     .eq('client_id', user.id)
@@ -32,7 +24,8 @@ export async function GET() {
 
 // PATCH /api/alerts/settings — update alert settings (upserts)
 export async function PATCH(request: Request) {
-  const user = await getUser()
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const body = await request.json().catch(() => ({}))
@@ -48,8 +41,7 @@ export async function PATCH(request: Request) {
   updates.client_id  = user.id
   updates.updated_at = new Date().toISOString()
 
-  const admin = createServiceRoleClient()
-  const { data, error } = await admin
+  const { data, error } = await supabase
     .from('alert_settings')
     .upsert(updates, { onConflict: 'client_id' })
     .select('event_alerts_enabled, event_alert_radius_km, inventory_alerts_enabled, inventory_threshold')
