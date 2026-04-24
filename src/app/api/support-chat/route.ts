@@ -123,7 +123,7 @@ export async function POST(request: Request) {
     const response = await client.messages.create(callParams)
 
     // Handle waitlist tool call (visitor mode only)
-    if (!isLoggedIn) {
+    if (!isLoggedIn && 'content' in response) {
       for (const block of response.content) {
         if (block.type === 'tool_use' && block.name === 'save_waitlist_lead') {
           const inp = block.input as Record<string, unknown>
@@ -149,7 +149,8 @@ export async function POST(request: Request) {
       }
     }
 
-    const text = response.content
+    const content = 'content' in response ? response.content : []
+    const text = content
       .filter(b => b.type === 'text')
       .map(b => (b as { type: 'text'; text: string }).text)
       .join('')
