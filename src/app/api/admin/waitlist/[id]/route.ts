@@ -22,6 +22,12 @@ export async function PATCH(
   const { id } = await params
   const body = await req.json()
 
+  // Forward only recognised fields
+  const payload: Record<string, unknown> = {}
+  if ('notes'      in body) payload.notes      = body.notes
+  if ('status'     in body) payload.status     = body.status
+  if ('removed_at' in body) payload.removed_at = body.removed_at
+
   try {
     const res = await fetch(`${railwayUrl}/api/admin/waitlist/${id}`, {
       method: 'PATCH',
@@ -29,7 +35,7 @@ export async function PATCH(
         'X-Onboarding-Key': onboardingKey,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ notes: body.notes ?? '' }),
+      body: JSON.stringify(payload),
       signal: AbortSignal.timeout(10_000),
     })
     if (!res.ok) {

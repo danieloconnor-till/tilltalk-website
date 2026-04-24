@@ -12,7 +12,6 @@ import {
 import SandboxSection from './SandboxSection'
 import QueryIntelligenceSection from './QueryIntelligenceSection'
 import FlagsSection from './FlagsSection'
-import WaitlistSection from './WaitlistSection'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -1637,7 +1636,6 @@ const NAV_ITEMS = [
   { id: 'failed-queries', label: 'Quality' },
   { id: 'sandbox', label: 'Sandbox' },
   { id: 'pos-diagnostic', label: 'Diagnostic' },
-  { id: 'waitlist', label: 'Waitlist' },
 ]
 
 // ─── Root component ───────────────────────────────────────────────────────────
@@ -1745,6 +1743,12 @@ export default function AdminClient({ profiles, stats, signupsPerDay, posBreakdo
                 {label} <ChevronRight size={10} />
               </button>
             ))}
+            <a
+              href="/admin/waitlist"
+              className="text-xs text-green-700 font-medium hover:text-green-800 hover:bg-green-50 px-3 py-2 rounded-t-lg transition-colors whitespace-nowrap flex items-center gap-1 border-b-2 border-green-600"
+            >
+              Waitlist →
+            </a>
           </div>
         </div>
       </div>
@@ -1772,7 +1776,6 @@ export default function AdminClient({ profiles, stats, signupsPerDay, posBreakdo
         <FailedQueriesSection />
         <SandboxSection />
         <PosDiagnosticSection profiles={profiles} />
-        <WaitlistSection />
       </div>
 
       {/* Toast */}
