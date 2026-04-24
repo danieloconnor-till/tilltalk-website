@@ -12,6 +12,7 @@ import {
 import SandboxSection from './SandboxSection'
 import QueryIntelligenceSection from './QueryIntelligenceSection'
 import FlagsSection from './FlagsSection'
+import WaitlistSection from './WaitlistSection'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -1636,6 +1637,7 @@ const NAV_ITEMS = [
   { id: 'failed-queries', label: 'Quality' },
   { id: 'sandbox', label: 'Sandbox' },
   { id: 'pos-diagnostic', label: 'Diagnostic' },
+  { id: 'waitlist', label: 'Waitlist' },
 ]
 
 // ─── Root component ───────────────────────────────────────────────────────────
@@ -1770,6 +1772,7 @@ export default function AdminClient({ profiles, stats, signupsPerDay, posBreakdo
         <FailedQueriesSection />
         <SandboxSection />
         <PosDiagnosticSection profiles={profiles} />
+        <WaitlistSection />
       </div>
 
       {/* Toast */}
