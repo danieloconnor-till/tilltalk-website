@@ -1,377 +1,213 @@
 'use client'
 
-import { useState, useEffect, Suspense } from 'react'
+/*
+ * Signup form commented out — waitlist mode active.
+ * Restore by uncommenting the SignupForm component and export below.
+ */
+
+// import { useState, useEffect, Suspense } from 'react'
+// import Link from 'next/link'
+// import { useRouter, useSearchParams } from 'next/navigation'
+// import clsx from 'clsx'
+//
+// declare global {
+//   interface Window {
+//     turnstile: {
+//       render: (container: string, options: {
+//         sitekey: string
+//         callback: (token: string) => void
+//         theme?: string
+//       }) => string
+//     }
+//   }
+// }
+//
+// const COUNTRY_CODES = [
+//   { key: 'IE', dialCode: '+353', label: '🇮🇪 Ireland (+353)' },
+//   { key: 'GB', dialCode: '+44',  label: '🇬🇧 UK (+44)' },
+//   { key: 'US', dialCode: '+1',   label: '🇺🇸 USA (+1)' },
+//   { key: 'AU', dialCode: '+61',  label: '🇦🇺 Australia (+61)' },
+//   { key: 'CA', dialCode: '+1',   label: '🇨🇦 Canada (+1)' },
+//   { key: 'DE', dialCode: '+49',  label: '🇩🇪 Germany (+49)' },
+//   { key: 'FR', dialCode: '+33',  label: '🇫🇷 France (+33)' },
+//   { key: 'ES', dialCode: '+34',  label: '🇪🇸 Spain (+34)' },
+//   { key: 'IT', dialCode: '+39',  label: '🇮🇹 Italy (+39)' },
+//   { key: 'NL', dialCode: '+31',  label: '🇳🇱 Netherlands (+31)' },
+// ]
+//
+// const PLAN_OPTIONS = [
+//   { key: 'starter', name: 'Starter', price: '€29/mo', description: '1 location, 2 numbers' },
+//   { key: 'pro',     name: 'Pro',     price: '€49/mo', description: '3 locations, 4 numbers',         popular: true },
+//   { key: 'business',name: 'Business',price: '€99/mo', description: '10 locations, unlimited numbers' },
+// ]
+//
+// function SignupForm() {
+//   const router = useRouter()
+//   const searchParams = useSearchParams()
+//   const defaultPlan = (searchParams.get('plan') as 'starter' | 'pro' | 'business') || 'pro'
+//   const utmSource = searchParams.get('utm_source') || ''
+//   const refCode = searchParams.get('ref') || ''
+//   const [form, setForm] = useState({
+//     fullName: '',
+//     email: '',
+//     password: '',
+//     restaurantName: '',
+//     posType: '',
+//     whatsappNumber: '',
+//     plan: defaultPlan,
+//     agreeTerms: false,
+//   })
+//   const [confirmPassword, setConfirmPassword] = useState('')
+//   const [passwordTouched, setPasswordTouched] = useState(false)
+//   const [selectedCountry, setSelectedCountry] = useState('IE')
+//   const [localNumber, setLocalNumber] = useState('')
+//   const [loading, setLoading] = useState(false)
+//   const [error, setError] = useState('')
+//   const [turnstileToken, setTurnstileToken] = useState('')
+//
+//   useEffect(() => {
+//     const script = document.createElement('script')
+//     script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js'
+//     script.async = true
+//     script.defer = true
+//     script.onload = () => {
+//       window.turnstile.render('#turnstile-container', {
+//         sitekey: '0x4AAAAAAC1ojDJtV4BU68ah',
+//         callback: (token: string) => setTurnstileToken(token),
+//         theme: 'light',
+//       })
+//     }
+//     document.head.appendChild(script)
+//     return () => { document.head.removeChild(script) }
+//   }, [])
+//
+//   const passwordsMatch = form.password.length > 0 && confirmPassword.length > 0 && form.password === confirmPassword
+//
+//   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) {
+//     const { name, value, type } = e.target
+//     setForm((prev) => ({
+//       ...prev,
+//       [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value,
+//     }))
+//   }
+//
+//   function buildWhatsappNumber(countryKey: string, local: string) {
+//     const dialCode = COUNTRY_CODES.find(c => c.key === countryKey)?.dialCode ?? '+353'
+//     const digits = local.replace(/\s/g, '').replace(/^0+/, '')
+//     return dialCode + digits
+//   }
+//
+//   function handleCountryChange(e: React.ChangeEvent<HTMLSelectElement>) {
+//     const newKey = e.target.value
+//     setSelectedCountry(newKey)
+//     setForm(prev => ({ ...prev, whatsappNumber: buildWhatsappNumber(newKey, localNumber) }))
+//   }
+//
+//   function handleLocalNumberChange(e: React.ChangeEvent<HTMLInputElement>) {
+//     const val = e.target.value
+//     setLocalNumber(val)
+//     setForm(prev => ({ ...prev, whatsappNumber: buildWhatsappNumber(selectedCountry, val) }))
+//   }
+//
+//   async function handleSubmit(e: React.FormEvent) {
+//     e.preventDefault()
+//     setError('')
+//     if (!form.agreeTerms) { setError('You must agree to the Terms & Conditions to continue.'); return }
+//     if (form.password.length < 8) { setError('Password must be at least 8 characters.'); return }
+//     if (!passwordsMatch) { setError('Passwords do not match.'); return }
+//     if (!form.posType) { setError('Please select your POS system.'); return }
+//     if (!localNumber.trim()) { setError('Please enter your WhatsApp number.'); return }
+//     if (!turnstileToken) { setError('Security check failed - please refresh'); return }
+//     setLoading(true)
+//     try {
+//       const res = await fetch('/api/signup', {
+//         method: 'POST',
+//         headers: { 'Content-Type': 'application/json' },
+//         body: JSON.stringify({ ...form, turnstileToken, utmSource, refCode: refCode || undefined }),
+//       })
+//       const data = await res.json()
+//       if (!res.ok || data.error) {
+//         setError(data.error || 'Something went wrong. Please try again.')
+//       } else {
+//         router.push('/signup/success')
+//       }
+//     } catch {
+//       setError('Network error. Please check your connection and try again.')
+//     } finally {
+//       setLoading(false)
+//     }
+//   }
+//
+//   return (
+//     <div className="max-w-2xl mx-auto py-12 px-4">
+//       <div className="text-center mb-8">
+//         <h1 className="text-3xl font-bold text-gray-900">Start your free trial</h1>
+//         <p className="mt-2 text-gray-600">14 days free — no credit card required</p>
+//       </div>
+//       {/* ... full form ... */}
+//     </div>
+//   )
+// }
+//
+// export default function SignupPage() {
+//   return (
+//     <Suspense fallback={<div className="py-20 text-center text-gray-500">Loading...</div>}>
+//       <SignupForm />
+//     </Suspense>
+//   )
+// }
+
+import WaitlistChat from '@/components/WaitlistChat'
 import Link from 'next/link'
-import { useRouter, useSearchParams } from 'next/navigation'
-import clsx from 'clsx'
-
-declare global {
-  interface Window {
-    turnstile: {
-      render: (container: string, options: {
-        sitekey: string
-        callback: (token: string) => void
-        theme?: string
-      }) => string
-    }
-  }
-}
-
-const COUNTRY_CODES = [
-  { key: 'IE', dialCode: '+353', label: '🇮🇪 Ireland (+353)' },
-  { key: 'GB', dialCode: '+44',  label: '🇬🇧 UK (+44)' },
-  { key: 'US', dialCode: '+1',   label: '🇺🇸 USA (+1)' },
-  { key: 'AU', dialCode: '+61',  label: '🇦🇺 Australia (+61)' },
-  { key: 'CA', dialCode: '+1',   label: '🇨🇦 Canada (+1)' },
-  { key: 'DE', dialCode: '+49',  label: '🇩🇪 Germany (+49)' },
-  { key: 'FR', dialCode: '+33',  label: '🇫🇷 France (+33)' },
-  { key: 'ES', dialCode: '+34',  label: '🇪🇸 Spain (+34)' },
-  { key: 'IT', dialCode: '+39',  label: '🇮🇹 Italy (+39)' },
-  { key: 'NL', dialCode: '+31',  label: '🇳🇱 Netherlands (+31)' },
-]
-
-const PLAN_OPTIONS = [
-  { key: 'starter', name: 'Starter', price: '€29/mo', description: '1 location, 2 numbers' },
-  { key: 'pro',     name: 'Pro',     price: '€49/mo', description: '3 locations, 4 numbers',         popular: true },
-  { key: 'business',name: 'Business',price: '€99/mo', description: '10 locations, unlimited numbers' },
-]
-
-function SignupForm() {
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const defaultPlan = (searchParams.get('plan') as 'starter' | 'pro' | 'business') || 'pro'
-  const utmSource = searchParams.get('utm_source') || ''
-  const refCode = searchParams.get('ref') || ''
-  const [form, setForm] = useState({
-    fullName: '',
-    email: '',
-    password: '',
-    restaurantName: '',
-    posType: '',
-    whatsappNumber: '',
-    plan: defaultPlan,
-    agreeTerms: false,
-  })
-  const [confirmPassword, setConfirmPassword] = useState('')
-  const [passwordTouched, setPasswordTouched] = useState(false)
-  const [selectedCountry, setSelectedCountry] = useState('IE')
-  const [localNumber, setLocalNumber] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
-  const [turnstileToken, setTurnstileToken] = useState('')
-
-  useEffect(() => {
-    const script = document.createElement('script')
-    script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js'
-    script.async = true
-    script.defer = true
-    script.onload = () => {
-      window.turnstile.render('#turnstile-container', {
-        sitekey: '0x4AAAAAAC1ojDJtV4BU68ah',
-        callback: (token: string) => setTurnstileToken(token),
-        theme: 'light',
-      })
-    }
-    document.head.appendChild(script)
-    return () => {
-      document.head.removeChild(script)
-    }
-  }, [])
-
-  const passwordsMatch = form.password.length > 0 && confirmPassword.length > 0 && form.password === confirmPassword
-
-  function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) {
-    const { name, value, type } = e.target
-    setForm((prev) => ({
-      ...prev,
-      [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value,
-    }))
-  }
-
-  function buildWhatsappNumber(countryKey: string, local: string) {
-    const dialCode = COUNTRY_CODES.find(c => c.key === countryKey)?.dialCode ?? '+353'
-    const digits = local.replace(/\s/g, '').replace(/^0+/, '')
-    return dialCode + digits
-  }
-
-  function handleCountryChange(e: React.ChangeEvent<HTMLSelectElement>) {
-    const newKey = e.target.value
-    setSelectedCountry(newKey)
-    setForm(prev => ({ ...prev, whatsappNumber: buildWhatsappNumber(newKey, localNumber) }))
-  }
-
-  function handleLocalNumberChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const val = e.target.value
-    setLocalNumber(val)
-    setForm(prev => ({ ...prev, whatsappNumber: buildWhatsappNumber(selectedCountry, val) }))
-  }
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    setError('')
-
-    if (!form.agreeTerms) {
-      setError('You must agree to the Terms & Conditions to continue.')
-      return
-    }
-    if (form.password.length < 8) {
-      setError('Password must be at least 8 characters.')
-      return
-    }
-    if (!passwordsMatch) {
-      setError('Passwords do not match.')
-      return
-    }
-    if (!form.posType) {
-      setError('Please select your POS system.')
-      return
-    }
-    if (!localNumber.trim()) {
-      setError('Please enter your WhatsApp number.')
-      return
-    }
-    if (!turnstileToken) {
-      setError('Security check failed - please refresh')
-      return
-    }
-
-    setLoading(true)
-    try {
-      const res = await fetch('/api/signup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...form, turnstileToken, utmSource, refCode: refCode || undefined }),
-      })
-      const data = await res.json()
-      if (!res.ok || data.error) {
-        setError(data.error || 'Something went wrong. Please try again.')
-      } else {
-        router.push('/signup/success')
-      }
-    } catch {
-      setError('Network error. Please check your connection and try again.')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  return (
-    <div className="max-w-2xl mx-auto py-12 px-4">
-      <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Start your free trial</h1>
-        <p className="mt-2 text-gray-600">14 days free — no credit card required</p>
-      </div>
-
-      {refCode && (
-        <div className="mb-4 flex items-start gap-3 bg-green-50 border border-green-200 rounded-xl px-4 py-3">
-          <span className="text-green-600 text-lg leading-none mt-0.5">🎉</span>
-          <p className="text-sm text-green-800">
-            <span className="font-semibold">You were invited to TillTalk!</span>{' '}
-            Your 14-day free trial is ready — no credit card required.
-          </p>
-        </div>
-      )}
-
-      <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 space-y-6">
-        {/* Full Name */}
-        <div>
-          <label htmlFor="fullName" className="block text-sm font-medium text-gray-700 mb-1">
-            Full Name *
-          </label>
-          <input
-            id="fullName" name="fullName" type="text" required
-            value={form.fullName} onChange={handleChange}
-            placeholder="Jane Smith"
-            className="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-          />
-        </div>
-
-        {/* Email */}
-        <div>
-          <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-            Email Address *
-          </label>
-          <input
-            id="email" name="email" type="email" required
-            value={form.email} onChange={handleChange}
-            placeholder="jane@mybusiness.com"
-            className="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-          />
-        </div>
-
-        {/* Password */}
-        <div>
-          <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-            Password *
-          </label>
-          <div className="relative">
-            <input
-              id="password" name="password" type="password" required minLength={8}
-              value={form.password} onChange={handleChange}
-              onBlur={() => setPasswordTouched(true)}
-              placeholder="Minimum 8 characters"
-              className="w-full border border-gray-300 rounded-lg px-4 py-3 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-            />
-            {passwordsMatch && (
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-green-500 text-base leading-none">✓</span>
-            )}
-          </div>
-          {passwordTouched && form.password.length > 0 && form.password.length < 8 ? (
-            <p className="mt-1.5 text-xs text-red-600">Password must be at least 8 characters</p>
-          ) : (
-            <p className="mt-1.5 text-xs text-gray-400">Minimum 8 characters</p>
-          )}
-        </div>
-
-        {/* Confirm Password */}
-        <div>
-          <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
-            Confirm Password *
-          </label>
-          <div className="relative">
-            <input
-              id="confirmPassword" type="password" required
-              value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)}
-              placeholder="Repeat your password"
-              className="w-full border border-gray-300 rounded-lg px-4 py-3 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-            />
-            {passwordsMatch && (
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-green-500 text-base leading-none">✓</span>
-            )}
-          </div>
-          {confirmPassword.length > 0 && !passwordsMatch && (
-            <p className="mt-1.5 text-xs text-red-600">Passwords do not match</p>
-          )}
-        </div>
-
-        {/* Business Name */}
-        <div>
-          <label htmlFor="restaurantName" className="block text-sm font-medium text-gray-700 mb-1">
-            Business Name *
-          </label>
-          <input
-            id="restaurantName" name="restaurantName" type="text" required
-            value={form.restaurantName} onChange={handleChange}
-            placeholder="The Rusty Anchor Café"
-            className="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-          />
-        </div>
-
-        {/* POS Type */}
-        <div>
-          <label htmlFor="posType" className="block text-sm font-medium text-gray-700 mb-1">
-            POS System *
-          </label>
-          <select
-            id="posType" name="posType" required
-            value={form.posType} onChange={handleChange}
-            className="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white"
-          >
-            <option value="">Select your POS system</option>
-            <option value="clover">Clover</option>
-            <option value="square">Square</option>
-            <option value="eposnow">Epos Now</option>
-          </select>
-        </div>
-
-        {/* WhatsApp Number */}
-        <div>
-          <label htmlFor="localNumber" className="block text-sm font-medium text-gray-700 mb-1">
-            WhatsApp Number *
-          </label>
-          <div className="flex">
-            <select
-              value={selectedCountry}
-              onChange={handleCountryChange}
-              className="border border-gray-300 rounded-l-lg px-3 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent border-r-0 shrink-0"
-            >
-              {COUNTRY_CODES.map(({ key, label }) => (
-                <option key={key} value={key}>{label}</option>
-              ))}
-            </select>
-            <input
-              id="localNumber" type="tel" required
-              value={localNumber}
-              onChange={handleLocalNumberChange}
-              placeholder="87 123 4567"
-              className="flex-1 min-w-0 border border-gray-300 rounded-r-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-            />
-          </div>
-        </div>
-
-        {/* Plan */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-3">Choose a plan *</label>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            {PLAN_OPTIONS.map(({ key, name, price, description, popular }) => (
-              <label
-                key={key}
-                className={clsx(
-                  'relative cursor-pointer rounded-xl border-2 p-4 text-center transition-all',
-                  form.plan === key ? 'border-green-500 bg-green-50' : 'border-gray-200 bg-white hover:border-gray-300'
-                )}
-              >
-                <input
-                  type="radio" name="plan" value={key}
-                  checked={form.plan === key} onChange={handleChange}
-                  className="sr-only"
-                />
-                {popular && (
-                  <span className="absolute -top-2 left-1/2 -translate-x-1/2 bg-green-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
-                    Popular
-                  </span>
-                )}
-                <p className="font-bold text-gray-900 text-sm">{name}</p>
-                <p className="text-green-600 font-semibold text-sm mt-1">{price}</p>
-                <p className="text-xs text-gray-500 mt-1">{description}</p>
-              </label>
-            ))}
-          </div>
-        </div>
-
-        {/* T&Cs */}
-        <div className="flex items-start gap-3">
-          <input
-            id="agreeTerms" name="agreeTerms" type="checkbox"
-            checked={form.agreeTerms} onChange={handleChange}
-            className="mt-1 w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
-          />
-          <label htmlFor="agreeTerms" className="text-sm text-gray-700">
-            I agree to the{' '}
-            <Link href="/terms" className="text-green-600 hover:underline" target="_blank">Terms &amp; Conditions</Link>
-            {' '}and{' '}
-            <Link href="/privacy" className="text-green-600 hover:underline" target="_blank">Privacy Policy</Link>
-          </label>
-        </div>
-
-        <div id="turnstile-container" />
-
-        {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-            <p className="text-sm text-red-700">{error}</p>
-          </div>
-        )}
-
-        <button
-          type="submit" disabled={loading}
-          className="relative z-10 w-full bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white font-semibold py-4 rounded-xl transition-colors text-sm cursor-pointer"
-        >
-          {loading ? 'Creating your account...' : 'Start your free 2-week trial — no card required'}
-        </button>
-
-        <p className="text-center text-sm text-gray-500">
-          Already have an account?{' '}
-          <Link href="/login" className="text-green-600 hover:underline font-medium">Sign in</Link>
-        </p>
-      </form>
-    </div>
-  )
-}
 
 export default function SignupPage() {
   return (
-    <Suspense fallback={<div className="py-20 text-center text-gray-500">Loading...</div>}>
-      <SignupForm />
-    </Suspense>
+    <div className="min-h-screen bg-gray-50 py-16 px-4">
+      <div className="max-w-5xl mx-auto">
+        {/* Header */}
+        <div className="text-center mb-12">
+          <h1 className="text-3xl sm:text-4xl font-bold text-gray-900">Join the waitlist</h1>
+          <p className="mt-4 text-lg text-gray-600 max-w-xl mx-auto">
+            We&apos;re onboarding new clients gradually. Chat with us below or scan the QR code
+            to message us on WhatsApp — we&apos;ll be in touch as soon as we&apos;re ready for you.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-start">
+          {/* Inline chat */}
+          <WaitlistChat />
+
+          {/* QR code + WhatsApp CTA */}
+          <div className="flex flex-col items-center justify-center gap-6 py-6">
+            <p className="text-lg font-semibold text-gray-800">Or message us directly on WhatsApp</p>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=https://wa.me/353894633835&qzone=2"
+              alt="Scan to chat on WhatsApp"
+              width={220}
+              height={220}
+              className="rounded-2xl border border-gray-200 shadow-md"
+            />
+            <p className="text-sm text-gray-500 text-center">Scan with your phone camera<br />to open WhatsApp</p>
+            <a
+              href="https://wa.me/353894633835"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 bg-[#25D366] hover:bg-[#1fb856] text-white font-semibold px-6 py-3 rounded-xl transition-colors shadow-sm"
+            >
+              <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5" aria-hidden="true">
+                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+              </svg>
+              Open WhatsApp
+            </a>
+
+            <p className="text-sm text-gray-400 text-center mt-4">
+              Already have an account?{' '}
+              <Link href="/login" className="text-green-600 hover:underline font-medium">Sign in</Link>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
   )
 }

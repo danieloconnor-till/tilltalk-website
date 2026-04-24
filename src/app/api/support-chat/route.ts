@@ -1,21 +1,50 @@
 import { NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
 import { createClient } from '@/lib/supabase/server'
+import { sendEmail } from '@/lib/sendgrid'
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
-const VISITOR_SYSTEM = `You are TillTalk's friendly sales assistant on the tilltalk.ie website.
+const VISITOR_SYSTEM = `You are the TillTalk sales assistant chatting with a business owner on our website.
 
-TillTalk lets hospitality and retail businesses in Ireland query their POS system via WhatsApp — no dashboards needed. They message a WhatsApp number and get instant answers about their sales data.
+TillTalk connects to a business's POS (Point of Sale) system and lets the owner ask questions about their sales data — revenue, top items, busiest days, staff performance — directly on WhatsApp. No dashboard needed.
 
-Key facts:
-- Supported POS systems: Clover, Square, Epos Now
-- Pricing: Starter €29/mo (1 location, 2 numbers), Pro €49/mo (3 locations, 4 numbers), Business €99/mo (10 locations, unlimited numbers)
-- All plans include a free 14-day trial, no credit card required
-- Sign up at https://tilltalk.ie/signup
-- Contact: hello@tilltalk.ie
+When asked what TillTalk can do or how you can help, explain:
 
-Be helpful, concise, and guide visitors toward signing up. If asked about technical details you don't know, suggest they email hello@tilltalk.ie. Do not make up features or pricing that aren't listed above.`
+I can help you with a few things:
+
+📊 Your sales & business performance — ask me anything about your revenue, busiest days, top items, comparisons over time
+📅 What's coming in your area — events, weather and a calendar so you're never caught off guard
+🔔 Running your business — notes, reminders, staffing analysis, stock alerts and email reports
+💻 You also get an interactive analytics dashboard at tilltalk.ie
+
+If someone asks to know more about a specific area, go deeper on that topic only — not the full list.
+
+PRICING:
+- Starter: €29/month — 1 location, 2 WhatsApp numbers
+- Pro: €49/month — 3 locations, 4 WhatsApp numbers (most popular)
+- Business: €99/month — 10 locations, unlimited WhatsApp numbers
+- All plans: 14-day free trial, no card required
+
+POS COMPATIBILITY:
+- Clover: live now ✅
+- Square: live now ✅
+- Other POS systems (Epos Now, Lightspeed, Toast, and others): integrations in progress — we will contact them as soon as a reliable connection is built for their system
+
+WAITLIST COLLECTION — collect these naturally, one question at a time:
+1. Their name
+2. Business name
+3. Town or city
+4. POS system they use
+5. Number of locations
+6. How many WhatsApp numbers they'll need
+
+Once you have all six, call the save_waitlist_lead tool. After calling it, respond with:
+"We'll be in touch as soon as we're ready for you. In the meantime check us out at tilltalk.ie"
+
+OUT OF SCOPE: Only discuss TillTalk and how it could help their business. If asked about anything else, say: "I'm only able to help with your business — happy to tell you more about what TillTalk can do for you."
+
+TONE: Friendly, concise, conversational. Ask one question at a time.`
 
 const CLIENT_SYSTEM = `You are TillTalk's support assistant helping an existing customer on the tilltalk.ie dashboard.
 
@@ -31,6 +60,27 @@ Common issues you can help with:
 If you cannot resolve an issue, tell the user to email daniel@tilltalk.ie with a description of the problem.
 
 Be concise, friendly, and solution-focused. Don't speculate — if unsure, escalate to daniel@tilltalk.ie.`
+
+const WAITLIST_TOOLS: Anthropic.Tool[] = [
+  {
+    name: 'save_waitlist_lead',
+    description: 'Save collected lead details to the waitlist. Call this once you have all six required fields.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        name:           { type: 'string',  description: 'Contact name' },
+        business_name:  { type: 'string',  description: 'Business name' },
+        town:           { type: 'string',  description: 'Town or city' },
+        pos_type:       { type: 'string',  description: 'POS system they use' },
+        location_count: { type: 'integer', description: 'Number of locations' },
+        whatsapp_count: { type: 'integer', description: 'Number of WhatsApp numbers needed' },
+      },
+      required: ['name', 'business_name', 'town', 'pos_type', 'location_count', 'whatsapp_count'],
+    },
+  },
+]
+
+const SIGN_OFF = "We'll be in touch as soon as we're ready for you. In the meantime check us out at tilltalk.ie"
 
 export async function POST(request: Request) {
   let body: { messages?: unknown[]; isLoggedIn?: boolean }
@@ -58,13 +108,46 @@ export async function POST(request: Request) {
   }
 
   try {
-    const response = await client.messages.create({
+    const callParams: Parameters<typeof client.messages.create>[0] = {
       model: 'claude-haiku-4-5-20251001',
       max_tokens: 512,
       system: isLoggedIn ? CLIENT_SYSTEM : VISITOR_SYSTEM,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       messages: messages as any,
-    })
+    }
+
+    if (!isLoggedIn) {
+      callParams.tools = WAITLIST_TOOLS
+    }
+
+    const response = await client.messages.create(callParams)
+
+    // Handle waitlist tool call (visitor mode only)
+    if (!isLoggedIn) {
+      for (const block of response.content) {
+        if (block.type === 'tool_use' && block.name === 'save_waitlist_lead') {
+          const inp = block.input as Record<string, unknown>
+
+          // Send email notification (non-fatal)
+          sendEmail({
+            to: process.env.NOTIFICATION_EMAIL || 'hello@tilltalk.ie',
+            subject: `New TillTalk waitlist lead — ${inp.business_name}`,
+            text: [
+              'New waitlist lead from the website chat:',
+              '',
+              `Name: ${inp.name}`,
+              `Business: ${inp.business_name}`,
+              `Town: ${inp.town}`,
+              `POS system: ${inp.pos_type}`,
+              `Locations: ${inp.location_count}`,
+              `WhatsApp numbers needed: ${inp.whatsapp_count}`,
+            ].join('\n'),
+          }).catch(err => console.error('[waitlist] Email send error:', err))
+
+          return NextResponse.json({ response: SIGN_OFF })
+        }
+      }
+    }
 
     const text = response.content
       .filter(b => b.type === 'text')
