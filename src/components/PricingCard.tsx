@@ -1,9 +1,9 @@
-import Link from 'next/link'
+'use client'
+
 import { Check } from 'lucide-react'
 import clsx from 'clsx'
 
 interface PricingCardProps {
-  planKey: string
   name: string
   monthlyPrice: number
   annualPrice: number
@@ -13,7 +13,6 @@ interface PricingCardProps {
 }
 
 export default function PricingCard({
-  planKey,
   name,
   monthlyPrice,
   annualPrice,
@@ -61,17 +60,17 @@ export default function PricingCard({
         ))}
       </ul>
 
-      <Link
-        href={`/signup?plan=${planKey}`}
+      <button
+        onClick={() => document.getElementById('chat')?.scrollIntoView({ behavior: 'smooth' })}
         className={clsx(
-          'block text-center font-semibold py-3 px-6 rounded-lg transition-colors text-sm',
+          'block w-full text-center font-semibold py-3 px-6 rounded-lg transition-colors text-sm',
           isPopular
             ? 'bg-green-600 hover:bg-green-700 text-white'
             : 'bg-gray-100 hover:bg-gray-200 text-gray-900'
         )}
       >
         Start Free Trial
-      </Link>
+      </button>
     </div>
   )
 }

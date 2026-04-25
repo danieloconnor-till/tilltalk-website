@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import { Menu, X } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
@@ -9,7 +9,17 @@ import { createClient } from '@/lib/supabase/client'
 export default function Nav() {
   const [open, setOpen] = useState(false)
   const [loggedIn, setLoggedIn] = useState(false)
-  const router = useRouter()
+  const router   = useRouter()
+  const pathname = usePathname()
+
+  function handleStartTrial() {
+    setOpen(false)
+    if (pathname === '/') {
+      document.getElementById('chat')?.scrollIntoView({ behavior: 'smooth' })
+    } else {
+      router.push('/#chat')
+    }
+  }
 
   useEffect(() => {
     const supabase = createClient()
@@ -78,12 +88,12 @@ export default function Nav() {
                 <Link href="/login" className="text-gray-600 hover:text-gray-900 text-sm font-medium">
                   Sign In
                 </Link>
-                <Link
-                  href="/signup"
+                <button
+                  onClick={handleStartTrial}
                   className="bg-green-600 hover:bg-green-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
                 >
                   Start Free Trial
-                </Link>
+                </button>
               </>
             )}
           </div>
@@ -148,13 +158,12 @@ export default function Nav() {
               >
                 Sign In
               </Link>
-              <Link
-                href="/signup"
-                className="block bg-green-600 hover:bg-green-700 text-white text-sm font-medium px-4 py-2 rounded-lg text-center transition-colors"
-                onClick={() => setOpen(false)}
+              <button
+                onClick={handleStartTrial}
+                className="block w-full bg-green-600 hover:bg-green-700 text-white text-sm font-medium px-4 py-2 rounded-lg text-center transition-colors"
               >
                 Start Free Trial
-              </Link>
+              </button>
             </>
           )}
         </div>

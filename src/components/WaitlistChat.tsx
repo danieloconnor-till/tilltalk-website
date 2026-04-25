@@ -27,13 +27,15 @@ export default function WaitlistChat() {
   const [loading, setLoading]   = useState(false)
   const [error, setError]       = useState<string | null>(null)
 
-  const endRef   = useRef<HTMLDivElement>(null)
-  const inputRef = useRef<HTMLTextAreaElement>(null)
+  const scrollContainerRef = useRef<HTMLDivElement>(null)
+  const inputRef           = useRef<HTMLTextAreaElement>(null)
 
   useEffect(() => { setMessages(loadSession()) }, [])
 
   useEffect(() => {
-    endRef.current?.scrollIntoView({ behavior: 'smooth' })
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight
+    }
   }, [messages, loading])
 
   const send = useCallback(async () => {
@@ -104,7 +106,7 @@ export default function WaitlistChat() {
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
+      <div ref={scrollContainerRef} className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
         {messages.length === 0 && !loading && (
           <div className="text-center py-6">
             <p className="text-sm text-gray-700 mb-4">
@@ -161,7 +163,6 @@ export default function WaitlistChat() {
           </div>
         )}
 
-        <div ref={endRef} />
       </div>
 
       {/* Input */}

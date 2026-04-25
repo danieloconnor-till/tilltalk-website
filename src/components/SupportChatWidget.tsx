@@ -48,7 +48,7 @@ export default function SupportChatWidget() {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [sessionId, setSessionId]   = useState('')
 
-  const endRef   = useRef<HTMLDivElement>(null)
+  const scrollContainerRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
 
   // Load session history, session ID, and detect auth state on mount
@@ -62,7 +62,9 @@ export default function SupportChatWidget() {
   }, [])
 
   useEffect(() => {
-    if (open) endRef.current?.scrollIntoView({ behavior: 'smooth' })
+    if (open && scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight
+    }
   }, [messages, open, loading])
 
   useEffect(() => {
@@ -189,7 +191,7 @@ export default function SupportChatWidget() {
             </div>
 
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
+            <div ref={scrollContainerRef} className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
               {messages.length === 0 && !loading && (
                 <div className="text-center py-8">
                   <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
@@ -245,7 +247,6 @@ export default function SupportChatWidget() {
                 </div>
               )}
 
-              <div ref={endRef} />
             </div>
 
             {/* Input */}

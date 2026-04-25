@@ -151,7 +151,6 @@ export default function Home() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12">
             <PricingCard
-              planKey="starter"
               name={PLANS.starter.name}
               monthlyPrice={PLANS.starter.monthlyPrice}
               annualPrice={PLANS.starter.annualPrice}
@@ -160,7 +159,6 @@ export default function Home() {
               billingPeriod={billingPeriod}
             />
             <PricingCard
-              planKey="pro"
               name={PLANS.pro.name}
               monthlyPrice={PLANS.pro.monthlyPrice}
               annualPrice={PLANS.pro.annualPrice}
@@ -169,7 +167,6 @@ export default function Home() {
               billingPeriod={billingPeriod}
             />
             <PricingCard
-              planKey="business"
               name={PLANS.business.name}
               monthlyPrice={PLANS.business.monthlyPrice}
               annualPrice={PLANS.business.annualPrice}
