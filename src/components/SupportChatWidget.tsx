@@ -10,6 +10,7 @@ interface Message {
 }
 
 const SESSION_KEY = 'tilltalk_support_chat'
+const CHAT_SESSION_ID_KEY = 'tilltalk_chat_session_id'
 
 function loadSession(): Message[] {
   try {
@@ -26,6 +27,18 @@ function saveSession(msgs: Message[]) {
   } catch { /* ignore */ }
 }
 
+function getOrCreateSessionId(): string {
+  try {
+    const existing = sessionStorage.getItem(CHAT_SESSION_ID_KEY)
+    if (existing) return existing
+    const id = crypto.randomUUID()
+    sessionStorage.setItem(CHAT_SESSION_ID_KEY, id)
+    return id
+  } catch {
+    return crypto.randomUUID()
+  }
+}
+
 export default function SupportChatWidget() {
   const [open, setOpen]         = useState(false)
   const [messages, setMessages] = useState<Message[]>([])
@@ -33,13 +46,15 @@ export default function SupportChatWidget() {
   const [loading, setLoading]   = useState(false)
   const [error, setError]       = useState<string | null>(null)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [sessionId, setSessionId]   = useState('')
 
   const endRef   = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
 
-  // Load session history and detect auth state on mount
+  // Load session history, session ID, and detect auth state on mount
   useEffect(() => {
     setMessages(loadSession())
+    setSessionId(getOrCreateSessionId())
     const supabase = createClient()
     supabase.auth.getSession().then(({ data }) => {
       setIsLoggedIn(!!data.session)
@@ -82,7 +97,7 @@ export default function SupportChatWidget() {
       const res = await fetch('/api/support-chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: apiMessages, isLoggedIn }),
+        body: JSON.stringify({ messages: apiMessages, isLoggedIn, sessionId }),
       })
       const data = await res.json()
       if (!res.ok) {
@@ -98,7 +113,7 @@ export default function SupportChatWidget() {
     } finally {
       setLoading(false)
     }
-  }, [input, loading, messages, isLoggedIn])
+  }, [input, loading, messages, isLoggedIn, sessionId])
 
   function onKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send() }
