@@ -1,132 +1,58 @@
-'use client'
+import { createServiceRoleClient } from '@/lib/supabase/admin'
+import PromptDisplay from './PromptDisplay'
 
-import { useEffect, useState } from 'react'
-import { useParams } from 'next/navigation'
+export const dynamic = 'force-dynamic'
 
-type Status = 'loading' | 'ok' | 'not_found' | 'expired' | 'error'
+interface Props {
+  params: Promise<{ id: string }>
+}
 
-export default function PromptPage() {
-  const params  = useParams()
-  const id      = params?.id as string
+const containerStyle: React.CSSProperties = {
+  minHeight:      '100vh',
+  display:        'flex',
+  flexDirection:  'column',
+  alignItems:     'center',
+  justifyContent: 'center',
+  padding:        '40px 20px',
+  background:     '#0a0c10',
+  boxSizing:      'border-box',
+}
 
-  const [content, setContent] = useState<string | null>(null)
-  const [status,  setStatus]  = useState<Status>('loading')
-  const [copied,  setCopied]  = useState(false)
+const messageStyle: React.CSSProperties = {
+  color:      '#8b949e',
+  fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
+  fontSize:   '16px',
+}
 
-  useEffect(() => {
-    if (!id) { setStatus('not_found'); return }
-    fetch(`/api/prompt?id=${encodeURIComponent(id)}`)
-      .then(async res => {
-        if (res.status === 410) { setStatus('expired'); return }
-        if (res.status === 404) { setStatus('not_found'); return }
-        if (!res.ok)            { setStatus('error'); return }
-        const data = await res.json()
-        if (data?.content) { setContent(data.content); setStatus('ok') }
-        else { setStatus('not_found') }
-      })
-      .catch(() => setStatus('error'))
-  }, [id])
+export default async function PromptPage({ params }: Props) {
+  const { id } = await params
+  const supabase = createServiceRoleClient()
 
-  function handleCopy() {
-    if (!content) return
-    navigator.clipboard.writeText(content).then(() => {
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
-    })
-  }
+  const { data, error } = await supabase
+    .from('claude_prompts')
+    .select('id, content, created_at, expires_at')
+    .eq('id', id)
+    .single()
 
-  if (status === 'not_found') {
+  if (error || !data) {
     return (
-      <div style={styles.page}>
-        <p style={styles.expired}>This prompt does not exist.</p>
+      <div style={containerStyle}>
+        <p style={messageStyle}>Prompt not found.</p>
       </div>
     )
   }
 
-  if (status === 'expired') {
+  if (data.expires_at && new Date(data.expires_at) < new Date()) {
     return (
-      <div style={styles.page}>
-        <p style={styles.expired}>This prompt has expired (prompts are valid for 24 hours).</p>
-      </div>
-    )
-  }
-
-  if (status === 'error') {
-    return (
-      <div style={styles.page}>
-        <p style={styles.expired}>Failed to load prompt — please try again.</p>
-      </div>
-    )
-  }
-
-  if (!content) {
-    return (
-      <div style={styles.page}>
-        <p style={styles.loading}>Loading…</p>
+      <div style={containerStyle}>
+        <p style={messageStyle}>This prompt has expired.</p>
       </div>
     )
   }
 
   return (
-    <div style={styles.page}>
-      <pre style={styles.code}>{content}</pre>
-      <button
-        style={copied ? { ...styles.button, ...styles.buttonCopied } : styles.button}
-        onClick={handleCopy}
-      >
-        {copied ? 'Copied ✓' : 'Copy'}
-      </button>
+    <div style={containerStyle}>
+      <PromptDisplay content={data.content} />
     </div>
   )
-}
-
-const styles: Record<string, React.CSSProperties> = {
-  page: {
-    minHeight:      '100vh',
-    display:        'flex',
-    flexDirection:  'column',
-    alignItems:     'center',
-    justifyContent: 'center',
-    padding:        '2rem',
-    background:     '#f9fafb',
-    fontFamily:     'system-ui, sans-serif',
-  },
-  code: {
-    background:   '#1e1e1e',
-    color:        '#d4d4d4',
-    borderRadius: '0.5rem',
-    padding:      '1.5rem',
-    maxWidth:     '860px',
-    width:        '100%',
-    whiteSpace:   'pre-wrap',
-    wordBreak:    'break-word',
-    fontSize:     '0.875rem',
-    lineHeight:   '1.6',
-    overflowX:    'auto',
-    boxShadow:    '0 4px 24px rgba(0,0,0,0.12)',
-  },
-  button: {
-    marginTop:    '1.5rem',
-    padding:      '0.75rem 2.5rem',
-    fontSize:     '1.125rem',
-    fontWeight:   600,
-    borderRadius: '0.5rem',
-    border:       'none',
-    cursor:       'pointer',
-    background:   '#16a34a',
-    color:        '#fff',
-    transition:   'background 0.15s',
-  },
-  buttonCopied: {
-    background: '#15803d',
-  },
-  expired: {
-    fontSize:  '1.125rem',
-    color:     '#6b7280',
-    textAlign: 'center',
-  },
-  loading: {
-    fontSize: '1rem',
-    color:    '#9ca3af',
-  },
 }
