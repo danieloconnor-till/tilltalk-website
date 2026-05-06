@@ -75,8 +75,8 @@ export default function PrivacyPage() {
                   <li><strong>Authentication data:</strong> password (hashed via Supabase Auth, never stored in plain text)</li>
                   <li><strong>Billing data:</strong> payment information processed by Stripe; we do not store full card numbers</li>
                   <li><strong>Communications:</strong> WhatsApp messages, dashboard chat messages, emails between you and TillTalk</li>
-                  <li><strong>Voice notes:</strong> audio you send via WhatsApp is transcribed via OpenAI Whisper. Audio files are processed and not retained by TillTalk after transcription; the resulting text is retained as part of your conversation history</li>
-                  <li><strong>POS connection credentials:</strong> API keys for your POS system (encrypted at rest via Fernet); we use these to read transaction data only</li>
+                  <li><strong>Voice notes:</strong> audio you send via WhatsApp is transcribed via a third-party speech-to-text service. Audio files are processed and not retained by TillTalk after transcription; the resulting text is retained as part of your conversation history.</li>
+                  <li><strong>POS connection credentials:</strong> tokens or OAuth grants for your POS system, encrypted at rest. We use these to read transaction data only.</li>
                 </ul>
               </div>
 
@@ -151,43 +151,26 @@ export default function PrivacyPage() {
             <div className="space-y-6">
               <div>
                 <h3 className="font-semibold text-gray-900 mb-2">5.1 Service providers (sub-processors)</h3>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm border-collapse">
-                    <thead>
-                      <tr className="bg-gray-50">
-                        <th className="text-left px-4 py-2 border border-gray-200 font-semibold">Provider</th>
-                        <th className="text-left px-4 py-2 border border-gray-200 font-semibold">Purpose</th>
-                        <th className="text-left px-4 py-2 border border-gray-200 font-semibold">Region</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {[
-                        ['Supabase', 'Database, authentication, file storage', 'EU'],
-                        ['Railway', 'Application hosting and compute', 'US'],
-                        ['Vercel', 'Website hosting', 'Global edge network'],
-                        ['Stripe', 'Payment processing', 'Ireland / Global'],
-                        ['Twilio', 'WhatsApp and SMS delivery', 'US / Ireland'],
-                        ['Meta Platforms (WhatsApp Business)', 'WhatsApp Business platform underlying Twilio', 'US'],
-                        ['Anthropic', 'AI processing (Claude)', 'US'],
-                        ['OpenAI', 'Voice transcription (Whisper)', 'US'],
-                        ['SendGrid', 'Transactional and marketing email delivery', 'US'],
-                        ['Cloudflare', 'Bot protection, edge networking', 'Global'],
-                        ['Sentry', 'Error monitoring', 'Configurable; we use the EU region where available'],
-                        ['Cloudinary', 'Asset storage and image processing (creative pipeline)', 'Global'],
-                        ['GitHub', 'Source-code and knowledge-base hosting', 'US'],
-                      ].map(([provider, purpose, region]) => (
-                        <tr key={provider}>
-                          <td className="px-4 py-2 border border-gray-200 font-medium">{provider}</td>
-                          <td className="px-4 py-2 border border-gray-200 text-gray-600">{purpose}</td>
-                          <td className="px-4 py-2 border border-gray-200 text-gray-600">{region}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                <p className="mb-3">We use service providers in the following categories to operate the TillTalk service:</p>
+                <ul className="list-disc list-inside space-y-1 text-gray-600 mb-3">
+                  <li><strong>Database, authentication, and file storage</strong> — for storing client account data, encrypted credentials, and operational data</li>
+                  <li><strong>Application hosting and compute</strong> — for running the TillTalk backend and AI agent infrastructure</li>
+                  <li><strong>Website hosting</strong> — for serving tilltalk.ie and our client dashboard</li>
+                  <li><strong>Payment processing</strong> — for billing clients and processing subscription payments</li>
+                  <li><strong>Messaging delivery</strong> — for sending WhatsApp and SMS messages between TillTalk and clients</li>
+                  <li><strong>WhatsApp Business platform</strong> — the underlying platform on which messaging delivery operates</li>
+                  <li><strong>AI processing</strong> — for the AI capabilities that power the TillTalk service</li>
+                  <li><strong>Speech-to-text processing</strong> — for transcribing voice notes you send to TillTalk</li>
+                  <li><strong>Email delivery</strong> — for transactional and marketing emails</li>
+                  <li><strong>Edge networking and bot protection</strong> — for serving traffic and protecting signup flows</li>
+                  <li><strong>Error monitoring</strong> — for detecting and diagnosing application errors</li>
+                  <li><strong>Asset storage and image processing</strong> — for storing creative materials used in advertising</li>
+                  <li><strong>Source-code and knowledge-base hosting</strong> — for storing TillTalk&apos;s source code and operational knowledge</li>
+                </ul>
                 <p className="mt-3 text-gray-500 text-xs">
-                  We work to ensure that an appropriate Data Processing Agreement (DPA) is signed with each of these providers before they process personal data on our behalf. Some DPAs may be in the process of being executed at any given time; you can request the current status by emailing{' '}
+                  A current named list of sub-processors is available on request from{' '}
                   <a href="mailto:daniel@tilltalk.ie" className="text-green-600 hover:underline">daniel@tilltalk.ie</a>.
+                  {' '}We work to ensure that an appropriate Data Processing Agreement (DPA) is signed with each of these providers before they process personal data on our behalf, and we will inform clients of any material changes to our sub-processor list.
                 </p>
               </div>
 
