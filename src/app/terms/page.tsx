@@ -1,221 +1,377 @@
+export const metadata = {
+  title: "Terms of Service — TillTalk",
+  description: "TillTalk's Terms of Service. AI-managed marketing service for hospitality and retail.",
+};
+
 export default function TermsPage() {
   return (
     <div className="max-w-4xl mx-auto px-4 py-16">
       <div className="bg-white rounded-2xl border border-gray-200 p-8 md:p-12">
-
-        <h1 className="text-3xl font-bold text-gray-900 mb-1">Terms &amp; Conditions</h1>
-        <p className="text-gray-500 text-sm mb-1">Version 4.1 — Last updated: April 2026</p>
+        <h1 className="text-3xl font-bold text-gray-900 mb-1">Terms of Service</h1>
         <p className="text-gray-500 text-sm mb-8">
-          Prime Construct Ltd | CRO No. 751535 | VAT No. IE4224722DH<br />
-          Registered office: Farran, Mourneabbey, Co. Cork, P51 KF88
+          <strong>Last updated:</strong> 6 May 2026 &middot; <strong>Effective:</strong> 6 May 2026 &middot; Prime Construct Ltd (trading as TillTalk)
         </p>
-
-        {/* Key Terms at a Glance */}
-        <div className="bg-green-50 border border-green-200 rounded-xl p-5 mb-10">
-          <h2 className="text-base font-semibold text-green-900 mb-3">Key Terms at a Glance</h2>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm border-collapse">
-              <tbody>
-                {[
-                  ['What is TillTalk?', 'An AI-powered WhatsApp analytics tool for hospitality and retail businesses'],
-                  ['Who provides it?', 'Prime Construct Ltd (trading as TillTalk), registered in Ireland'],
-                  ['Free trial', '14 days, no credit card required, no auto-renewal'],
-                  ['Pricing (inc. VAT)', 'Starter €29/mo · Pro €49/mo · Business €99/mo'],
-                  ['Cancel anytime', 'Yes — no penalties, data exported within 30 days'],
-                  ['AI-generated content', 'All responses are AI-generated and should be independently verified'],
-                  ['Your data', 'Encrypted, never sold, deleted within 30 days of cancellation'],
-                  ['Governing law', 'Republic of Ireland'],
-                  ['Complaints', 'hello@tilltalk.ie · CCPC (consumers) · DPC (data issues)'],
-                ].map(([label, value]) => (
-                  <tr key={label} className="border-b border-green-100 last:border-0">
-                    <td className="py-2 pr-4 font-medium text-green-900 whitespace-nowrap align-top w-44">{label}</td>
-                    <td className="py-2 text-green-800">{value}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
 
         <div className="space-y-8 text-sm leading-relaxed text-gray-700">
 
+          <div className="space-y-3">
+            <p>
+              These Terms of Service (&ldquo;Terms&rdquo;) govern your access to and use of the TillTalk service operated by Prime Construct Ltd (&ldquo;TillTalk&rdquo;, &ldquo;we&rdquo;, &ldquo;us&rdquo;, or &ldquo;our&rdquo;). By signing up as a client, you agree to these Terms. If you do not agree, do not use the service.
+            </p>
+            <p>
+              These Terms should be read alongside our{' '}
+              <a href="/privacy" className="text-green-600 hover:underline">Privacy Policy</a>.
+            </p>
+          </div>
+
           <section>
-            <h2 className="text-xl font-semibold text-gray-900 mb-3">1. Limitation of Liability</h2>
-            <div className="space-y-3">
-              <p><strong>1.1 Business Customers (B2B):</strong> To the fullest extent permitted under Irish and EU law, TillTalk (operated by Prime Construct Ltd, CRO No. 751535, VAT No. IE4224722DH, registered in Ireland) shall not be liable to business customers for any indirect, incidental, special, consequential, or punitive damages, including but not limited to loss of profits, loss of revenue, loss of data, or loss of business opportunity, arising out of or in connection with your use of the Service. TillTalk&apos;s total aggregate liability to business customers shall not exceed the greater of: (a) the total fees paid in the three months preceding the claim, or (b) €100.</p>
-              <p><strong>1.2 Consumer Customers:</strong> Statutory remedies under the Consumer Rights Act 2022 are not affected. Nothing limits TillTalk&apos;s obligations under the EU Data Act (Regulation (EU) 2023/2854) or Product Liability Directive (2024/2853/EU).</p>
-              <p><strong>1.3 Exclusions:</strong> Liability is not limited for death or personal injury from negligence, fraud, wilful default or gross negligence, Data Act switching/portability obligations, or Product Liability Directive obligations from December 2026.</p>
-              <p><strong>1.4 Read-only access:</strong> TillTalk provides strictly read-only access to your POS system. We do not modify, delete, or write to your POS data.</p>
+            <h2 className="text-xl font-semibold text-gray-900 mb-3">1. Who we are</h2>
+            <div className="bg-gray-50 rounded-lg p-4 space-y-1">
+              <p>Prime Construct Ltd, trading as TillTalk</p>
+              <p>Registered in Ireland, company number 751535</p>
+              <p>VAT number IE4224722DH</p>
+              <p>Registered office: Farran, Mourneabbey, Co. Cork, P51 KF88, Ireland</p>
+              <p>Contact:{' '}<a href="mailto:daniel@tilltalk.ie" className="text-green-600 hover:underline">daniel@tilltalk.ie</a></p>
             </div>
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold text-gray-900 mb-3">2. Conformity of the Service</h2>
-            <p>TillTalk supplies the Service with reasonable skill and care. For subscriptions, conformity is maintained throughout including security and compatibility updates. Remedies for non-conformity include repair, replacement, price reduction, or termination. Burden of proof rests with TillTalk for the first 12 months (consumers). A 14-day cooling-off period applies for consumers before the Service begins. For material changes, 30 days&apos; notice is given with the right to terminate without penalty.</p>
+            <h2 className="text-xl font-semibold text-gray-900 mb-3">2. The service</h2>
+            <p className="mb-3">
+              TillTalk is an AI-managed marketing service for independent hospitality and retail businesses (&ldquo;the service&rdquo;). The service:
+            </p>
+            <ul className="list-disc list-inside space-y-1 text-gray-600 mb-3">
+              <li>Manages your Meta, Google, and TikTok advertising campaigns end to end</li>
+              <li>Reads your point-of-sale (POS) transaction data on a strictly read-only basis</li>
+              <li>Pushes hashed conversion events to ad platforms to verify ad-driven revenue</li>
+              <li>Provides weekly reports and recommendations via WhatsApp and a web dashboard</li>
+            </ul>
+            <p>
+              You authorise TillTalk to act on your behalf with the third-party platforms you connect (your POS, ad platforms, payment processor).
+            </p>
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold text-gray-900 mb-3">3. AI-Generated Content</h2>
-            <div className="space-y-3">
-              <p><strong>3.1</strong> You are interacting with an AI-powered system using Anthropic Claude, disclosed under the EU AI Act (Regulation (EU) 2024/1689).</p>
-              <p><strong>3.2</strong> The Service is classified as limited/low-risk AI for business analytics. No autonomous decisions with legal or financial effects on individuals are made.</p>
-              <p><strong>3.3</strong> AI outputs may contain inaccuracies. Outputs are not reviewed by humans before delivery. You should verify outputs before relying on them for business decisions. Nothing in the Service constitutes financial, legal, or business advice.</p>
-              <p><strong>3.4</strong> Outputs are synthetic AI-generated text. TillTalk facilitates AI disclosure via metadata and footer notes where feasible. Users are responsible for disclosing AI-generated content to third parties as required by Article 50 of the EU AI Act.</p>
-              <p><strong>3.5</strong> You must not use outputs to train, develop, benchmark, or create competing AI systems or services.</p>
+            <h2 className="text-xl font-semibold text-gray-900 mb-3">3. Account, eligibility, and authority</h2>
+            <p className="mb-3">To use TillTalk you must:</p>
+            <ul className="list-disc list-inside space-y-1 text-gray-600 mb-3">
+              <li>Be at least 18 years old</li>
+              <li>Operate a registered business</li>
+              <li>Have authority to bind that business to these Terms</li>
+              <li>Have authority to grant TillTalk access to the third-party platforms you connect</li>
+            </ul>
+            <p>
+              TillTalk reserves the right to decline service to any prospect or terminate service to any client whose business does not meet our qualification criteria, who provides false information, or whose use of the service materially conflicts with these Terms.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="text-xl font-semibold text-gray-900 mb-3">4. Pricing and payment</h2>
+
+            <h3 className="font-semibold text-gray-900 mb-2">4.1 Four-phase pricing</h3>
+            <div className="overflow-x-auto mb-3">
+              <table className="w-full text-sm border-collapse">
+                <thead>
+                  <tr className="border-b border-gray-200 text-left text-gray-500">
+                    <th className="py-2 pr-6 font-medium">Phase</th>
+                    <th className="py-2 pr-6 font-medium">Months</th>
+                    <th className="py-2 font-medium">Fee</th>
+                  </tr>
+                </thead>
+                <tbody className="text-gray-700">
+                  <tr className="border-b border-gray-100">
+                    <td className="py-2 pr-6">Onboarding</td>
+                    <td className="py-2 pr-6">1&ndash;3</td>
+                    <td className="py-2">&euro;0 (no fee)</td>
+                  </tr>
+                  <tr className="border-b border-gray-100">
+                    <td className="py-2 pr-6">Activation</td>
+                    <td className="py-2 pr-6">4&ndash;6</td>
+                    <td className="py-2">1.5% of incremental revenue</td>
+                  </tr>
+                  <tr className="border-b border-gray-100">
+                    <td className="py-2 pr-6">Proof</td>
+                    <td className="py-2 pr-6">7&ndash;12</td>
+                    <td className="py-2">3% of incremental revenue</td>
+                  </tr>
+                  <tr>
+                    <td className="py-2 pr-6">Steady state</td>
+                    <td className="py-2 pr-6">13+</td>
+                    <td className="py-2">Degressive: 5% / 4% / 3% / 2.5% on tiered monthly incremental</td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
+            <p className="mb-3">
+              Steady-state tiers (per month): first &euro;5,000 incremental at 5%, next &euro;10,000 at 4%, next &euro;15,000 at 3%, anything above &euro;30,000 at 2.5%.
+            </p>
+            <p className="mb-5">
+              All fees are exclusive of VAT. Irish VAT at the prevailing rate (currently 23%) is added to invoices issued from Ireland; clients VAT-registered in the EU may reclaim through the reverse-charge mechanism where applicable.
+            </p>
+
+            <h3 className="font-semibold text-gray-900 mb-2">4.2 What &ldquo;incremental revenue&rdquo; means</h3>
+            <p className="mb-3">
+              &ldquo;Incremental revenue&rdquo; is your revenue measured against your annual baseline, after deductions for events that are not caused by TillTalk, including but not limited to:
+            </p>
+            <ul className="list-disc list-inside space-y-1 text-gray-600 mb-3">
+              <li>Addition of new revenue streams (e.g. delivery partners) initiated independently of TillTalk</li>
+              <li>Extensions to your trading hours or trading days</li>
+              <li>Special offers or promotions run independently of TillTalk</li>
+              <li>Price increases above the prevailing Irish CPI inflation rate</li>
+              <li>General trading conditions affecting the local economy in your area, as agreed between us</li>
+            </ul>
+            <p className="mb-3">
+              Cash sales and other transactions that cannot be attributed via the ad platforms&apos; conversion APIs are excluded from incremental revenue by contract and never counted toward fees.
+            </p>
+            <p className="mb-3">
+              Your annual baseline resets on 1 January each calendar year.
+            </p>
+            <p className="mb-5">
+              For the first 50 TillTalk clients, anomaly-detection edge cases are reviewed by us manually and you have the right to challenge any classification before invoicing.
+            </p>
+
+            <h3 className="font-semibold text-gray-900 mb-2">4.3 Platform spend</h3>
+            <p className="mb-5">
+              You pay your Meta, Google, TikTok, and other platform ad spend directly to those platforms. TillTalk does not invoice you for platform spend or hold platform funds on your behalf.
+            </p>
+
+            <h3 className="font-semibold text-gray-900 mb-2">4.4 Invoicing and payment terms</h3>
+            <p className="mb-5">
+              Invoices are issued monthly via Stripe. Payment is due 30 days from invoice date. Overdue accounts may be paused after 14 days of non-payment following written notice.
+            </p>
+
+            <h3 className="font-semibold text-gray-900 mb-2">4.5 Refunds</h3>
+            <p>
+              Because fees are calculated on verified outcomes and payable only after the result, refunds are typically not applicable. Where billing errors occur or anomaly classifications are corrected after invoicing, we issue credit notes against future invoices.
+            </p>
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold text-gray-900 mb-3">4. Data Portability and Switching (EU Data Act)</h2>
-            <div className="space-y-3">
-              <p><strong>4.1</strong> You may switch providers at any time with 30 days&apos; notice (statutory maximum 2 months under the EU Data Act). No penalties apply.</p>
-              <p><strong>4.2</strong> Data export is provided within 30 days on request in JSON/CSV format, covering: account details, authorised users, payroll entries, notes and reminders, and usage metadata. POS transaction data is held by your POS provider — request it directly from them. Derived analytics can be re-generated on request during the switching period where feasible.</p>
-              <p><strong>4.3</strong> A 30-day switching assistance period is provided with no technical barriers.</p>
-              <p><strong>4.4</strong> No switching fees are charged. Switching fees are fully prohibited from January 2027 under the EU Data Act.</p>
-              <p><strong>4.5</strong> Data formats and switching procedures are available on request at <a href="mailto:hello@tilltalk.ie" className="text-green-600 hover:underline">hello@tilltalk.ie</a> and in your dashboard.</p>
-              <p><strong>4.6</strong> No technical barriers to data retrieval or export are imposed.</p>
-            </div>
-          </section>
-
-          <section>
-            <h2 className="text-xl font-semibold text-gray-900 mb-3">5. Service Availability</h2>
-            <p>No guaranteed uptime is provided. The Service depends on Railway, Vercel, Twilio, and Supabase infrastructure. No SLA is included on the Starter or Pro plan. A Business plan SLA is available on request. Force majeure applies. Data Act obligations are maintained during force majeure where practicable.</p>
-          </section>
-
-          <section>
-            <h2 className="text-xl font-semibold text-gray-900 mb-3">6. Third-Party Services</h2>
-            <p>The Service integrates with Clover, Square, Epos Now, Twilio (WhatsApp), and Stripe. TillTalk is not responsible for third-party availability or changes. WhatsApp usage is subject to Meta Business API Terms. You must maintain valid POS credentials and revoke TillTalk&apos;s access through your POS provider if you cancel.</p>
-          </section>
-
-          <section>
-            <h2 className="text-xl font-semibold text-gray-900 mb-3">7. Intellectual Property</h2>
-            <p>All intellectual property is owned by Prime Construct Ltd. You are granted a limited, non-exclusive, non-transferable licence to use the Service for internal business purposes during your subscription. You retain ownership of your data. You must not copy, reverse engineer, scrape outputs, train competing AI systems, or create competing products using the Service or its outputs.</p>
-          </section>
-
-          <section>
-            <h2 className="text-xl font-semibold text-gray-900 mb-3">8. Customer Indemnity</h2>
-            <p>You agree to indemnify Prime Construct Ltd against claims arising from: breach of these Terms, violation of applicable law, third-party data claims arising from your use, breach of Meta or third-party platform terms, and sharing AI-generated outputs without appropriate disclosure.</p>
-          </section>
-
-          <section>
-            <h2 className="text-xl font-semibold text-gray-900 mb-3">9. Acceptable Use</h2>
-            <p className="mb-2">You agree to use the Service for lawful business analytics purposes only. You must not:</p>
-            <ul className="list-disc list-inside space-y-1 text-gray-600">
-              <li>Share credentials outside your business</li>
-              <li>Access or attempt to access another business&apos;s data</li>
-              <li>Reverse engineer or decompile the Service</li>
-              <li>Resell or sublicense access to the Service</li>
-              <li>Create competing products using the Service or its outputs</li>
+            <h2 className="text-xl font-semibold text-gray-900 mb-3">5. Your responsibilities</h2>
+            <p className="mb-3">You agree to:</p>
+            <ul className="list-disc list-inside space-y-2 text-gray-600">
+              <li>Provide accurate business and contact information</li>
+              <li>Grant and maintain the third-party authorisations TillTalk needs to operate (POS read access; ad platform management access; payment processor access)</li>
+              <li>Approve campaign briefs through the channels we provide (WhatsApp, dashboard) within reasonable time</li>
+              <li>Notify us promptly of relevant operational changes (closures, hours changes, menu changes, ownership changes)</li>
+              <li>Not interfere with TillTalk&apos;s automated operations on your accounts (for example, do not pause or alter campaigns we are actively running without first telling us)</li>
+              <li>Comply with the terms of the third-party platforms you connect (Meta, Google, TikTok, your POS, Stripe)</li>
+              <li>Not use TillTalk to advertise illegal goods or services, or to violate the policies of any platform we operate on your behalf</li>
             </ul>
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold text-gray-900 mb-3">10. Aggregated Data</h2>
-            <p>TillTalk holds a non-exclusive licence to use anonymised, aggregated data for research and product improvement purposes. Individual users are never identified. Individual data is never sold. This use is consistent with GDPR, the Data Protection Act 2018, and the EU Data Act.</p>
+            <h2 className="text-xl font-semibold text-gray-900 mb-3">6. Our responsibilities</h2>
+            <p className="mb-3">We agree to:</p>
+            <ul className="list-disc list-inside space-y-2 text-gray-600">
+              <li>Operate the service with reasonable skill and care</li>
+              <li>Keep your data confidential per our Privacy Policy and our Data Processing Agreement (DPA) with you</li>
+              <li>Treat your POS connection as strictly read-only and never write to your POS</li>
+              <li>Use your customers&apos; personal data only as a processor on your instruction, hashing identifiers before any transmission to third parties</li>
+              <li>Notify you of material service changes at least 30 days in advance</li>
+              <li>Maintain reasonable measures to keep the service secure (encryption in transit and at rest, access controls, error monitoring)</li>
+            </ul>
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold text-gray-900 mb-3">11. Trial and Billing</h2>
-            <div className="space-y-3">
-              <p>New accounts receive a <strong>14-day free trial</strong> with no credit card required and no automatic renewal from trial to paid.</p>
-              <p>Subscriptions are billed monthly or annually in advance. All prices include VAT at 23%:</p>
-              <div className="overflow-x-auto">
-                <table className="text-sm border-collapse w-full mt-1">
-                  <thead>
-                    <tr className="bg-gray-50">
-                      <th className="text-left px-4 py-2 border border-gray-200 font-semibold">Plan</th>
-                      <th className="text-left px-4 py-2 border border-gray-200 font-semibold">Monthly</th>
-                      <th className="text-left px-4 py-2 border border-gray-200 font-semibold">Annual</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {[
-                      ['Starter', '€29/mo', '€290/yr'],
-                      ['Pro', '€49/mo', '€490/yr'],
-                      ['Business', '€99/mo', '€990/yr'],
-                    ].map(([plan, mo, yr]) => (
-                      <tr key={plan}>
-                        <td className="px-4 py-2 border border-gray-200 font-medium">{plan}</td>
-                        <td className="px-4 py-2 border border-gray-200 text-gray-600">{mo}</td>
-                        <td className="px-4 py-2 border border-gray-200 text-gray-600">{yr}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              <p>Current pricing is always published at <a href="https://tilltalk.ie" className="text-green-600 hover:underline">tilltalk.ie</a>. Price changes are notified 30 days in advance. Subscriptions auto-renew with reminder. Consumer 14-day withdrawal applies before the Service begins — once the Service has begun this right may no longer apply. No refunds for partial periods. No penalties for cancellation.</p>
-            </div>
-          </section>
-
-          <section>
-            <h2 className="text-xl font-semibold text-gray-900 mb-3">12. Changes to These Terms</h2>
-            <p>Material changes to these Terms will be communicated with 30 days&apos; written notice. Continued use of the Service after that date constitutes acceptance. You have the right to cancel without penalty if you do not accept the changes.</p>
-          </section>
-
-          <section>
-            <h2 className="text-xl font-semibold text-gray-900 mb-3">13. Complaints and Dispute Resolution</h2>
-            <p>Contact us first at <a href="mailto:hello@tilltalk.ie" className="text-green-600 hover:underline">hello@tilltalk.ie</a> — we respond within 14 business days. Irish consumers may contact the <a href="https://www.ccpc.ie" target="_blank" rel="noopener noreferrer" className="text-green-600 hover:underline">CCPC (ccpc.ie)</a>. EU consumers may use the <a href="https://ec.europa.eu/consumers/odr" target="_blank" rel="noopener noreferrer" className="text-green-600 hover:underline">EU ODR platform</a>. Data complaints should be directed to the <a href="https://www.dataprotection.ie" target="_blank" rel="noopener noreferrer" className="text-green-600 hover:underline">Data Protection Commission (dataprotection.ie)</a>. Business disputes are subject to Irish court jurisdiction.</p>
-          </section>
-
-          <section>
-            <h2 className="text-xl font-semibold text-gray-900 mb-3">14. Data Retention and Deletion</h2>
-            <p>Your data is retained for 30 days after cancellation then permanently deleted. POS credentials are encrypted at rest using AES-128-CBC with HMAC-SHA256. Conversation history is never stored persistently — it exists in memory only for a maximum of 10 minutes (privacy by design). To request deletion, email <a href="mailto:hello@tilltalk.ie" className="text-green-600 hover:underline">hello@tilltalk.ie</a>. Requests are actioned within 30 days per Article 17 GDPR.</p>
-          </section>
-
-          <section>
-            <h2 className="text-xl font-semibold text-gray-900 mb-3">15. Data Processing Agreement (DPA)</h2>
-            <div className="space-y-3">
-              <p>Pursuant to Article 28 GDPR: the Customer acts as Controller and TillTalk acts as Processor.</p>
-              <p><strong>Data processed:</strong> WhatsApp numbers, business name and email, POS transaction data (processed in memory, not stored individually).</p>
-              <p><strong>Sub-processors (current as of April 2026):</strong></p>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm border-collapse">
-                  <thead>
-                    <tr className="bg-gray-50">
-                      <th className="text-left px-4 py-2 border border-gray-200 font-semibold">Sub-processor</th>
-                      <th className="text-left px-4 py-2 border border-gray-200 font-semibold">Purpose</th>
-                      <th className="text-left px-4 py-2 border border-gray-200 font-semibold">Location / Transfer mechanism</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {[
-                      ['Railway', 'Application infrastructure (bot)', 'USA — Standard Contractual Clauses'],
-                      ['Vercel', 'Application infrastructure (website)', 'USA — Standard Contractual Clauses'],
-                      ['Supabase', 'Database and authentication', 'EU (Ireland) — no transfer'],
-                      ['Twilio', 'WhatsApp message delivery', 'USA — Standard Contractual Clauses'],
-                      ['Anthropic', 'AI query processing', 'USA — Standard Contractual Clauses'],
-                      ['SendGrid / Twilio', 'Transactional email', 'USA — Standard Contractual Clauses'],
-                      ['Stripe', 'Payment processing', 'USA / EU — Standard Contractual Clauses'],
-                    ].map(([name, purpose, location]) => (
-                      <tr key={name}>
-                        <td className="px-4 py-2 border border-gray-200 font-medium">{name}</td>
-                        <td className="px-4 py-2 border border-gray-200 text-gray-600">{purpose}</td>
-                        <td className="px-4 py-2 border border-gray-200 text-gray-600">{location}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              <p>14 days&apos; notice is given of sub-processor changes. Security measures: AES-128-CBC encryption at rest, HTTPS in transit, row-level access controls, no persistent conversation storage. 72-hour breach notification. International transfers via Standard Contractual Clauses (Decision 2021/914/EU). A Record of Processing Activities (RoPA) is maintained internally. Governed by Irish law.</p>
-            </div>
-          </section>
-
-          <section>
-            <h2 className="text-xl font-semibold text-gray-900 mb-3">16. General</h2>
-            <p>These Terms constitute the entire agreement between the parties regarding the Service. If any clause is found unenforceable, the remaining clauses remain in full force. No waiver of any breach constitutes a waiver of any subsequent breach. Assignment of these Terms by you requires TillTalk&apos;s prior written consent; TillTalk may assign on a merger or acquisition.</p>
-          </section>
-
-          <section>
-            <h2 className="text-xl font-semibold text-gray-900 mb-3">17. Governing Law</h2>
-            <p>These Terms are governed by and construed in accordance with the laws of the Republic of Ireland. The Irish courts have exclusive jurisdiction over any disputes. Consumer rights under the law of the consumer&apos;s EU member state are preserved.</p>
-          </section>
-
-          <section className="border-t border-gray-100 pt-6">
-            <p className="text-xs text-gray-400">
-              Questions about these Terms? Contact{' '}
-              <a href="mailto:hello@tilltalk.ie" className="text-green-600 hover:underline">hello@tilltalk.ie</a>.
-              See also our <a href="/privacy" className="text-green-600 hover:underline">Privacy Policy</a>.
+            <h2 className="text-xl font-semibold text-gray-900 mb-3">7. Geographic and category exclusivity</h2>
+            <p>
+              TillTalk operates a one-client-per-cuisine-per-area exclusivity policy in launch markets. Once we sign a client in a given category and area, no competing business in the same category and area may sign on while you remain an active client. This is a benefit of the service to you. Slot definitions and area boundaries are documented separately and may be updated over time.
             </p>
+          </section>
+
+          <section>
+            <h2 className="text-xl font-semibold text-gray-900 mb-3">8. Term and termination</h2>
+
+            <h3 className="font-semibold text-gray-900 mb-2">8.1 No lock-in</h3>
+            <p className="mb-5">
+              You may terminate at any time on 30 days written notice via{' '}
+              <a href="mailto:daniel@tilltalk.ie" className="text-green-600 hover:underline">daniel@tilltalk.ie</a>. We may terminate on 30 days written notice for any reason.
+            </p>
+
+            <h3 className="font-semibold text-gray-900 mb-2">8.2 Immediate termination by us</h3>
+            <p className="mb-3">We may terminate immediately without notice if:</p>
+            <ul className="list-disc list-inside space-y-1 text-gray-600 mb-5">
+              <li>You materially breach these Terms and do not cure the breach within 14 days of written notice</li>
+              <li>You become insolvent, enter liquidation, or assign your business for the benefit of creditors</li>
+              <li>You misrepresent material facts on signup that affect TillTalk&apos;s ability to operate the service for you</li>
+              <li>You instruct TillTalk to take actions that would breach a third-party platform&apos;s policies, applicable law, or these Terms</li>
+            </ul>
+
+            <h3 className="font-semibold text-gray-900 mb-2">8.3 Effects of termination</h3>
+            <p className="mb-3">On termination:</p>
+            <ul className="list-disc list-inside space-y-1 text-gray-600">
+              <li>Outstanding fees up to the termination date are payable on the next invoice cycle</li>
+              <li>Your slot is released; another business in your category and area may sign on</li>
+              <li>TillTalk withdraws from active management of your ad accounts within 14 days</li>
+              <li>Your data is handled per Section 9 below and our Privacy Policy</li>
+            </ul>
+          </section>
+
+          <section>
+            <h2 className="text-xl font-semibold text-gray-900 mb-3">9. Intellectual property and data ownership</h2>
+
+            <h3 className="font-semibold text-gray-900 mb-2">9.1 What you own</h3>
+            <p className="mb-3">You retain all rights to:</p>
+            <ul className="list-disc list-inside space-y-2 text-gray-600 mb-3">
+              <li>Your business data (account information, business profile, hours, menu, brand assets you supply)</li>
+              <li>Your raw transaction data (held in your POS &mdash; TillTalk reads it but does not own it)</li>
+              <li>Your customer data, including identifying fields read from transactions</li>
+              <li>Your conversation history with TillTalk (WhatsApp messages, dashboard chats, voice-note transcripts)</li>
+              <li>Creative materials TillTalk produces specifically for your campaigns (ad copy, images, videos derived from your supplied assets), licensed to you for any use after termination</li>
+            </ul>
+            <p className="mb-5">
+              Granting TillTalk the access it needs to operate the service does not transfer ownership of any of the above to TillTalk.
+            </p>
+
+            <h3 className="font-semibold text-gray-900 mb-2">9.2 What TillTalk owns</h3>
+            <p className="mb-3">TillTalk retains all rights to:</p>
+            <ul className="list-disc list-inside space-y-1 text-gray-600 mb-3">
+              <li>The TillTalk software, application code, agent prompts, and underlying systems</li>
+              <li>The user interfaces (WhatsApp flow, web dashboard)</li>
+              <li>The pricing engine, anomaly-detection subsystem, identity-resolution layer, and POS adaptation layer</li>
+              <li>All other materials TillTalk develops as part of the service</li>
+            </ul>
+            <p className="mb-5">
+              Your right to use the service does not transfer ownership of any of these to you.
+            </p>
+
+            <h3 className="font-semibold text-gray-900 mb-2">9.3 Derived models, calibrations, and operational learnings</h3>
+            <p className="mb-3">For clarity, and as a material part of these Terms:</p>
+            <p className="mb-3">
+              While you retain ownership of your raw business and customer data per Section 9.1, TillTalk retains exclusive ownership of all <strong>derived artefacts</strong> produced by TillTalk&apos;s systems while operating the service for you, including but not limited to:
+            </p>
+            <ul className="list-disc list-inside space-y-1 text-gray-600 mb-3">
+              <li>Daypart and capacity models specific to your business</li>
+              <li>Audience-response models and creative-performance learnings</li>
+              <li>Anomaly-detection calibrations specific to your trading patterns</li>
+              <li>Aggregated benchmarks against comparable businesses</li>
+              <li>Trained parameters, embeddings, and weights inside TillTalk&apos;s models</li>
+              <li>Internal operational metadata (campaign-decision logs, agent reasoning traces, quality scores)</li>
+            </ul>
+            <p className="mb-3">
+              These derived artefacts are TillTalk&apos;s proprietary work product and confidential trade secrets. They are not part of &ldquo;your data&rdquo; for any purpose under these Terms or applicable data-protection law (because they are aggregated, derived, or anonymised). They are not transferable to you on termination, are not subject to data-portability requests, and remain the exclusive property of TillTalk during and after your engagement.
+            </p>
+            <p className="mb-5">
+              This carve-out is necessary because TillTalk&apos;s ability to deliver the service depends on these artefacts, and treating them as transferable would compromise the integrity of the service for all clients.
+            </p>
+
+            <h3 className="font-semibold text-gray-900 mb-2">9.4 What you receive on termination</h3>
+            <p className="mb-3">
+              On termination, TillTalk will, at your written request and within 30 days, provide you with:
+            </p>
+            <ul className="list-disc list-inside space-y-1 text-gray-600 mb-3">
+              <li>An export of your account data</li>
+              <li>An export of your conversation history with TillTalk</li>
+              <li>A copy of the creative materials TillTalk produced for your campaigns (under the licence in Section 9.1)</li>
+              <li>A list of the campaigns active or recently active under your accounts at the time of termination, with their basic configuration (objective, audience description, budget, schedule)</li>
+            </ul>
+            <p className="mb-3">You will not receive (because TillTalk owns them per Section 9.3):</p>
+            <ul className="list-disc list-inside space-y-1 text-gray-600 mb-3">
+              <li>Daypart, capacity, audience-response, or anomaly-detection models built from your data</li>
+              <li>Trained parameters, embeddings, or weights inside TillTalk&apos;s models</li>
+              <li>Aggregated benchmarks</li>
+              <li>TillTalk&apos;s internal operational metadata or agent reasoning traces</li>
+            </ul>
+            <p>Your access to the live service ends at termination per Section 8.3.</p>
+          </section>
+
+          <section>
+            <h2 className="text-xl font-semibold text-gray-900 mb-3">10. Confidentiality</h2>
+            <p className="mb-3">
+              We will not disclose your business data, transaction data, or commercial terms to any third party except:
+            </p>
+            <ul className="list-disc list-inside space-y-1 text-gray-600 mb-3">
+              <li>As required to operate the service (sub-processors per the Privacy Policy)</li>
+              <li>As required by law or court order</li>
+              <li>With your written consent</li>
+            </ul>
+            <p>
+              You agree to keep confidential the commercial terms of your engagement with TillTalk, including pricing, and the existence and nature of TillTalk&apos;s derived artefacts (Section 9.3).
+            </p>
+          </section>
+
+          <section>
+            <h2 className="text-xl font-semibold text-gray-900 mb-3">11. Warranties and disclaimers</h2>
+
+            <h3 className="font-semibold text-gray-900 mb-2">11.1 What we warrant</h3>
+            <p className="mb-5">
+              We warrant that the service will be provided with reasonable skill and care, in conformance with these Terms.
+            </p>
+
+            <h3 className="font-semibold text-gray-900 mb-2">11.2 What we do not warrant</h3>
+            <p className="mb-3">To the maximum extent permitted by law, we do not warrant:</p>
+            <ul className="list-disc list-inside space-y-2 text-gray-600 mb-3">
+              <li>That the service will produce any specific level of revenue, customer count, or other business outcome</li>
+              <li>That the service will be uninterrupted or error-free at all times</li>
+              <li>That third-party platforms (Meta, Google, TikTok, your POS, Stripe, etc.) will operate without disruption, or that their policies will not change in ways outside our control</li>
+              <li>That competitors will not adopt similar approaches over time</li>
+            </ul>
+            <p>
+              The service is provided &ldquo;as is&rdquo; and &ldquo;as available&rdquo; except where these Terms explicitly state otherwise.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="text-xl font-semibold text-gray-900 mb-3">12. Limitation of liability</h2>
+            <p className="mb-3">To the maximum extent permitted by Irish law:</p>
+            <ul className="list-disc list-inside space-y-2 text-gray-600 mb-3">
+              <li>Neither party is liable to the other for indirect, consequential, incidental, or special damages, lost profits, lost data, or loss of business opportunity</li>
+              <li>Our total aggregate liability under or in connection with these Terms in any 12-month period is limited to the total fees you paid us in that period (or, if no fees have been paid, &euro;1,000)</li>
+            </ul>
+            <p>
+              Nothing in these Terms limits liability for fraud, gross negligence, wilful misconduct, death or personal injury caused by negligence, or any liability that cannot be limited under Irish law.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="text-xl font-semibold text-gray-900 mb-3">13. Indemnity</h2>
+            <p className="mb-3">
+              You agree to indemnify TillTalk against claims, losses, and reasonable legal fees arising from:
+            </p>
+            <ul className="list-disc list-inside space-y-1 text-gray-600">
+              <li>Your breach of these Terms</li>
+              <li>Your violation of any third-party platform&apos;s policies that you authorised TillTalk to act on</li>
+              <li>Any data you provided to TillTalk (such as your customer data) that you did not have the right to share with us</li>
+            </ul>
+          </section>
+
+          <section>
+            <h2 className="text-xl font-semibold text-gray-900 mb-3">14. Changes to these Terms</h2>
+            <p className="mb-3">
+              We may update these Terms from time to time. Material changes will be communicated to clients by email at least 30 days before they take effect. Continued use of the service after the effective date constitutes acceptance.
+            </p>
+            <p>A version history of these Terms is available on request.</p>
+          </section>
+
+          <section>
+            <h2 className="text-xl font-semibold text-gray-900 mb-3">15. Governing law and disputes</h2>
+            <p className="mb-3">
+              These Terms are governed by the laws of Ireland. The Irish courts have exclusive jurisdiction over any dispute arising from or in connection with these Terms, except where mandatory consumer protection laws of your jurisdiction provide otherwise.
+            </p>
+            <p>
+              We will attempt to resolve disputes amicably first. Either party may then escalate to mediation before commencing court proceedings.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="text-xl font-semibold text-gray-900 mb-3">16. Miscellaneous</h2>
+            <ul className="list-disc list-inside space-y-2 text-gray-600">
+              <li><strong>Entire agreement.</strong> These Terms, together with the Privacy Policy and the DPA, are the entire agreement between you and TillTalk regarding the service.</li>
+              <li><strong>No waiver.</strong> Failure to enforce a right is not a waiver of that right.</li>
+              <li><strong>Severability.</strong> If any provision is held unenforceable, the rest remains in effect.</li>
+              <li><strong>Assignment.</strong> You may not assign these Terms without our written consent. We may assign these Terms to a successor entity in connection with a merger or sale of the business.</li>
+              <li><strong>Notices.</strong> Notices to TillTalk are given to{' '}<a href="mailto:daniel@tilltalk.ie" className="text-green-600 hover:underline">daniel@tilltalk.ie</a>. Notices to you are given to the email address on your account.</li>
+            </ul>
+          </section>
+
+          <section>
+            <h2 className="text-xl font-semibold text-gray-900 mb-3">17. Contact</h2>
+            <p className="mb-3">For any question about these Terms, billing, or service operations:</p>
+            <div className="bg-gray-50 rounded-lg p-4 space-y-1">
+              <p><strong>Email:</strong>{' '}<a href="mailto:daniel@tilltalk.ie" className="text-green-600 hover:underline">daniel@tilltalk.ie</a></p>
+              <p><strong>Post:</strong> Prime Construct Ltd, Farran, Mourneabbey, Co. Cork, P51 KF88, Ireland</p>
+            </div>
           </section>
 
         </div>
