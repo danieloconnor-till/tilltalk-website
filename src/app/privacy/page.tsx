@@ -3,184 +3,390 @@ export default function PrivacyPage() {
     <div className="max-w-4xl mx-auto px-4 py-16">
       <div className="bg-white rounded-2xl border border-gray-200 p-8 md:p-12">
         <h1 className="text-3xl font-bold text-gray-900 mb-1">Privacy Policy</h1>
-        <p className="text-gray-500 text-sm mb-8">Last updated: April 2026 · Prime Construct Ltd (trading as TillTalk)</p>
+        <p className="text-gray-500 text-sm mb-8">
+          <strong>Last updated:</strong> 6 May 2026 &middot; <strong>Effective:</strong> 6 May 2026 &middot; Prime Construct Ltd (trading as TillTalk)
+        </p>
 
         <div className="space-y-8 text-sm leading-relaxed text-gray-700">
 
-          <section>
-            <h2 className="text-xl font-semibold text-gray-900 mb-3">1. Who We Are</h2>
+          <div className="space-y-3">
             <p>
-              TillTalk is operated by <strong>Prime Construct Ltd</strong> (CRO No. 751535, VAT No. IE4224722DH),
-              registered at Farran, Mourneabbey, Co. Cork, P51 KF88, Republic of Ireland. We act as the
-              data controller for personal data described in this policy.
+              This Privacy Policy explains how Prime Construct Ltd (&ldquo;TillTalk&rdquo;, &ldquo;we&rdquo;, &ldquo;us&rdquo;, or &ldquo;our&rdquo;) collects, uses, shares, and protects personal data in connection with the TillTalk service. It applies to:
             </p>
-            <p className="mt-2">
-              <strong>Data controller contact:</strong>{' '}
-              <a href="mailto:privacy@tilltalk.ie" className="text-green-600 hover:underline">privacy@tilltalk.ie</a>
+            <ul className="list-disc list-inside space-y-1 text-gray-600">
+              <li>Visitors to the TillTalk website at tilltalk.ie</li>
+              <li>Business owners who sign up for TillTalk as clients</li>
+              <li>Customers of TillTalk&apos;s clients whose transaction data passes through TillTalk&apos;s systems</li>
+            </ul>
+            <p>
+              If you have any questions about this policy or want to exercise your rights, contact us at{' '}
+              <a href="mailto:daniel@tilltalk.ie" className="text-green-600 hover:underline">daniel@tilltalk.ie</a>.
+            </p>
+          </div>
+
+          <section>
+            <h2 className="text-xl font-semibold text-gray-900 mb-3">1. Who we are</h2>
+            <p className="mb-3"><strong>Data controller for our website and our clients:</strong></p>
+            <div className="bg-gray-50 rounded-lg p-4 space-y-1 mb-3">
+              <p>Prime Construct Ltd</p>
+              <p>Trading as TillTalk</p>
+              <p>Registered office: Farran, Mourneabbey, Co. Cork, P51 KF88, Ireland</p>
+              <p>Company registration number: 751535</p>
+              <p>VAT number: IE4224722DH</p>
+              <p>Contact: <a href="mailto:daniel@tilltalk.ie" className="text-green-600 hover:underline">daniel@tilltalk.ie</a></p>
+            </div>
+            <p>
+              For the personal data of our clients&apos; customers, TillTalk acts as a <strong>data processor</strong> on behalf of the client. The client is the data controller of their own customer data; TillTalk processes that data only on the client&apos;s instructions, under a Data Processing Agreement (DPA).
             </p>
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold text-gray-900 mb-3">2. What Data We Collect and Why</h2>
-            <div className="space-y-4">
+            <h2 className="text-xl font-semibold text-gray-900 mb-3">2. What TillTalk does</h2>
+            <p className="mb-3">TillTalk is an AI-managed marketing service for independent hospitality and retail businesses. Our system:</p>
+            <ul className="list-disc list-inside space-y-2 text-gray-600">
+              <li>Runs Meta, Google, and TikTok advertising campaigns on behalf of our clients</li>
+              <li>Reads point-of-sale (POS) transaction data from our clients&apos; till systems (Clover, Square, etc.) on a strictly read-only basis</li>
+              <li>Pushes hashed conversion events to ad platforms via the Meta Conversions API (CAPI), Google Enhanced Conversions, and TikTok Events API to verify which ads led to real revenue</li>
+              <li>Generates weekly reports and recommendations for each client</li>
+            </ul>
+            <p className="mt-3">Understanding what TillTalk does is important for understanding how we use personal data.</p>
+          </section>
+
+          <section>
+            <h2 className="text-xl font-semibold text-gray-900 mb-3">3. Personal data we collect</h2>
+            <div className="space-y-6">
+
               <div>
-                <h3 className="font-semibold text-gray-900 mb-1">Account data</h3>
+                <h3 className="font-semibold text-gray-900 mb-2">3.1 From website visitors</h3>
+                <p className="mb-2">When you visit tilltalk.ie:</p>
                 <ul className="list-disc list-inside space-y-1 text-gray-600">
-                  <li>Full name and email address — to identify your account and contact you</li>
-                  <li>Business name — to personalise your experience</li>
-                  <li>WhatsApp number — to deliver the TillTalk service via WhatsApp</li>
-                  <li>POS API credentials (AES-128-CBC encrypted) — to connect to your point-of-sale system</li>
-                  <li>Business address — for nearby event and weather alert features (optional)</li>
+                  <li><strong>Technical data:</strong> IP address, browser type, device type, operating system, pages visited, referrer URL, time and date of visit</li>
+                  <li><strong>Cookies and similar technologies:</strong> see our Cookie Policy</li>
+                  <li><strong>Cloudflare Turnstile:</strong> we use Cloudflare&apos;s bot-protection challenge on signup forms; this collects technical signals about your browser</li>
+                  <li><strong>Analytics:</strong> if enabled, aggregated usage statistics</li>
                 </ul>
               </div>
+
               <div>
-                <h3 className="font-semibold text-gray-900 mb-1">Usage data</h3>
+                <h3 className="font-semibold text-gray-900 mb-2">3.2 From clients (business owners who sign up)</h3>
+                <p className="mb-2">When you sign up as a client:</p>
                 <ul className="list-disc list-inside space-y-1 text-gray-600">
-                  <li>Message logs (inbound/outbound count) — to power usage analytics in your dashboard</li>
-                  <li>Notes and reminders you create via WhatsApp — stored until you delete them</li>
-                  <li>Payroll figures you submit — stored for labour cost reports</li>
-                  <li>Aggregated POS sales summaries — processed in memory only, not stored individually</li>
+                  <li><strong>Account data:</strong> name, email address, business name, business address, phone number, business category, website</li>
+                  <li><strong>Authentication data:</strong> password (hashed via Supabase Auth, never stored in plain text)</li>
+                  <li><strong>Billing data:</strong> payment information processed by Stripe; we do not store full card numbers</li>
+                  <li><strong>Communications:</strong> WhatsApp messages, dashboard chat messages, emails between you and TillTalk</li>
+                  <li><strong>Voice notes:</strong> audio you send via WhatsApp is transcribed via OpenAI Whisper. Audio files are processed and not retained by TillTalk after transcription; the resulting text is retained as part of your conversation history</li>
+                  <li><strong>POS connection credentials:</strong> API keys for your POS system (encrypted at rest via Fernet); we use these to read transaction data only</li>
                 </ul>
               </div>
+
               <div>
-                <h3 className="font-semibold text-gray-900 mb-1">Payment data</h3>
+                <h3 className="font-semibold text-gray-900 mb-2">3.3 From clients&apos; customers (your customers&apos; data, when you are a client)</h3>
+                <p className="mb-2">When TillTalk reads your client&apos;s POS transactions to verify ad performance, the following customer-level fields may be processed:</p>
                 <ul className="list-disc list-inside space-y-1 text-gray-600">
-                  <li>Stripe customer ID and subscription ID — to manage your billing. Card details are held exclusively by Stripe and never touch our servers.</li>
+                  <li><strong>Hashed identifiers:</strong> customer email, phone number, first name, last name (each hashed via deterministic SHA-256 before any storage or transmission)</li>
+                  <li><strong>Card token:</strong> an opaque token from the POS system, never the card number itself</li>
+                  <li><strong>Transaction metadata:</strong> amount, tip, tender type (cash/card/gift card), channel, timestamp, refund status</li>
+                </ul>
+                <p className="mt-3 font-medium text-gray-800">
+                  TillTalk does not store raw email addresses, raw phone numbers, or raw names of clients&apos; customers. Only deterministic hashes are persisted. The original raw values are read from the POS system, hashed in memory, and discarded.
+                </p>
+              </div>
+
+              <div>
+                <h3 className="font-semibold text-gray-900 mb-2">3.4 From third parties</h3>
+                <ul className="list-disc list-inside space-y-1 text-gray-600">
+                  <li><strong>Stripe:</strong> billing and subscription status</li>
+                  <li><strong>Twilio:</strong> WhatsApp delivery confirmations</li>
+                  <li><strong>POS providers (Clover, Square, etc.):</strong> transaction data on the client&apos;s instruction</li>
+                  <li><strong>Ad platforms (Meta, Google, TikTok):</strong> aggregated ad performance metrics and audience match rates relating to campaigns we run on the client&apos;s behalf</li>
                 </ul>
               </div>
-              <div>
-                <h3 className="font-semibold text-gray-900 mb-1">Cookie data</h3>
-                <ul className="list-disc list-inside space-y-1 text-gray-600">
-                  <li>Essential session cookies — required for authentication</li>
-                  <li>Cookie consent flag — stored in localStorage to remember your preference</li>
-                  <li>We do not use advertising, analytics, or third-party tracking cookies</li>
-                </ul>
-              </div>
+
             </div>
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold text-gray-900 mb-3">3. Legal Basis for Processing</h2>
-            <ul className="list-disc list-inside space-y-2 text-gray-600">
-              <li><strong>Contract performance (Article 6(1)(b) GDPR)</strong> — account data and POS credentials are necessary to provide the Service.</li>
-              <li><strong>Legitimate interest (Article 6(1)(f) GDPR)</strong> — usage analytics to improve service quality and prevent abuse.</li>
-              <li><strong>Legal obligation (Article 6(1)(c) GDPR)</strong> — retention of billing records as required by Irish Revenue legislation.</li>
-              <li><strong>Consent (Article 6(1)(a) GDPR)</strong> — for any optional marketing communications.</li>
-            </ul>
-          </section>
-
-          <section>
-            <h2 className="text-xl font-semibold text-gray-900 mb-3">4. How Long We Keep Your Data</h2>
-            <ul className="list-disc list-inside space-y-2 text-gray-600">
-              <li><strong>Account data</strong> — retained for the duration of your subscription plus 30 days after cancellation, then permanently deleted.</li>
-              <li><strong>Billing records</strong> — retained for 7 years as required by Irish Revenue legislation.</li>
-              <li><strong>Message logs and usage data</strong> — retained while your account is active, deleted 30 days after cancellation.</li>
-              <li><strong>Conversation history</strong> — never stored persistently. Held in memory only for up to 10 minutes per session (privacy by design).</li>
-              <li><strong>POS credentials</strong> — deleted within 30 days of account closure or immediately on request.</li>
-            </ul>
-          </section>
-
-          <section>
-            <h2 className="text-xl font-semibold text-gray-900 mb-3">5. Who We Share Your Data With</h2>
-            <p className="mb-3">
-              We only share data with the sub-processors needed to deliver the Service. Each is GDPR-compliant
-              with appropriate data processing agreements in place. Full DPA details are in{' '}
-              <a href="/terms#clause-15" className="text-green-600 hover:underline">Clause 15 of our Terms &amp; Conditions</a>.
-            </p>
-            <div className="overflow-x-auto">
+            <h2 className="text-xl font-semibold text-gray-900 mb-3">4. How we use personal data and why</h2>
+            <div className="overflow-x-auto mb-4">
               <table className="w-full text-sm border-collapse">
                 <thead>
                   <tr className="bg-gray-50">
-                    <th className="text-left px-4 py-2 border border-gray-200 font-semibold">Processor</th>
                     <th className="text-left px-4 py-2 border border-gray-200 font-semibold">Purpose</th>
-                    <th className="text-left px-4 py-2 border border-gray-200 font-semibold">Location</th>
+                    <th className="text-left px-4 py-2 border border-gray-200 font-semibold">Personal data</th>
+                    <th className="text-left px-4 py-2 border border-gray-200 font-semibold">Legal basis</th>
                   </tr>
                 </thead>
                 <tbody>
                   {[
-                    ['Supabase', 'Database and authentication', 'EU (Ireland)'],
-                    ['Railway', 'Bot application infrastructure', 'USA — SCCs'],
-                    ['Vercel', 'Website infrastructure', 'USA — SCCs'],
-                    ['Twilio / WhatsApp', 'WhatsApp message delivery', 'USA — SCCs'],
-                    ['Anthropic', 'AI query processing', 'USA — SCCs'],
-                    ['SendGrid', 'Transactional email', 'USA — SCCs'],
-                    ['Stripe', 'Payment processing', 'USA / EU — SCCs'],
-                  ].map(([name, purpose, location]) => (
-                    <tr key={name}>
-                      <td className="px-4 py-2 border border-gray-200 font-medium">{name}</td>
-                      <td className="px-4 py-2 border border-gray-200 text-gray-600">{purpose}</td>
-                      <td className="px-4 py-2 border border-gray-200 text-gray-600">{location}</td>
+                    ['Operate the website', 'Technical data, cookies', 'Legitimate interest (running our service)'],
+                    ['Authenticate clients', 'Account data, authentication data', 'Performance of contract'],
+                    ['Provide the TillTalk service to clients', 'Account data, communications, POS credentials, transaction data', 'Performance of contract'],
+                    ['Run ad campaigns and verify their effectiveness', 'Hashed customer identifiers, transaction metadata', 'Performance of contract (with the client; we are a processor)'],
+                    ['Bill clients', 'Account data, billing data', 'Performance of contract'],
+                    ['Send service emails (account, security, billing)', 'Account data, email', 'Performance of contract'],
+                    ['Send marketing emails to prospective clients', 'Email, name', 'Legitimate interest (B2B), with consent where required by ePrivacy law; opt-out available in every email'],
+                    ['Detect fraud and abuse', 'Technical data, communications', 'Legitimate interest'],
+                    ['Comply with legal obligations', 'All applicable data', 'Legal obligation'],
+                    ['Improve the service', 'Aggregated, de-identified usage data', 'Legitimate interest'],
+                  ].map(([purpose, data, basis]) => (
+                    <tr key={purpose}>
+                      <td className="px-4 py-2 border border-gray-200 font-medium align-top">{purpose}</td>
+                      <td className="px-4 py-2 border border-gray-200 text-gray-600 align-top">{data}</td>
+                      <td className="px-4 py-2 border border-gray-200 text-gray-600 align-top">{basis}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
-            <p className="mt-3 text-gray-500 text-xs">SCCs = Standard Contractual Clauses (Decision 2021/914/EU). We do not sell your data to anyone.</p>
+            <p className="font-medium text-gray-800">
+              We never use the personal data of our clients&apos; customers for any purpose other than verifying ad performance for the client whose customers they are. We do not build cross-client profiles. We do not sell personal data. We do not use one client&apos;s customer data to benefit another client.
+            </p>
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold text-gray-900 mb-3">6. Your Rights Under GDPR</h2>
-            <p className="mb-3">You have the following rights regarding your personal data:</p>
+            <h2 className="text-xl font-semibold text-gray-900 mb-3">5. Sharing personal data</h2>
+            <p className="mb-4">We share personal data with the following categories of recipients, only as necessary:</p>
+
+            <div className="space-y-6">
+              <div>
+                <h3 className="font-semibold text-gray-900 mb-2">5.1 Service providers (sub-processors)</h3>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm border-collapse">
+                    <thead>
+                      <tr className="bg-gray-50">
+                        <th className="text-left px-4 py-2 border border-gray-200 font-semibold">Provider</th>
+                        <th className="text-left px-4 py-2 border border-gray-200 font-semibold">Purpose</th>
+                        <th className="text-left px-4 py-2 border border-gray-200 font-semibold">Region</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {[
+                        ['Supabase', 'Database, authentication, file storage', 'EU'],
+                        ['Railway', 'Application hosting and compute', 'US'],
+                        ['Vercel', 'Website hosting', 'Global edge network'],
+                        ['Stripe', 'Payment processing', 'Ireland / Global'],
+                        ['Twilio', 'WhatsApp and SMS delivery', 'US / Ireland'],
+                        ['Meta Platforms (WhatsApp Business)', 'WhatsApp Business platform underlying Twilio', 'US'],
+                        ['Anthropic', 'AI processing (Claude)', 'US'],
+                        ['OpenAI', 'Voice transcription (Whisper)', 'US'],
+                        ['SendGrid', 'Transactional and marketing email delivery', 'US'],
+                        ['Cloudflare', 'Bot protection, edge networking', 'Global'],
+                        ['Sentry', 'Error monitoring', 'Configurable; we use the EU region where available'],
+                        ['Cloudinary', 'Asset storage and image processing (creative pipeline)', 'Global'],
+                        ['GitHub', 'Source-code and knowledge-base hosting', 'US'],
+                      ].map(([provider, purpose, region]) => (
+                        <tr key={provider}>
+                          <td className="px-4 py-2 border border-gray-200 font-medium">{provider}</td>
+                          <td className="px-4 py-2 border border-gray-200 text-gray-600">{purpose}</td>
+                          <td className="px-4 py-2 border border-gray-200 text-gray-600">{region}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <p className="mt-3 text-gray-500 text-xs">
+                  We work to ensure that an appropriate Data Processing Agreement (DPA) is signed with each of these providers before they process personal data on our behalf. Some DPAs may be in the process of being executed at any given time; you can request the current status by emailing{' '}
+                  <a href="mailto:daniel@tilltalk.ie" className="text-green-600 hover:underline">daniel@tilltalk.ie</a>.
+                </p>
+              </div>
+
+              <div>
+                <h3 className="font-semibold text-gray-900 mb-2">5.2 Ad platforms (on client instruction)</h3>
+                <p className="mb-2">When you are a client, we push hashed conversion events to the ad platforms you have asked us to run campaigns on:</p>
+                <ul className="list-disc list-inside space-y-1 text-gray-600">
+                  <li><strong>Meta</strong> (Facebook / Instagram) via the Conversions API</li>
+                  <li><strong>Google</strong> via Enhanced Conversions</li>
+                  <li><strong>TikTok</strong> via the Events API</li>
+                </ul>
+                <p className="mt-3">
+                  These events contain hashed identifiers and transaction values. The ad platforms use them for matching, attribution, and measurement. The hashing is deterministic, which means the platforms can match the hashes against hashes derived from their own user records. The hash itself does not allow recovery of the original raw value, but a successful match enables the platform to associate the conversion event with a known platform user. For that reason, hashed identifiers may still constitute personal data under GDPR.
+                </p>
+              </div>
+
+              <div>
+                <h3 className="font-semibold text-gray-900 mb-2">5.3 Legal disclosures</h3>
+                <p>We may disclose personal data when required by law, court order, or to protect legal rights, safety, or property.</p>
+              </div>
+
+              <div>
+                <h3 className="font-semibold text-gray-900 mb-2">5.4 Business transfers</h3>
+                <p>If TillTalk is acquired or merged, personal data may transfer to the new owner under the same protections.</p>
+              </div>
+            </div>
+          </section>
+
+          <section>
+            <h2 className="text-xl font-semibold text-gray-900 mb-3">6. International data transfers</h2>
+            <p className="mb-3">Some of our service providers are based outside the European Economic Area, primarily in the United States. Where personal data is transferred outside the EEA, we rely on:</p>
             <ul className="list-disc list-inside space-y-2 text-gray-600">
-              <li><strong>Access</strong> — request a copy of all personal data we hold about you</li>
-              <li><strong>Rectification</strong> — correct inaccurate data via your dashboard or by emailing us</li>
-              <li><strong>Erasure</strong> — request deletion of your data; we comply within 30 days (subject to legal retention obligations)</li>
-              <li><strong>Portability</strong> — receive your data in JSON/CSV format; see also data switching rights in <a href="/terms" className="text-green-600 hover:underline">Clause 4 of our Terms</a></li>
-              <li><strong>Object</strong> — object to processing based on legitimate interest</li>
-              <li><strong>Restrict</strong> — request that we limit processing in certain circumstances</li>
+              <li><strong>EU Standard Contractual Clauses</strong> with the recipient</li>
+              <li><strong>Adequacy decisions</strong> where the European Commission has determined the destination country provides an adequate level of protection (e.g. EU-US Data Privacy Framework)</li>
+              <li><strong>Supplementary measures</strong> such as encryption in transit and at rest, and the hashing of customer identifiers before transfer</li>
             </ul>
             <p className="mt-3">
-              To exercise any right, email{' '}
-              <a href="mailto:privacy@tilltalk.ie" className="text-green-600 hover:underline">privacy@tilltalk.ie</a>.
-              We respond within 30 days. You may also lodge a complaint with the{' '}
-              <a href="https://www.dataprotection.ie" target="_blank" rel="noopener noreferrer" className="text-green-600 hover:underline">
-                Data Protection Commission
-              </a>.
+              You can request copies of the safeguards in place by contacting{' '}
+              <a href="mailto:daniel@tilltalk.ie" className="text-green-600 hover:underline">daniel@tilltalk.ie</a>.
             </p>
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold text-gray-900 mb-3">7. AI Transparency</h2>
+            <h2 className="text-xl font-semibold text-gray-900 mb-3">7. How long we keep personal data</h2>
+            <div className="overflow-x-auto mb-3">
+              <table className="w-full text-sm border-collapse">
+                <thead>
+                  <tr className="bg-gray-50">
+                    <th className="text-left px-4 py-2 border border-gray-200 font-semibold">Data</th>
+                    <th className="text-left px-4 py-2 border border-gray-200 font-semibold">Retention</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[
+                    ['Website visit logs', '30 days'],
+                    ['Client account data', 'Duration of the client relationship plus 7 years (Irish Companies Act / tax law)'],
+                    ['Client billing records', '7 years (Irish tax law)'],
+                    ['Communications between client and TillTalk', 'Duration of the client relationship plus 2 years'],
+                    ['Voice note audio', 'Discarded immediately after transcription'],
+                    ['Hashed customer identifiers', '24 months row-level; aggregated into daily summaries thereafter (see §10)'],
+                    ['Hashed customer identifiers from cancelled clients', 'Deleted within 30 days of contract termination'],
+                    ['Sentry error logs', '90 days'],
+                  ].map(([data, retention]) => (
+                    <tr key={data}>
+                      <td className="px-4 py-2 border border-gray-200 font-medium align-top">{data}</td>
+                      <td className="px-4 py-2 border border-gray-200 text-gray-600 align-top">{retention}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <p>After these periods, data is deleted or fully anonymised.</p>
+          </section>
+
+          <section>
+            <h2 className="text-xl font-semibold text-gray-900 mb-3">8. Your rights under GDPR</h2>
+            <p className="mb-3">If you are in the EEA, UK, or another jurisdiction granting equivalent rights, you have the following rights:</p>
+            <ul className="list-disc list-inside space-y-2 text-gray-600">
+              <li><strong>Access</strong> — request a copy of the personal data we hold about you</li>
+              <li><strong>Rectification</strong> — correct inaccurate personal data</li>
+              <li><strong>Erasure</strong> — request deletion of your personal data (&ldquo;right to be forgotten&rdquo;)</li>
+              <li><strong>Restriction</strong> — restrict our processing of your personal data</li>
+              <li><strong>Portability</strong> — receive your personal data in a portable format</li>
+              <li><strong>Objection</strong> — object to processing based on legitimate interest</li>
+              <li><strong>Withdraw consent</strong> — where processing is based on consent</li>
+              <li><strong>Complaint</strong> — lodge a complaint with the Irish Data Protection Commission (<a href="https://www.dataprotection.ie" target="_blank" rel="noopener noreferrer" className="text-green-600 hover:underline">dataprotection.ie</a>) or your local supervisory authority</li>
+            </ul>
+            <p className="mt-3">
+              To exercise any of these rights, email{' '}
+              <a href="mailto:daniel@tilltalk.ie" className="text-green-600 hover:underline">daniel@tilltalk.ie</a>. We will respond within one month.
+            </p>
+            <p className="mt-3 bg-gray-50 rounded-lg p-4">
+              <strong>A note on the customers of our clients:</strong> if you are a customer of a TillTalk client and want to exercise rights over your personal data, please contact the client directly — they are the data controller and hold the relationship with you. TillTalk will assist the client in fulfilling your request.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="text-xl font-semibold text-gray-900 mb-3">9. Security</h2>
+            <p className="mb-3">We implement technical and organisational measures appropriate to the nature of the personal data we process and the risks involved, including:</p>
+            <ul className="list-disc list-inside space-y-2 text-gray-600">
+              <li><strong>Encryption in transit:</strong> TLS 1.2 or higher for all communications between TillTalk components and external services</li>
+              <li><strong>Encryption at rest:</strong> Supabase database encryption; Fernet encryption for sensitive credentials such as POS API keys</li>
+              <li><strong>Hashing of customer identifiers:</strong> SHA-256 deterministic hashing applied before customer identifiers are persisted or transmitted to ad platforms</li>
+              <li><strong>Access controls:</strong> access to production systems and personal data is restricted to authorised personnel; at present this is limited to the founder. As TillTalk grows, role-based access controls will be expanded accordingly</li>
+              <li><strong>Error monitoring:</strong> Sentry monitoring for application errors and anomalies, with alerts to the founder</li>
+              <li><strong>Read-only POS access:</strong> TillTalk does not write to client POS systems; all POS interactions are read-only by design and enforced in code</li>
+              <li><strong>Periodic review:</strong> sub-processor agreements and security practices are reviewed at least annually</li>
+            </ul>
+            <p className="mt-3">We are continuing to develop our internal logging and audit capabilities. If you have specific questions about the controls in place at any time, contact <a href="mailto:daniel@tilltalk.ie" className="text-green-600 hover:underline">daniel@tilltalk.ie</a>.</p>
+            <p className="mt-3">No system is perfectly secure. If we become aware of a personal data breach affecting your data, we will notify you and the Data Protection Commission as required by GDPR (within 72 hours where feasible).</p>
+          </section>
+
+          <section>
+            <h2 className="text-xl font-semibold text-gray-900 mb-3">10. Specific notes on customer data hashing and ad platform matching</h2>
+            <p className="mb-3">This section explains how TillTalk handles your customers&apos; data (when you are a client) and your data (when you are a customer of a TillTalk client).</p>
+            <p className="mb-3">
+              When a customer pays at a TillTalk client&apos;s POS, the transaction may include identifying fields such as email, phone, or name (entered at the till, captured by a loyalty system, or provided through online ordering).
+            </p>
+            <p className="mb-2"><strong>TillTalk&apos;s processing pipeline:</strong></p>
+            <ol className="list-decimal list-inside space-y-2 text-gray-600 mb-4">
+              <li><strong>Read</strong> the transaction from the POS API</li>
+              <li><strong>Normalise</strong> the identifying fields (lowercase email, strip phone formatting, etc.)</li>
+              <li><strong>Hash</strong> each field using deterministic SHA-256</li>
+              <li><strong>Store</strong> only the hashes — raw values are never written to disk by TillTalk</li>
+              <li><strong>Push</strong> the hashes to the relevant ad platform&apos;s conversion API along with the transaction value, so the platform can verify that one of its users became a paying customer</li>
+              <li><strong>Aggregate</strong> transaction data older than 24 months into daily summaries; row-level personal data is deleted at that point</li>
+            </ol>
+            <p className="mb-3">
+              Hashing is deterministic, meaning the same input always produces the same hash. This allows ad platforms to match a hash they receive from TillTalk against a hash derived from their own user records, without TillTalk and the platform exchanging raw personal data. As noted in §5.2, hashed identifiers can still constitute personal data under GDPR because a successful match links the conversion to a known user on the receiving platform.
+            </p>
+            <p className="mb-3 font-medium text-gray-800">
+              Cash transactions and transactions without identifying fields are never hashed or pushed to ad platforms. Anonymous transactions cannot be attributed and are excluded by design.
+            </p>
             <p>
-              TillTalk uses Anthropic Claude to process your queries. All responses are AI-generated and have not
-              been reviewed by a human before delivery. The Service is classified as limited/low-risk AI under
-              the EU AI Act (Regulation (EU) 2024/1689). AI outputs are for informational purposes only and
-              should be verified before being relied upon for business decisions. They do not constitute
-              financial, legal, or professional advice.
+              If you are a customer of a TillTalk client and want a transaction record relating to you removed, please contact the client directly. The client can instruct TillTalk to remove its hashed record. Where ad platforms expose deletion endpoints (such as Meta&apos;s CAPI deletion event or Google&apos;s user-data deletion API), TillTalk will use those endpoints to propagate the deletion to the platforms on the client&apos;s instruction. Some platforms apply their own processing timelines to deletion requests, which are outside TillTalk&apos;s control.
             </p>
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold text-gray-900 mb-3">8. Data Security</h2>
-            <p>We protect your data with:</p>
-            <ul className="list-disc list-inside space-y-1 mt-2 text-gray-600">
-              <li>AES-128-CBC + HMAC-SHA256 encryption of POS API credentials at rest</li>
-              <li>TLS encryption for all data in transit (HTTPS)</li>
-              <li>Row-level security on all database tables</li>
-              <li>No persistent storage of WhatsApp conversation content</li>
-              <li>72-hour breach notification to the DPC and affected users as required by GDPR</li>
+            <h2 className="text-xl font-semibold text-gray-900 mb-3">11. Cookies</h2>
+            <p className="mb-3">
+              See our separate Cookie Policy at{' '}
+              <a href="/cookies" className="text-green-600 hover:underline">tilltalk.ie/cookies</a>{' '}
+              for details on cookies and similar technologies.
+            </p>
+            <p className="mb-2">In summary:</p>
+            <ul className="list-disc list-inside space-y-1 text-gray-600">
+              <li>Strictly necessary cookies (authentication, security)</li>
+              <li>Functional cookies (remembering your preferences)</li>
+              <li>Analytics cookies (only if you consent)</li>
+              <li>No advertising or tracking cookies on tilltalk.ie itself</li>
             </ul>
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold text-gray-900 mb-3">9. Children&apos;s Privacy</h2>
-            <p>TillTalk is a B2B service and is not directed at anyone under 18. We do not knowingly collect personal data from minors.</p>
+            <h2 className="text-xl font-semibold text-gray-900 mb-3">12. Children</h2>
+            <p>
+              TillTalk is a B2B service for businesses. We do not knowingly collect personal data from children under 16. If you become aware that a child has provided personal data to us, please contact{' '}
+              <a href="mailto:daniel@tilltalk.ie" className="text-green-600 hover:underline">daniel@tilltalk.ie</a>{' '}
+              and we will delete it.
+            </p>
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold text-gray-900 mb-3">10. Changes to This Policy</h2>
-            <p>We will notify you of material changes by email and by posting a notice on our website with at least 30 days&apos; notice. The date at the top of this page always reflects the current version.</p>
+            <h2 className="text-xl font-semibold text-gray-900 mb-3">13. Changes to this policy</h2>
+            <p>
+              We may update this policy from time to time. The &ldquo;Last updated&rdquo; date at the top will reflect the most recent change. For material changes, we will notify clients by email and post a prominent notice on tilltalk.ie at least 30 days before the change takes effect.
+            </p>
+            <p className="mt-2">A version history of this policy is available on request.</p>
+          </section>
+
+          <section>
+            <h2 className="text-xl font-semibold text-gray-900 mb-3">14. Complaints</h2>
+            <p className="mb-3">If you believe TillTalk has not handled your personal data in accordance with applicable law, you have the right to lodge a complaint with:</p>
+            <div className="bg-gray-50 rounded-lg p-4 space-y-1 mb-3">
+              <p><strong>Irish Data Protection Commission</strong></p>
+              <p>21 Fitzwilliam Square South</p>
+              <p>Dublin 2, D02 RD28</p>
+              <p>Ireland</p>
+              <p>Phone: +353 (0)761 104 800</p>
+              <p>Website: <a href="https://www.dataprotection.ie" target="_blank" rel="noopener noreferrer" className="text-green-600 hover:underline">dataprotection.ie</a></p>
+            </div>
+            <p>
+              We would appreciate the opportunity to address your concern first by emailing{' '}
+              <a href="mailto:daniel@tilltalk.ie" className="text-green-600 hover:underline">daniel@tilltalk.ie</a>{' '}
+              before you contact the Data Protection Commission.
+            </p>
           </section>
 
           <section className="border-t border-gray-100 pt-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-3">11. Contact</h2>
+            <h2 className="text-xl font-semibold text-gray-900 mb-3">15. Contact</h2>
+            <p className="mb-2">For any privacy-related question, request, or complaint:</p>
             <p>
-              <strong>Privacy enquiries:</strong>{' '}
-              <a href="mailto:privacy@tilltalk.ie" className="text-green-600 hover:underline">privacy@tilltalk.ie</a><br />
-              <strong>General enquiries:</strong>{' '}
-              <a href="mailto:hello@tilltalk.ie" className="text-green-600 hover:underline">hello@tilltalk.ie</a><br />
-              <strong>Full Terms &amp; Conditions (including DPA):</strong>{' '}
-              <a href="/terms" className="text-green-600 hover:underline">tilltalk.ie/terms</a>
+              <strong>Email:</strong>{' '}
+              <a href="mailto:daniel@tilltalk.ie" className="text-green-600 hover:underline">daniel@tilltalk.ie</a><br />
+              <strong>Post:</strong> Prime Construct Ltd, Farran, Mourneabbey, Co. Cork, P51 KF88, Ireland
+            </p>
+            <p className="mt-3 text-gray-500 text-xs">
+              We aim to respond within 5 working days for general queries and within one month for formal data subject rights requests.
             </p>
           </section>
 
