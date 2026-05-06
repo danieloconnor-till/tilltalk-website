@@ -72,7 +72,7 @@ export default function PrivacyPage() {
                 <p className="mb-2">When you sign up as a client:</p>
                 <ul className="list-disc list-inside space-y-1 text-gray-600">
                   <li><strong>Account data:</strong> name, email address, business name, business address, phone number, business category, website</li>
-                  <li><strong>Authentication data:</strong> password (hashed via Supabase Auth, never stored in plain text)</li>
+                  <li><strong>Authentication data:</strong> password (hashed; never stored in plain text)</li>
                   <li><strong>Billing data:</strong> payment information processed by Stripe; we do not store full card numbers</li>
                   <li><strong>Communications:</strong> WhatsApp messages, dashboard chat messages, emails between you and TillTalk</li>
                   <li><strong>Voice notes:</strong> audio you send via WhatsApp is transcribed via a third-party speech-to-text service. Audio files are processed and not retained by TillTalk after transcription; the resulting text is retained as part of your conversation history.</li>
@@ -272,7 +272,7 @@ export default function PrivacyPage() {
             <p className="mb-3">We implement technical and organisational measures appropriate to the nature of the personal data we process and the risks involved, including:</p>
             <ul className="list-disc list-inside space-y-2 text-gray-600">
               <li><strong>Encryption in transit:</strong> TLS 1.2 or higher for all communications between TillTalk components and external services</li>
-              <li><strong>Encryption at rest:</strong> Supabase database encryption; Fernet encryption for sensitive credentials such as POS API keys</li>
+              <li><strong>Encryption at rest:</strong> database encryption at rest for all stored data; sensitive credentials are additionally encrypted before storage</li>
               <li><strong>Hashing of customer identifiers:</strong> SHA-256 deterministic hashing applied before customer identifiers are persisted or transmitted to ad platforms</li>
               <li><strong>Access controls:</strong> access to production systems and personal data is restricted to authorised personnel; at present this is limited to the founder. As TillTalk grows, role-based access controls will be expanded accordingly</li>
               <li><strong>Error monitoring:</strong> Sentry monitoring for application errors and anomalies, with alerts to the founder</li>
