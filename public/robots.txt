@@ -1,0 +1,54 @@
+# tilltalk.ie robots.txt
+# Last updated: 2026-05-07
+
+# Explicit allow for social media scrapers (Open Graph, Twitter Cards, etc.)
+# These are required by Meta App Review to validate privacy/terms/data-deletion URLs.
+
+User-agent: facebookexternalhit
+Allow: /
+
+User-agent: facebookcatalog
+Allow: /
+
+User-agent: Twitterbot
+Allow: /
+
+User-agent: LinkedInBot
+Allow: /
+
+User-agent: WhatsApp
+Allow: /
+
+User-agent: Discordbot
+Allow: /
+
+User-agent: Slackbot
+Allow: /
+
+User-agent: TelegramBot
+Allow: /
+
+# Standard search engines — full access to public pages
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: DuckDuckBot
+Allow: /
+
+# Default for all other bots — preserve whatever the site's prior policy was.
+# If the prior robots.txt had `Disallow: /` here, leave that. If it had specific
+# disallows, keep those. If it allowed everything, leave that. The fix above
+# is additive: explicit allowlist for the bots that need it, regardless of
+# the wildcard rule.
+User-agent: *
+Allow: /
+
+# Block sensitive admin and API paths from generic crawlers
+Disallow: /admin
+Disallow: /api/
+Disallow: /dashboard
+
+Sitemap: https://tilltalk.ie/sitemap.xml
