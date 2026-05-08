@@ -4,7 +4,7 @@ export default function PrivacyPage() {
       <div className="bg-white rounded-2xl border border-gray-200 p-8 md:p-12">
         <h1 className="text-3xl font-bold text-gray-900 mb-1">Privacy Policy</h1>
         <p className="text-gray-500 text-sm mb-8">
-          <strong>Last updated:</strong> 6 May 2026 &middot; <strong>Effective:</strong> 6 May 2026 &middot; Prime Construct Ltd (trading as TillTalk)
+          <strong>Last updated:</strong> 8 May 2026 &middot; <strong>Effective:</strong> 6 May 2026 &middot; Prime Construct Ltd (trading as TillTalk)
         </p>
 
         <div className="space-y-8 text-sm leading-relaxed text-gray-700">
@@ -168,9 +168,14 @@ export default function PrivacyPage() {
                   <li><strong>Source-code and knowledge-base hosting</strong> — for storing TillTalk&apos;s source code and operational knowledge</li>
                 </ul>
                 <p className="mt-3 text-gray-500 text-xs">
-                  A current named list of sub-processors is available on request from{' '}
-                  <a href="mailto:daniel@tilltalk.ie" className="text-green-600 hover:underline">daniel@tilltalk.ie</a>.
-                  {' '}We work to ensure that an appropriate Data Processing Agreement (DPA) is signed with each of these providers before they process personal data on our behalf, and we will inform clients of any material changes to our sub-processor list.
+                  A current named list of sub-processors is available at{' '}
+                  <a href="/sub-processors" className="text-green-600 hover:underline">tilltalk.ie/sub-processors</a>.
+                  {' '}We work to ensure that an appropriate Data Processing Agreement (DPA) is signed with each of these providers before they process personal data on our behalf, and we will inform clients of any material additions to our sub-processor list at least 30 days in advance.
+                </p>
+                <p className="mt-2 text-gray-500 text-xs">
+                  If you are a Clover merchant, see our{' '}
+                  <a href="/clover-addendum" className="text-green-600 hover:underline">Clover Privacy Addendum</a>{' '}
+                  for additional detail on how data received from Clover is handled.
                 </p>
               </div>
 

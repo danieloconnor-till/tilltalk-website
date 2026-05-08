@@ -34,6 +34,16 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
+                <Link href="/sub-processors" className="text-sm text-gray-400 hover:text-white transition-colors">
+                  Sub-Processors
+                </Link>
+              </li>
+              <li>
+                <Link href="/clover-addendum" className="text-sm text-gray-400 hover:text-white transition-colors">
+                  Clover Addendum
+                </Link>
+              </li>
+              <li>
                 <a href="mailto:hello@tilltalk.ie" className="text-sm text-gray-400 hover:text-white transition-colors">
                   Contact
                 </a>
