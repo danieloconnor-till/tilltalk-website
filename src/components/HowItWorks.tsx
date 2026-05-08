@@ -1,26 +1,40 @@
-import { Plug, MessageCircle, BarChart2 } from 'lucide-react'
+import { Plug, Brain, CheckSquare, BarChart2, MessageCircle } from 'lucide-react'
 
 const steps = [
   {
     icon: Plug,
-    title: 'Connect your POS in minutes',
+    title: 'Connect your POS',
     description:
-      'Link your Clover, Square, or Epos Now account using your API credentials. Setup takes less than 5 minutes.',
+      'One-click Clover connection, read-only access. Your sales data flows in automatically — no manual exports.',
     step: '01',
   },
   {
-    icon: MessageCircle,
-    title: 'Message TillTalk on WhatsApp',
+    icon: Brain,
+    title: 'Learn your revenue patterns',
     description:
-      "Ask questions in plain English like \"What sold best this week?\" or \"Show me last month's revenue.\"",
+      'TillTalk analyses your till data to understand what drives revenue: peak times, top items, campaign lift.',
     step: '02',
   },
   {
-    icon: BarChart2,
-    title: 'Get instant answers and email reports',
+    icon: CheckSquare,
+    title: 'Campaigns drafted and approved via WhatsApp',
     description:
-      "Receive detailed breakdowns instantly on WhatsApp, plus daily and weekly email reports with charts.",
+      'Your AI agent proposes ad campaigns on Meta, Google, and TikTok. You approve, tweak, or decline — all over WhatsApp.',
     step: '03',
+  },
+  {
+    icon: BarChart2,
+    title: 'Results verified against your till',
+    description:
+      'After each campaign, TillTalk reads your POS to confirm the revenue impact. No guessing — actual verified sales.',
+    step: '04',
+  },
+  {
+    icon: MessageCircle,
+    title: 'Daily WhatsApp briefing',
+    description:
+      'Every morning you get a plain-English summary: what ran yesterday, what it drove, and what the agent recommends next.',
+    step: '05',
   },
 ]
 
@@ -33,11 +47,11 @@ export default function HowItWorks() {
             How it works
           </h2>
           <p className="mt-4 text-lg text-gray-600">
-            Up and running in minutes — no developer needed.
+            Your AI marketing agent — always on, always grounded in real till data.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
           {steps.map(({ icon: Icon, title, description, step }) => (
             <div key={step} className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 text-center">
               <div className="inline-flex items-center justify-center w-14 h-14 bg-green-50 rounded-xl mb-5">

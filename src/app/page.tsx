@@ -20,25 +20,23 @@ export default function Home() {
         <div className="max-w-4xl mx-auto">
           <div className="inline-flex items-center gap-2 bg-green-50 text-green-700 text-sm font-medium px-4 py-2 rounded-full mb-6">
             <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-            Now live for hospitality &amp; retail businesses
+            AI-managed ads for hospitality &amp; retail
           </div>
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-gray-900 leading-tight">
-            Talk to your POS on{' '}
-            <span className="text-green-600">WhatsApp.</span>
+            Your AI marketing agent,{' '}
+            <span className="text-green-600">powered by your till data.</span>
           </h1>
           <p className="mt-6 text-xl text-gray-600 max-w-2xl mx-auto">
-            Get instant sales insights — no dashboards needed.
+            TillTalk runs your Meta, Google, and TikTok ads, reads your POS to verify what actually drove revenue, and operates over WhatsApp under your approval.
           </p>
           <p className="mt-3 text-lg text-gray-500 max-w-2xl mx-auto">
-            Ask natural questions like{' '}
-            <span className="italic text-gray-700">&quot;What sold best this week?&quot;</span>{' '}
-            and get answers in seconds.
+            <span className="italic text-gray-700">&quot;Your Tuesday lunch campaign drove €1,840 in verified revenue. Scale it?&quot;</span>
           </p>
 
           {/* Waitlist CTA */}
           <div className="mt-10 flex flex-col items-center gap-4">
             <p className="text-base font-medium text-gray-700 max-w-md">
-              We&apos;re onboarding new clients gradually — message us on WhatsApp to join the waitlist
+              We&apos;re onboarding the first merchants — message us on WhatsApp to apply
             </p>
             <a
               href="https://wa.me/353894633835"

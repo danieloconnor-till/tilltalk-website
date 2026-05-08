@@ -1,54 +1,29 @@
-import {
-  DollarSign,
-  Mail,
-  BarChart2,
-  Users,
-  Mic,
-  Brain,
-  Building2,
-  UsersRound,
-} from 'lucide-react'
+import { Globe, ShieldCheck, MessageCircle, Layers } from 'lucide-react'
 
 const features = [
   {
-    icon: DollarSign,
-    title: 'Revenue queries in plain English',
-    description: 'Ask anything about your sales in everyday language — no SQL, no dashboards.',
+    icon: Globe,
+    title: 'Ad campaigns fully managed',
+    description:
+      'TillTalk plans, launches, and optimises your Meta, Google, and TikTok campaigns — every spend decision sent to you for approval first.',
   },
   {
-    icon: Mail,
-    title: 'Daily & weekly email reports with charts',
-    description: 'Receive beautifully formatted reports straight to your inbox every morning.',
+    icon: ShieldCheck,
+    title: 'POS-verified revenue attribution',
+    description:
+      'We read your till data directly to confirm what actually drove sales — not platform-reported clicks, real verified revenue.',
   },
   {
-    icon: BarChart2,
-    title: 'Item and category sales analysis',
-    description: 'Find out exactly what\'s selling, what\'s not, and when your busiest times are.',
+    icon: MessageCircle,
+    title: 'WhatsApp inbox',
+    description:
+      'Approve campaigns, receive daily briefings, and ask questions — all through the WhatsApp thread you already use.',
   },
   {
-    icon: Users,
-    title: 'Staff performance tracking',
-    description: 'Monitor sales by staff member to motivate your team and reward top performers.',
-  },
-  {
-    icon: Mic,
-    title: 'Voice note support',
-    description: 'Send a voice note to TillTalk and get a reply — great for on-the-go queries.',
-  },
-  {
-    icon: Brain,
-    title: 'Conversation memory',
-    description: 'TillTalk remembers context from earlier in your conversation for follow-up questions.',
-  },
-  {
-    icon: Building2,
-    title: 'Multi-location support',
-    description: 'Manage multiple venues from a single WhatsApp thread — compare locations instantly.',
-  },
-  {
-    icon: UsersRound,
-    title: 'Multi-user access',
-    description: 'Add your manager or accountant so they can query your data independently.',
+    icon: Layers,
+    title: 'Multi-channel by default',
+    description:
+      'Meta, Google, and TikTok are all pre-wired. Your agent allocates budget across channels based on what your till data shows is working.',
   },
 ]
 
@@ -58,10 +33,10 @@ export default function FeatureGrid() {
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-14">
           <h2 className="text-3xl sm:text-4xl font-bold text-gray-900">
-            Everything you need to understand your sales
+            An AI agent that runs your marketing
           </h2>
           <p className="mt-4 text-lg text-gray-600 max-w-2xl mx-auto">
-            Powerful analytics delivered through the app you already use every day.
+            Built for hospitality and retail — every decision grounded in your actual sales data.
           </p>
         </div>
 
