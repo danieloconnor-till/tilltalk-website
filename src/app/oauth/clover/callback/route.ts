@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server'
 
-const CLOVER_API_BASE = process.env.CLOVER_API_BASE ?? 'https://api.eu.clover.com'
-const RAILWAY_URL     = process.env.RAILWAY_ONBOARDING_URL ?? ''
-const ONBOARDING_KEY  = process.env.ONBOARDING_API_KEY ?? ''
+const RAILWAY_URL    = process.env.RAILWAY_ONBOARDING_URL ?? ''
+const ONBOARDING_KEY = process.env.ONBOARDING_API_KEY ?? ''
 
 function welcomeRedirect(params: Record<string, string>): NextResponse {
   const url = new URL('/welcome', 'https://tilltalk.ie')
@@ -17,17 +16,34 @@ export async function GET(request: Request): Promise<NextResponse> {
   const employeeId = searchParams.get('employee_id') ?? ''
   const clientId   = searchParams.get('client_id')   ?? ''
   const code       = searchParams.get('code')         ?? ''
+  const state      = searchParams.get('state')
+
+  if (!state) {
+    console.warn('[clover-oauth] missing state param — possible CSRF or misconfigured redirect')
+    return welcomeRedirect({ error: 'invalid_state' })
+  }
 
   if (!merchantId || !employeeId || !clientId || !code) {
     console.warn('[clover-oauth] missing params:', { merchantId, employeeId, clientId, code: !!code })
     return welcomeRedirect({ error: 'missing_params' })
   }
 
-  const appId     = process.env.CLOVER_APP_ID     ?? ''
-  const appSecret = process.env.CLOVER_APP_SECRET ?? ''
+  // Detect sandbox: client_id matches CLOVER_SANDBOX_APP_ID
+  const sandboxAppId     = process.env.CLOVER_SANDBOX_APP_ID ?? ''
+  const isSandbox        = !!sandboxAppId && clientId === sandboxAppId
+
+  const appId     = isSandbox
+    ? sandboxAppId
+    : (process.env.CLOVER_APP_ID ?? '')
+  const appSecret = isSandbox
+    ? (process.env.CLOVER_SANDBOX_APP_SECRET ?? '')
+    : (process.env.CLOVER_APP_SECRET ?? '')
+  const apiBase   = isSandbox
+    ? (process.env.CLOVER_SANDBOX_BASE_URL ?? 'https://apisandbox.dev.clover.com')
+    : (process.env.CLOVER_API_BASE ?? 'https://api.eu.clover.com')
 
   if (!appId || !appSecret) {
-    console.error('[clover-oauth] CLOVER_APP_ID or CLOVER_APP_SECRET not configured')
+    console.error('[clover-oauth] app credentials not configured — isSandbox:', isSandbox)
     return welcomeRedirect({ error: 'token_exchange_failed' })
   }
 
@@ -37,7 +53,7 @@ export async function GET(request: Request): Promise<NextResponse> {
   let expiresIn: number | undefined
 
   try {
-    const tokenRes = await fetch(`${CLOVER_API_BASE}/oauth/v2/token`, {
+    const tokenRes = await fetch(`${apiBase}/oauth/v2/token`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ client_id: appId, client_secret: appSecret, code }),
@@ -88,6 +104,7 @@ export async function GET(request: Request): Promise<NextResponse> {
         access_token:  accessToken,
         refresh_token: refreshToken,
         expires_in:    expiresIn,
+        is_sandbox:    isSandbox,
       }),
       signal: AbortSignal.timeout(12000),
     })
@@ -102,6 +119,6 @@ export async function GET(request: Request): Promise<NextResponse> {
     return welcomeRedirect({ error: 'storage_failed' })
   }
 
-  console.log('[clover-oauth] success for merchant_id:', merchantId)
+  console.log('[clover-oauth] success for merchant_id:', merchantId, '| sandbox:', isSandbox)
   return welcomeRedirect({ merchant_id: merchantId })
 }
