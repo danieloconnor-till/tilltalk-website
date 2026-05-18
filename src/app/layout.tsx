@@ -25,6 +25,9 @@ export const metadata: Metadata = {
     statusBarStyle: 'default',
     title: 'TillTalk',
   },
+  other: {
+    'facebook-domain-verification': 'm16bv7be86vtf0r6qt5awd0e68gllh',
+  },
 }
 
 export default function RootLayout({
