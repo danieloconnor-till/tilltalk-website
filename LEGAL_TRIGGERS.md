@@ -1,7 +1,7 @@
 # TillTalk — Legal Change Triggers
 ## Any time one of these things changes, the T&Cs at src/app/terms/page.tsx and Privacy Policy at src/app/privacy/page.tsx must be reviewed and updated before the next deploy.
 
-## Current T&Cs version: 4.1 | Last updated: April 2026
+## Current T&Cs version: 4.2 | Last updated: 19 May 2026
 ## Location: src/app/terms/page.tsx and src/app/privacy/page.tsx
 ## Solicitor review required before: major structural changes, new data categories, new sub-processors
 
