@@ -3,8 +3,11 @@ export default function PrivacyPage() {
     <div className="max-w-4xl mx-auto px-4 py-16">
       <div className="bg-white rounded-2xl border border-gray-200 p-8 md:p-12">
         <h1 className="text-3xl font-bold text-gray-900 mb-1">Privacy Policy</h1>
-        <p className="text-gray-500 text-sm mb-8">
-          <strong>Last updated:</strong> 8 May 2026 &middot; <strong>Effective:</strong> 6 May 2026 &middot; Prime Construct Ltd (trading as TillTalk)
+        <p className="text-gray-500 text-sm mb-2">
+          <strong>Last updated:</strong> 19 May 2026 &middot; <strong>Effective:</strong> 19 May 2026 &middot; Prime Construct Ltd (trading as TillTalk)
+        </p>
+        <p className="text-gray-500 text-xs mb-8">
+          This version supersedes the version dated 8 May 2026. Changes in this revision: explicit disclosure of TillTalk&apos;s use of merchant data to operate per-merchant marketing and to inform aggregate decision-policy heuristics across the service (new &sect;5); explicit naming of the Meta marketing-platform data categories accessed under OAuth (&sect;3.5); explicit naming of key named sub-processors and Anthropic&apos;s data-training position (&sect;6.1); update of the change-notification mechanism (&sect;14).
         </p>
 
         <div className="space-y-8 text-sm leading-relaxed text-gray-700">
@@ -47,6 +50,7 @@ export default function PrivacyPage() {
               <li>Runs Meta, Google, and TikTok advertising campaigns on behalf of our clients</li>
               <li>Reads point-of-sale (POS) transaction data from our clients&apos; till systems (Clover, Square, etc.) on a strictly read-only basis</li>
               <li>Pushes hashed conversion events to ad platforms via the Meta Conversions API (CAPI), Google Enhanced Conversions, and TikTok Events API to verify which ads led to real revenue</li>
+              <li>Manages Facebook Page and Instagram Business comments, direct messages, and organic publishing under each client&apos;s approval</li>
               <li>Generates weekly reports and recommendations for each client</li>
             </ul>
             <p className="mt-3">Understanding what TillTalk does is important for understanding how we use personal data.</p>
@@ -103,6 +107,19 @@ export default function PrivacyPage() {
                 </ul>
               </div>
 
+              <div>
+                <h3 className="font-semibold text-gray-900 mb-2">3.5 From merchant marketing-platform connections (Meta, Google, TikTok)</h3>
+                <p className="mb-2">When you, as a client, grant TillTalk OAuth consent to operate your marketing accounts, TillTalk reads:</p>
+                <ul className="list-disc list-inside space-y-1 text-gray-600">
+                  <li><strong>Facebook Pages and Instagram Business accounts:</strong> page metadata, posts, ratings, comments, direct messages, follower data, page-level insights</li>
+                  <li><strong>Ad accounts and Business Manager metadata:</strong> ad accounts, campaigns, ad sets, ad performance, audience metadata, attribution data, ad spend</li>
+                  <li><strong>Lead forms:</strong> leads submitted to your Facebook Lead Ads (when leads_retrieval is granted)</li>
+                </ul>
+                <p className="mt-3">
+                  Access is per-merchant under your OAuth grant. TillTalk uses these to plan and run campaigns, publish organic content under your approval, respond to comments and direct messages under your approval, measure ad performance, and compute incremental revenue. TillTalk does not access another client&apos;s marketing data using your OAuth grant.
+                </p>
+              </div>
+
             </div>
           </section>
 
@@ -123,12 +140,15 @@ export default function PrivacyPage() {
                     ['Authenticate clients', 'Account data, authentication data', 'Performance of contract'],
                     ['Provide the TillTalk service to clients', 'Account data, communications, POS credentials, transaction data', 'Performance of contract'],
                     ['Run ad campaigns and verify their effectiveness', 'Hashed customer identifiers, transaction metadata', 'Performance of contract (with the client; we are a processor)'],
+                    ['Build matched audiences for ad platforms (Meta CAPI, Google Customer Match, TikTok)', 'Hashed customer identifiers, transaction metadata', 'Performance of contract (with the client; we are a processor)'],
+                    ['Detect POS anomalies excluded from incremental revenue calculation', 'Transaction metadata', 'Performance of contract'],
+                    ['Manage Facebook Page and Instagram Business comments, direct messages, and organic publishing under client approval', 'Page content, comments, messages, IG posts', 'Performance of contract'],
                     ['Bill clients', 'Account data, billing data', 'Performance of contract'],
                     ['Send service emails (account, security, billing)', 'Account data, email', 'Performance of contract'],
                     ['Send marketing emails to prospective clients', 'Email, name', 'Legitimate interest (B2B), with consent where required by ePrivacy law; opt-out available in every email'],
                     ['Detect fraud and abuse', 'Technical data, communications', 'Legitimate interest'],
                     ['Comply with legal obligations', 'All applicable data', 'Legal obligation'],
-                    ['Improve the service', 'Aggregated, de-identified usage data', 'Legitimate interest'],
+                    ['Improve the service via aggregate decision-policy heuristics (see §5)', 'Aggregated outcome data; no personally identifiable information', 'Legitimate interest'],
                   ].map(([purpose, data, basis]) => (
                     <tr key={purpose}>
                       <td className="px-4 py-2 border border-gray-200 font-medium align-top">{purpose}</td>
@@ -140,32 +160,63 @@ export default function PrivacyPage() {
               </table>
             </div>
             <p className="font-medium text-gray-800">
-              We never use the personal data of our clients&apos; customers for any purpose other than verifying ad performance for the client whose customers they are. We do not build cross-client profiles. We do not sell personal data. We do not use one client&apos;s customer data to benefit another client.
+              We never use the personal data of our clients&apos; customers for any purpose other than verifying ad performance for the client whose customers they are. We do not build cross-client profiles of consumers. We do not sell personal data. We do not use one client&apos;s customer data to benefit another client. See &sect;5 below for how aggregate, non-identifying outcome signal does inform the service across clients.
             </p>
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold text-gray-900 mb-3">5. Sharing personal data</h2>
+            <h2 className="text-xl font-semibold text-gray-900 mb-3">5. How merchant data informs the service</h2>
+            <p className="mb-3">
+              Each merchant&apos;s data is used to operate that merchant&apos;s marketing campaigns. This includes building a per-merchant brand voice profile (the agent&apos;s understanding of how the merchant talks, what they value, what they want to convey), per-merchant prompt context (recent decisions, conversation history, recent POS patterns), and per-merchant operational learning (which audiences perform for this merchant, when their restaurant is at capacity, what their customers typically ask about).
+            </p>
+            <p className="mb-3">
+              Outcomes from each merchant&apos;s marketing decisions feed into TillTalk&apos;s aggregate decision-policy heuristics. These heuristics are statistical patterns derived from outcomes &mdash; for example, &ldquo;campaigns targeting Tuesday-lunch with audience characteristic X performed Y% better across N merchants in similar businesses.&rdquo; Heuristics are aggregated across merchants. The aggregation never exposes any individual merchant&apos;s data, customer records, campaign specifics, or financial details to any other merchant.
+            </p>
+            <p>
+              What crosses merchants is statistical signal. What does not cross merchants is personally identifiable information, raw campaign data, customer records, financial figures, or any data that could identify a specific merchant or their customers. No merchant data is sold, licensed, or shared with any party other than the platforms required to operate the merchant&apos;s marketing (Meta, Google, TikTok, Anthropic, Supabase, Railway, Vercel, Twilio).
+            </p>
+          </section>
+
+          <section>
+            <h2 className="text-xl font-semibold text-gray-900 mb-3">6. Sharing personal data</h2>
             <p className="mb-4">We share personal data with the following categories of recipients, only as necessary:</p>
 
             <div className="space-y-6">
               <div>
-                <h3 className="font-semibold text-gray-900 mb-2">5.1 Service providers (sub-processors)</h3>
-                <p className="mb-3">We use service providers in the following categories to operate the TillTalk service:</p>
+                <h3 className="font-semibold text-gray-900 mb-2">6.1 Named key sub-processors</h3>
+                <p className="mb-3">TillTalk currently shares personal data with the following named recipients to operate the service:</p>
+                <ul className="list-disc list-inside space-y-2 text-gray-600 mb-3">
+                  <li><strong>Meta (Facebook / Instagram), Google, TikTok</strong> &mdash; to operate campaigns and push CAPI / Enhanced Conversions / Events API conversion events. The client has separate relationships with these platforms; TillTalk acts on the client&apos;s behalf under their OAuth grant.</li>
+                  <li><strong>Anthropic</strong> &mdash; TillTalk uses Claude (Anthropic&apos;s AI) to perform agent reasoning. Data sent to Anthropic via the API is processed under Anthropic&apos;s data processing terms. No data sent to Anthropic via the standard API is used to train Anthropic&apos;s foundation models.</li>
+                  <li><strong>Supabase</strong> &mdash; the database provider that hosts TillTalk&apos;s per-client records. Located in the EU.</li>
+                  <li><strong>Railway and Vercel</strong> &mdash; compute and hosting providers for the TillTalk backend and dashboard.</li>
+                  <li><strong>Twilio</strong> &mdash; WhatsApp and SMS message delivery.</li>
+                  <li><strong>Stripe</strong> &mdash; payment processing for subscription billing.</li>
+                  <li><strong>SendGrid</strong> &mdash; transactional and marketing email delivery.</li>
+                  <li><strong>Sentry</strong> &mdash; application error monitoring.</li>
+                </ul>
+                <p className="mt-2 text-gray-700 font-medium">
+                  No other third parties. No personal data is sold.
+                </p>
+              </div>
+
+              <div>
+                <h3 className="font-semibold text-gray-900 mb-2">6.2 Categories of sub-processors</h3>
+                <p className="mb-3">In addition to the named recipients above, TillTalk relies on service providers in the following categories to operate the service:</p>
                 <ul className="list-disc list-inside space-y-1 text-gray-600 mb-3">
-                  <li><strong>Database, authentication, and file storage</strong> — for storing client account data, encrypted credentials, and operational data</li>
-                  <li><strong>Application hosting and compute</strong> — for running the TillTalk backend and AI agent infrastructure</li>
-                  <li><strong>Website hosting</strong> — for serving tilltalk.ie and our client dashboard</li>
-                  <li><strong>Payment processing</strong> — for billing clients and processing subscription payments</li>
-                  <li><strong>Messaging delivery</strong> — for sending WhatsApp and SMS messages between TillTalk and clients</li>
-                  <li><strong>WhatsApp Business platform</strong> — the underlying platform on which messaging delivery operates</li>
-                  <li><strong>AI processing</strong> — for the AI capabilities that power the TillTalk service</li>
-                  <li><strong>Speech-to-text processing</strong> — for transcribing voice notes you send to TillTalk</li>
-                  <li><strong>Email delivery</strong> — for transactional and marketing emails</li>
-                  <li><strong>Edge networking and bot protection</strong> — for serving traffic and protecting signup flows</li>
-                  <li><strong>Error monitoring</strong> — for detecting and diagnosing application errors</li>
-                  <li><strong>Asset storage and image processing</strong> — for storing creative materials used in advertising</li>
-                  <li><strong>Source-code and knowledge-base hosting</strong> — for storing TillTalk&apos;s source code and operational knowledge</li>
+                  <li><strong>Database, authentication, and file storage</strong> &mdash; for storing client account data, encrypted credentials, and operational data</li>
+                  <li><strong>Application hosting and compute</strong> &mdash; for running the TillTalk backend and AI agent infrastructure</li>
+                  <li><strong>Website hosting</strong> &mdash; for serving tilltalk.ie and our client dashboard</li>
+                  <li><strong>Payment processing</strong> &mdash; for billing clients and processing subscription payments</li>
+                  <li><strong>Messaging delivery</strong> &mdash; for sending WhatsApp and SMS messages between TillTalk and clients</li>
+                  <li><strong>WhatsApp Business platform</strong> &mdash; the underlying platform on which messaging delivery operates</li>
+                  <li><strong>AI processing</strong> &mdash; for the AI capabilities that power the TillTalk service</li>
+                  <li><strong>Speech-to-text processing</strong> &mdash; for transcribing voice notes you send to TillTalk</li>
+                  <li><strong>Email delivery</strong> &mdash; for transactional and marketing emails</li>
+                  <li><strong>Edge networking and bot protection</strong> &mdash; for serving traffic and protecting signup flows</li>
+                  <li><strong>Error monitoring</strong> &mdash; for detecting and diagnosing application errors</li>
+                  <li><strong>Asset storage and image processing</strong> &mdash; for storing creative materials used in advertising</li>
+                  <li><strong>Source-code and knowledge-base hosting</strong> &mdash; for storing TillTalk&apos;s source code and operational knowledge</li>
                 </ul>
                 <p className="mt-3 text-gray-500 text-xs">
                   A current named list of sub-processors is available at{' '}
@@ -180,7 +231,7 @@ export default function PrivacyPage() {
               </div>
 
               <div>
-                <h3 className="font-semibold text-gray-900 mb-2">5.2 Ad platforms (on client instruction)</h3>
+                <h3 className="font-semibold text-gray-900 mb-2">6.3 Ad platforms (on client instruction)</h3>
                 <p className="mb-2">When you are a client, we push hashed conversion events to the ad platforms you have asked us to run campaigns on:</p>
                 <ul className="list-disc list-inside space-y-1 text-gray-600">
                   <li><strong>Meta</strong> (Facebook / Instagram) via the Conversions API</li>
@@ -193,19 +244,19 @@ export default function PrivacyPage() {
               </div>
 
               <div>
-                <h3 className="font-semibold text-gray-900 mb-2">5.3 Legal disclosures</h3>
+                <h3 className="font-semibold text-gray-900 mb-2">6.4 Legal disclosures</h3>
                 <p>We may disclose personal data when required by law, court order, or to protect legal rights, safety, or property.</p>
               </div>
 
               <div>
-                <h3 className="font-semibold text-gray-900 mb-2">5.4 Business transfers</h3>
+                <h3 className="font-semibold text-gray-900 mb-2">6.5 Business transfers</h3>
                 <p>If TillTalk is acquired or merged, personal data may transfer to the new owner under the same protections.</p>
               </div>
             </div>
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold text-gray-900 mb-3">6. International data transfers</h2>
+            <h2 className="text-xl font-semibold text-gray-900 mb-3">7. International data transfers</h2>
             <p className="mb-3">Some of our service providers are based outside the European Economic Area, primarily in the United States. Where personal data is transferred outside the EEA, we rely on:</p>
             <ul className="list-disc list-inside space-y-2 text-gray-600">
               <li><strong>EU Standard Contractual Clauses</strong> with the recipient</li>
@@ -219,7 +270,7 @@ export default function PrivacyPage() {
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold text-gray-900 mb-3">7. How long we keep personal data</h2>
+            <h2 className="text-xl font-semibold text-gray-900 mb-3">8. How long we keep personal data</h2>
             <div className="overflow-x-auto mb-3">
               <table className="w-full text-sm border-collapse">
                 <thead>
@@ -235,8 +286,10 @@ export default function PrivacyPage() {
                     ['Client billing records', '7 years (Irish tax law)'],
                     ['Communications between client and TillTalk', 'Duration of the client relationship plus 2 years'],
                     ['Voice note audio', 'Discarded immediately after transcription'],
-                    ['Hashed customer identifiers', '24 months row-level; aggregated into daily summaries thereafter (see §10)'],
+                    ['Merchant marketing-platform data (Meta Pages, IG, ad accounts, BM)', 'Duration of the client engagement plus 30 days for deletion processing'],
+                    ['Hashed customer identifiers', '24 months row-level; aggregated into daily summaries thereafter (see §11)'],
                     ['Hashed customer identifiers from cancelled clients', 'Deleted within 30 days of contract termination'],
+                    ['Aggregate decision-policy heuristics (see §5)', 'Retained beyond engagement; anonymised and statistical only; contains no personally identifiable information about any merchant or customer'],
                     ['Sentry error logs', '90 days'],
                   ].map(([data, retention]) => (
                     <tr key={data}>
@@ -251,29 +304,29 @@ export default function PrivacyPage() {
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold text-gray-900 mb-3">8. Your rights under GDPR</h2>
+            <h2 className="text-xl font-semibold text-gray-900 mb-3">9. Your rights under GDPR</h2>
             <p className="mb-3">If you are in the EEA, UK, or another jurisdiction granting equivalent rights, you have the following rights:</p>
             <ul className="list-disc list-inside space-y-2 text-gray-600">
-              <li><strong>Access</strong> — request a copy of the personal data we hold about you</li>
-              <li><strong>Rectification</strong> — correct inaccurate personal data</li>
-              <li><strong>Erasure</strong> — request deletion of your personal data (&ldquo;right to be forgotten&rdquo;)</li>
-              <li><strong>Restriction</strong> — restrict our processing of your personal data</li>
-              <li><strong>Portability</strong> — receive your personal data in a portable format</li>
-              <li><strong>Objection</strong> — object to processing based on legitimate interest</li>
-              <li><strong>Withdraw consent</strong> — where processing is based on consent</li>
-              <li><strong>Complaint</strong> — lodge a complaint with the Irish Data Protection Commission (<a href="https://www.dataprotection.ie" target="_blank" rel="noopener noreferrer" className="text-green-600 hover:underline">dataprotection.ie</a>) or your local supervisory authority</li>
+              <li><strong>Access</strong> &mdash; request a copy of the personal data we hold about you</li>
+              <li><strong>Rectification</strong> &mdash; correct inaccurate personal data</li>
+              <li><strong>Erasure</strong> &mdash; request deletion of your personal data (&ldquo;right to be forgotten&rdquo;) via{' '}<a href="/data-deletion" className="text-green-600 hover:underline">tilltalk.ie/data-deletion</a></li>
+              <li><strong>Restriction</strong> &mdash; restrict our processing of your personal data</li>
+              <li><strong>Portability</strong> &mdash; receive your personal data in a portable format</li>
+              <li><strong>Objection</strong> &mdash; object to processing based on legitimate interest</li>
+              <li><strong>Withdraw consent</strong> &mdash; where processing is based on consent</li>
+              <li><strong>Complaint</strong> &mdash; lodge a complaint with the Irish Data Protection Commission (<a href="https://www.dataprotection.ie" target="_blank" rel="noopener noreferrer" className="text-green-600 hover:underline">dataprotection.ie</a>) or your local supervisory authority</li>
             </ul>
             <p className="mt-3">
               To exercise any of these rights, email{' '}
               <a href="mailto:daniel@tilltalk.ie" className="text-green-600 hover:underline">daniel@tilltalk.ie</a>. We will respond within one month.
             </p>
             <p className="mt-3 bg-gray-50 rounded-lg p-4">
-              <strong>A note on the customers of our clients:</strong> if you are a customer of a TillTalk client and want to exercise rights over your personal data, please contact the client directly — they are the data controller and hold the relationship with you. TillTalk will assist the client in fulfilling your request.
+              <strong>A note on the customers of our clients:</strong> if you are a customer of a TillTalk client and want to exercise rights over your personal data, please contact the client directly &mdash; they are the data controller and hold the relationship with you. TillTalk will assist the client in fulfilling your request.
             </p>
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold text-gray-900 mb-3">9. Security</h2>
+            <h2 className="text-xl font-semibold text-gray-900 mb-3">10. Security</h2>
             <p className="mb-3">We implement technical and organisational measures appropriate to the nature of the personal data we process and the risks involved, including:</p>
             <ul className="list-disc list-inside space-y-2 text-gray-600">
               <li><strong>Encryption in transit:</strong> TLS 1.2 or higher for all communications between TillTalk components and external services</li>
@@ -289,7 +342,7 @@ export default function PrivacyPage() {
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold text-gray-900 mb-3">10. Specific notes on customer data hashing and ad platform matching</h2>
+            <h2 className="text-xl font-semibold text-gray-900 mb-3">11. Specific notes on customer data hashing and ad platform matching</h2>
             <p className="mb-3">This section explains how TillTalk handles your customers&apos; data (when you are a client) and your data (when you are a customer of a TillTalk client).</p>
             <p className="mb-3">
               When a customer pays at a TillTalk client&apos;s POS, the transaction may include identifying fields such as email, phone, or name (entered at the till, captured by a loyalty system, or provided through online ordering).
@@ -299,12 +352,12 @@ export default function PrivacyPage() {
               <li><strong>Read</strong> the transaction from the POS API</li>
               <li><strong>Normalise</strong> the identifying fields (lowercase email, strip phone formatting, etc.)</li>
               <li><strong>Hash</strong> each field using deterministic SHA-256</li>
-              <li><strong>Store</strong> only the hashes — raw values are never written to disk by TillTalk</li>
+              <li><strong>Store</strong> only the hashes &mdash; raw values are never written to disk by TillTalk</li>
               <li><strong>Push</strong> the hashes to the relevant ad platform&apos;s conversion API along with the transaction value, so the platform can verify that one of its users became a paying customer</li>
               <li><strong>Aggregate</strong> transaction data older than 24 months into daily summaries; row-level personal data is deleted at that point</li>
             </ol>
             <p className="mb-3">
-              Hashing is deterministic, meaning the same input always produces the same hash. This allows ad platforms to match a hash they receive from TillTalk against a hash derived from their own user records, without TillTalk and the platform exchanging raw personal data. As noted in §5.2, hashed identifiers can still constitute personal data under GDPR because a successful match links the conversion to a known user on the receiving platform.
+              Hashing is deterministic, meaning the same input always produces the same hash. This allows ad platforms to match a hash they receive from TillTalk against a hash derived from their own user records, without TillTalk and the platform exchanging raw personal data. As noted in &sect;6.3, hashed identifiers can still constitute personal data under GDPR because a successful match links the conversion to a known user on the receiving platform.
             </p>
             <p className="mb-3 font-medium text-gray-800">
               Cash transactions and transactions without identifying fields are never hashed or pushed to ad platforms. Anonymous transactions cannot be attributed and are excluded by design.
@@ -315,7 +368,7 @@ export default function PrivacyPage() {
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold text-gray-900 mb-3">11. Cookies</h2>
+            <h2 className="text-xl font-semibold text-gray-900 mb-3">12. Cookies</h2>
             <p className="mb-3">
               See our separate Cookie Policy at{' '}
               <a href="/cookies" className="text-green-600 hover:underline">tilltalk.ie/cookies</a>{' '}
@@ -331,7 +384,7 @@ export default function PrivacyPage() {
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold text-gray-900 mb-3">12. Children</h2>
+            <h2 className="text-xl font-semibold text-gray-900 mb-3">13. Children</h2>
             <p>
               TillTalk is a B2B service for businesses. We do not knowingly collect personal data from children under 16. If you become aware that a child has provided personal data to us, please contact{' '}
               <a href="mailto:daniel@tilltalk.ie" className="text-green-600 hover:underline">daniel@tilltalk.ie</a>{' '}
@@ -340,15 +393,15 @@ export default function PrivacyPage() {
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold text-gray-900 mb-3">13. Changes to this policy</h2>
+            <h2 className="text-xl font-semibold text-gray-900 mb-3">14. Changes to this policy</h2>
             <p>
-              We may update this policy from time to time. The &ldquo;Last updated&rdquo; date at the top will reflect the most recent change. For material changes, we will notify clients by email and post a prominent notice on tilltalk.ie at least 30 days before the change takes effect.
+              We may update this policy from time to time. The &ldquo;Last updated&rdquo; date at the top will reflect the most recent change. Material changes will be notified to clients via WhatsApp at least 14 days before they take effect; non-material changes (clarifications, typos, structural reorganisation) take effect on publication.
             </p>
             <p className="mt-2">A version history of this policy is available on request.</p>
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold text-gray-900 mb-3">14. Complaints</h2>
+            <h2 className="text-xl font-semibold text-gray-900 mb-3">15. Complaints</h2>
             <p className="mb-3">If you believe TillTalk has not handled your personal data in accordance with applicable law, you have the right to lodge a complaint with:</p>
             <div className="bg-gray-50 rounded-lg p-4 space-y-1 mb-3">
               <p><strong>Irish Data Protection Commission</strong></p>
@@ -366,7 +419,7 @@ export default function PrivacyPage() {
           </section>
 
           <section className="border-t border-gray-100 pt-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-3">15. Contact</h2>
+            <h2 className="text-xl font-semibold text-gray-900 mb-3">16. Contact</h2>
             <p className="mb-2">For any privacy-related question, request, or complaint:</p>
             <p>
               <strong>Email:</strong>{' '}

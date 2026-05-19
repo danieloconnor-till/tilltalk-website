@@ -10,7 +10,7 @@ export default function DataDeletionPage() {
       <div className="bg-white rounded-2xl border border-gray-200 p-8 md:p-12">
         <h1 className="text-3xl font-bold text-gray-900 mb-1">Data Deletion Instructions</h1>
         <p className="text-gray-500 text-sm mb-8">
-          <strong>Last updated:</strong> 6 May 2026 &middot; Prime Construct Ltd (company number 751535, registered in Ireland)
+          <strong>Last updated:</strong> 19 May 2026 &middot; Prime Construct Ltd (company number 751535, registered in Ireland)
         </p>
 
         <div className="space-y-8 text-sm leading-relaxed text-gray-700">
