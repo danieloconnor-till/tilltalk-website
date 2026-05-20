@@ -1,4 +1,11 @@
 import { NextResponse } from 'next/server'
+import {
+  STATE_COOKIE_NAME,
+  STATE_COOKIE_PATH,
+  STATE_COOKIE_MAX_AGE_SEC,
+  buildSignedState,
+  getStateSecret,
+} from '../_state'
 
 const SANDBOX_AUTHORIZE_URL = 'https://sandbox.dev.clover.com/oauth/v2/authorize'
 const PROD_AUTHORIZE_URL    = 'https://www.clover.com/oauth/v2/authorize'
@@ -28,11 +35,30 @@ export async function GET(request: Request): Promise<NextResponse> {
     return NextResponse.json({ error: 'unknown_client_id' }, { status: 400 })
   }
 
+  const secret = getStateSecret()
+  if (!secret) {
+    console.error('[clover-oauth-start] CLOVER_OAUTH_STATE_SECRET not configured')
+    return NextResponse.json({ error: 'server_misconfigured' }, { status: 500 })
+  }
+
+  const state = buildSignedState(secret)
+
   const params = new URLSearchParams()
   params.set('client_id', clientId)
   params.set('merchant_id', merchantId)
   params.set('redirect_uri', REDIRECT_URI)
   if (employeeId) params.set('employee_id', employeeId)
+  params.set('state', state)
 
-  return NextResponse.redirect(`${authorizeBase}?${params.toString()}`)
+  const response = NextResponse.redirect(`${authorizeBase}?${params.toString()}`)
+  response.cookies.set({
+    name:     STATE_COOKIE_NAME,
+    value:    state,
+    httpOnly: true,
+    secure:   true,
+    sameSite: 'lax',
+    path:     STATE_COOKIE_PATH,
+    maxAge:   STATE_COOKIE_MAX_AGE_SEC,
+  })
+  return response
 }

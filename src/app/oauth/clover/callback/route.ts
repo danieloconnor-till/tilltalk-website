@@ -1,12 +1,29 @@
 import { NextResponse } from 'next/server'
+import {
+  STATE_COOKIE_NAME,
+  STATE_COOKIE_PATH,
+  constantTimeEquals,
+  getStateSecret,
+  readStateCookie,
+  verifySignedState,
+} from '../_state'
 
 const RAILWAY_URL    = process.env.RAILWAY_ONBOARDING_URL ?? ''
 const ONBOARDING_KEY = process.env.ONBOARDING_API_KEY ?? ''
 
+function clearStateCookie<T extends NextResponse>(response: T): T {
+  response.cookies.delete({ name: STATE_COOKIE_NAME, path: STATE_COOKIE_PATH })
+  return response
+}
+
 function welcomeRedirect(params: Record<string, string>): NextResponse {
   const url = new URL('/welcome', 'https://tilltalk.ie')
   for (const [k, v] of Object.entries(params)) url.searchParams.set(k, v)
-  return NextResponse.redirect(url.toString())
+  return clearStateCookie(NextResponse.redirect(url.toString()))
+}
+
+function stateError(error: 'missing_state' | 'invalid_state' | 'server_misconfigured', status: number): NextResponse {
+  return clearStateCookie(NextResponse.json({ error }, { status }))
 }
 
 export async function GET(request: Request): Promise<NextResponse> {
@@ -16,11 +33,26 @@ export async function GET(request: Request): Promise<NextResponse> {
   const employeeId = searchParams.get('employee_id') ?? ''
   const clientId   = searchParams.get('client_id')   ?? ''
   const code       = searchParams.get('code')         ?? ''
-  const state      = searchParams.get('state')
+  const state      = searchParams.get('state') ?? ''
+  const cookieState = readStateCookie(request) ?? ''
 
-  if (!state) {
-    console.warn('[clover-oauth] missing state param — possible CSRF or misconfigured redirect')
-    return welcomeRedirect({ error: 'invalid_state' })
+  const stateSecret = getStateSecret()
+  if (!stateSecret) {
+    console.error('[clover-oauth] CLOVER_OAUTH_STATE_SECRET not configured')
+    return stateError('server_misconfigured', 500)
+  }
+
+  if (!state || !cookieState) {
+    console.warn('[clover-oauth] state invalid — missing')
+    return stateError('missing_state', 400)
+  }
+  if (!constantTimeEquals(state, cookieState)) {
+    console.warn('[clover-oauth] state invalid — cookie mismatch')
+    return stateError('invalid_state', 400)
+  }
+  if (!verifySignedState(state, stateSecret)) {
+    console.warn('[clover-oauth] state invalid — bad signature')
+    return stateError('invalid_state', 400)
   }
 
   if (!merchantId || !employeeId || !clientId || !code) {
