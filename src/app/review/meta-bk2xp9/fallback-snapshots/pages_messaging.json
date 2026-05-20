@@ -1,0 +1,133 @@
+{
+  "captured_at": "2026-05-20T07:43:36.427Z",
+  "endpoint": "GET /106478188163979/conversations?fields=participants%2Cupdated_time%2Cmessages.limit%281%29%7Bmessage%2Cfrom%2Ccreated_time%7D&limit=3",
+  "merchant": "Bella Napoli Ristorante, Cork (Facebook Page ID 106478188163979)",
+  "http_status": 200,
+  "response": {
+    "data": [
+      {
+        "participants": {
+          "data": [
+            {
+              "name": "Margaret McGealy Grimes",
+              "email": "26888261930859573@facebook.com",
+              "id": "26888261930859573"
+            },
+            {
+              "name": "Bella Napoli",
+              "email": "106478188163979@facebook.com",
+              "id": "106478188163979"
+            }
+          ]
+        },
+        "updated_time": "2026-03-04T11:57:55+0000",
+        "messages": {
+          "data": [
+            {
+              "message": "Hi Margaret, we are really glad you enjoyed your meal with us, thank you so much ! 😊",
+              "from": {
+                "name": "Bella Napoli",
+                "email": "106478188163979@facebook.com",
+                "id": "106478188163979"
+              },
+              "created_time": "2026-03-04T11:57:55+0000",
+              "id": "m_PVmNqgeX0Yj2ChuNwtLk1fSfCeY7na0eTxjSbm0T8D5ZI1LtlrqfO_M_wXm94fe__KOHevx9F1Wy7kDZy7i2og"
+            }
+          ],
+          "paging": {
+            "cursors": {
+              "before": "QVFIU2dFN3NWaGZAJZAEJBQzdBeUJQaUp6ZAUwwOWtDZAXBaakZA1LTByQXlaWW95QzJJNzdrVzBhUW1rRlAwYXFiV2lzOXVIZAGdLaFI3VE5VbHZAJM1kxYng2VmFKaWV6b3NSLXFYbjRPOWVNNzRhbE8yUWxIV0lYQjExWHVaRU50SHdENV8t",
+              "after": "QVFIU2dFN3NWaGZAJZAEJBQzdBeUJQaUp6ZAUwwOWtDZAXBaakZA1LTByQXlaWW95QzJJNzdrVzBhUW1rRlAwYXFiV2lzOXVIZAGdLaFI3VE5VbHZAJM1kxYng2VmFKaWV6b3NSLXFYbjRPOWVNNzRhbE8yUWxIV0lYQjExWHVaRU50SHdENV8t"
+            },
+            "next": "https://graph.facebook.com/v25.0/t_10162970127774261/messages?access_token=REDACTED&fields=message%2Cfrom%2Ccreated_time&limit=1&after=QVFIU2dFN3NWaGZAJZAEJBQzdBeUJQaUp6ZAUwwOWtDZAXBaakZA1LTByQXlaWW95QzJJNzdrVzBhUW1rRlAwYXFiV2lzOXVIZAGdLaFI3VE5VbHZAJM1kxYng2VmFKaWV6b3NSLXFYbjRPOWVNNzRhbE8yUWxIV0lYQjExWHVaRU50SHdENV8t"
+          }
+        },
+        "id": "t_10162970127774261"
+      },
+      {
+        "participants": {
+          "data": [
+            {
+              "name": "Facebook user",
+              "email": "27223712990586894@facebook.com",
+              "id": "27223712990586894"
+            },
+            {
+              "name": "Bella Napoli",
+              "email": "106478188163979@facebook.com",
+              "id": "106478188163979"
+            }
+          ]
+        },
+        "updated_time": "2026-01-16T08:30:32+0000",
+        "messages": {
+          "data": [
+            {
+              "message": "",
+              "from": {
+                "name": "Facebook user",
+                "email": "27223712990586894@facebook.com",
+                "id": "27223712990586894"
+              },
+              "created_time": "2026-01-16T08:30:32+0000",
+              "id": "m_Ty8-l3myJ6puKOdjAN1PnZ4gaAg2DmQF-8ocoVSPV_Rcfl1S2q9l25sVH0oiNvMsRxcyfX6nYRcU6PPs6mtvkQ"
+            }
+          ],
+          "paging": {
+            "cursors": {
+              "before": "QVFIU0NKd2ZAsMjdNVWFVOHV3UFRCdUJ3LVB6S2d5QTl4ZAFVsWXlQZAUVmcEI3QVZACTThHTWprZA3dPc0dDalJFdExEby01UExGc2VkdTNBSjNOcEx4eWVqRFZAsa2w0YTg2alVwTExLRnZA1eVRNV1A3TmpvdmdRWGN0YnlTcnJFZAEZAiV1N3",
+              "after": "QVFIU0NKd2ZAsMjdNVWFVOHV3UFRCdUJ3LVB6S2d5QTl4ZAFVsWXlQZAUVmcEI3QVZACTThHTWprZA3dPc0dDalJFdExEby01UExGc2VkdTNBSjNOcEx4eWVqRFZAsa2w0YTg2alVwTExLRnZA1eVRNV1A3TmpvdmdRWGN0YnlTcnJFZAEZAiV1N3"
+            },
+            "next": "https://graph.facebook.com/v25.0/t_122155199444850103/messages?access_token=REDACTED&fields=message%2Cfrom%2Ccreated_time&limit=1&after=QVFIU0NKd2ZAsMjdNVWFVOHV3UFRCdUJ3LVB6S2d5QTl4ZAFVsWXlQZAUVmcEI3QVZACTThHTWprZA3dPc0dDalJFdExEby01UExGc2VkdTNBSjNOcEx4eWVqRFZAsa2w0YTg2alVwTExLRnZA1eVRNV1A3TmpvdmdRWGN0YnlTcnJFZAEZAiV1N3"
+          }
+        },
+        "id": "t_122155199444850103"
+      },
+      {
+        "participants": {
+          "data": [
+            {
+              "name": "Sarah Farnsworth",
+              "email": "26611086501896293@facebook.com",
+              "id": "26611086501896293"
+            },
+            {
+              "name": "Bella Napoli",
+              "email": "106478188163979@facebook.com",
+              "id": "106478188163979"
+            }
+          ]
+        },
+        "updated_time": "2025-12-23T11:15:18+0000",
+        "messages": {
+          "data": [
+            {
+              "message": "Hi, please can you help I’m trying to book a table for 3 people on New Year eves at 7:45pm. I see you have availability but I’m struggling to confirm the booking online. Thanks Sarah x",
+              "from": {
+                "name": "Sarah Farnsworth",
+                "email": "26611086501896293@facebook.com",
+                "id": "26611086501896293"
+              },
+              "created_time": "2025-12-23T11:15:18+0000",
+              "id": "m_B19_SPjW2LMWM7cGQPT8YRVDsl95LSKIzzeMw8DOorNn7H6EO29GzljeBKZpB0GKRzJWWAU9mw8bPMtldE0k-Q"
+            }
+          ],
+          "paging": {
+            "cursors": {
+              "before": "QVFIU19RR1BuSW83NVlYTC1HdEhTLVZAlRF9FQnhjUm1hY0IzMjZAuWUlWOUl3QnZAZAWnVJRU1fTzF0aWNxRzRBLTNZAcHZAJME9wOVAzV2c4dVBKMXhNY05RYWZAtd0VKenRJT0hEWC1ZATXlDd1h5ejJ2d2NwbVJCQnFGWExaVmcxX2prY3li",
+              "after": "QVFIU19RR1BuSW83NVlYTC1HdEhTLVZAlRF9FQnhjUm1hY0IzMjZAuWUlWOUl3QnZAZAWnVJRU1fTzF0aWNxRzRBLTNZAcHZAJME9wOVAzV2c4dVBKMXhNY05RYWZAtd0VKenRJT0hEWC1ZATXlDd1h5ejJ2d2NwbVJCQnFGWExaVmcxX2prY3li"
+            }
+          }
+        },
+        "id": "t_1430336392021435"
+      }
+    ],
+    "paging": {
+      "cursors": {
+        "before": "QVFIU1REUjhBMVVLcDZAhVFVsUi03Ykk2QzUzanlCcVZADenNMQk54QlpDbmFMaXhfQ2NfeUdiSUJuRkd0amVNTW5ZAX1Rna3lHZAU5UY1JGaUh6N0sySjd2SktxeXhXV1JFRDJmTGpfUlhaM1FXZAkh3",
+        "after": "QVFIU0FMNEx0WlNLWmkzby1rMFdncEk2TWdObmFVeldtai1ZASk1uVmR3MG1Ra1F0Vlo2N1BTS3RlNGxLUXl1eTNqU2ZAraG9VczJrMHg1N25SZAVplbUpNRWc3UVBaVDdpNUpBZAFQ5WTNlYUJEQmhOUVZAHOVBlWkNOM2VXVG4wQ1hSbGVx"
+      },
+      "next": "https://graph.facebook.com/v25.0/106478188163979/conversations?fields=participants%2Cupdated_time%2Cmessages.limit%281%29%7Bmessage%2Cfrom%2Ccreated_time%7D&limit=3&access_token=REDACTED&after=QVFIU0FMNEx0WlNLWmkzby1rMFdncEk2TWdObmFVeldtai1ZASk1uVmR3MG1Ra1F0Vlo2N1BTS3RlNGxLUXl1eTNqU2ZAraG9VczJrMHg1N25SZAVplbUpNRWc3UVBaVDdpNUpBZAFQ5WTNlYUJEQmhOUVZAHOVBlWkNOM2VXVG4wQ1hSbGVx"
+    }
+  }
+}

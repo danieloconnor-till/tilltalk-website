@@ -1,0 +1,48 @@
+{
+  "captured_at": "2026-05-20T07:43:37.603Z",
+  "endpoint": "GET /106478188163979/insights?metric=page_post_engagements%2Cpage_views_total&period=day",
+  "merchant": "Bella Napoli Ristorante, Cork (Facebook Page ID 106478188163979)",
+  "http_status": 200,
+  "response": {
+    "data": [
+      {
+        "name": "page_post_engagements",
+        "period": "day",
+        "values": [
+          {
+            "value": 0,
+            "end_time": "2026-05-18T07:00:00+0000"
+          },
+          {
+            "value": 0,
+            "end_time": "2026-05-19T07:00:00+0000"
+          }
+        ],
+        "title": "Daily Post Engagements",
+        "description": "Daily: The number of times people have engaged with your posts through like, comments and shares and more.",
+        "id": "106478188163979/insights/page_post_engagements/day"
+      },
+      {
+        "name": "page_views_total",
+        "period": "day",
+        "values": [
+          {
+            "value": 13,
+            "end_time": "2026-05-18T07:00:00+0000"
+          },
+          {
+            "value": 3,
+            "end_time": "2026-05-19T07:00:00+0000"
+          }
+        ],
+        "title": "Daily Total views count per Page",
+        "description": "Daily: Total views count per Page",
+        "id": "106478188163979/insights/page_views_total/day"
+      }
+    ],
+    "paging": {
+      "previous": "https://graph.facebook.com/v25.0/106478188163979/insights?access_token=REDACTED&metric=page_post_engagements%2Cpage_views_total&period=day&since=1778828400&until=1779001200",
+      "next": "https://graph.facebook.com/v25.0/106478188163979/insights?access_token=REDACTED&metric=page_post_engagements%2Cpage_views_total&period=day&since=1779174000&until=1779346800"
+    }
+  }
+}

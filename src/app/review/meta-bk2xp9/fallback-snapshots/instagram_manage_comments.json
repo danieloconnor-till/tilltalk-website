@@ -1,0 +1,29 @@
+{
+  "captured_at": "2026-05-20T07:43:39.650Z",
+  "endpoint": "GET /17841446266971466/media?fields=id%2Ccaption%2Ccomments.limit%282%29%7Btext%2Cusername%2Ctimestamp%7D&limit=3",
+  "merchant": "Bella Napoli Ristorante, Cork (Facebook Page ID 106478188163979)",
+  "http_status": 200,
+  "response": {
+    "data": [
+      {
+        "id": "18100202948091569",
+        "caption": "I like it like that 😍 #restaurant #italianfood #food #cork"
+      },
+      {
+        "id": "18100326545491948",
+        "caption": "Opening hours❣️"
+      },
+      {
+        "id": "18097335337825289",
+        "caption": "Have you tried our Affogato? 😍#italianfood #dessert"
+      }
+    ],
+    "paging": {
+      "cursors": {
+        "before": "QVFIU0ZAYWG9ucjRBVnloS2lTR1pmc3VLR2NoNWN2QnlxMmpucGZA2QlJRaGl3Y3VVaUxvUzR6LWdTamNRQmlnSVZAVNExPcUNjQzAtVVoyQnlUUGtZAYk1qc2pR",
+        "after": "QVFIU2NEaHRkcG5GUHhIMXFQWi10aDQzMmtvenp5TlVpR3diU3lxNVVmRnJaT09sX3FYRlJFS2s2b3lOeUlCUnZAsRjEwNGpQYTdQRnY1Y2dKQTBaUENYNkRn"
+      },
+      "next": "https://graph.facebook.com/v25.0/17841446266971466/media?fields=id%2Ccaption%2Ccomments.limit%282%29%7Btext%2Cusername%2Ctimestamp%7D&limit=3&access_token=REDACTED&after=QVFIU2NEaHRkcG5GUHhIMXFQWi10aDQzMmtvenp5TlVpR3diU3lxNVVmRnJaT09sX3FYRlJFS2s2b3lOeUlCUnZAsRjEwNGpQYTdQRnY1Y2dKQTBaUENYNkRn"
+    }
+  }
+}

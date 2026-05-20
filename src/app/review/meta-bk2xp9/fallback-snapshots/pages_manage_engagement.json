@@ -1,0 +1,32 @@
+{
+  "captured_at": "2026-05-20T07:43:35.656Z",
+  "endpoint": "GET /106478188163979/conversations?limit=3",
+  "merchant": "Bella Napoli Ristorante, Cork (Facebook Page ID 106478188163979)",
+  "http_status": 200,
+  "response": {
+    "data": [
+      {
+        "id": "t_10162970127774261",
+        "link": "/106478188163979/inbox/1398091745669277/?section=messages",
+        "updated_time": "2026-03-04T11:57:55+0000"
+      },
+      {
+        "id": "t_122155199444850103",
+        "link": "/106478188163979/inbox/1356708449807607/?section=messages",
+        "updated_time": "2026-01-16T08:30:32+0000"
+      },
+      {
+        "id": "t_1430336392021435",
+        "link": "/106478188163979/inbox/1339013544910431/?section=messages",
+        "updated_time": "2025-12-23T11:15:18+0000"
+      }
+    ],
+    "paging": {
+      "cursors": {
+        "before": "QVFIU1REUjhBMVVLcDZAhVFVsUi03Ykk2QzUzanlCcVZADenNMQk54QlpDbmFMaXhfQ2NfeUdiSUJuRkd0amVNTW5ZAX1Rna3lHZAU5UY1JGaUh6N0sySjd2SktxeXhXV1JFRDJmTGpfUlhaM1FXZAkh3",
+        "after": "QVFIU0FMNEx0WlNLWmkzby1rMFdncEk2TWdObmFVeldtai1ZASk1uVmR3MG1Ra1F0Vlo2N1BTS3RlNGxLUXl1eTNqU2ZAraG9VczJrMHg1N25SZAVplbUpNRWc3UVBaVDdpNUpBZAFQ5WTNlYUJEQmhOUVZAHOVBlWkNOM2VXVG4wQ1hSbGVx"
+      },
+      "next": "https://graph.facebook.com/v25.0/106478188163979/conversations?limit=3&access_token=REDACTED&after=QVFIU0FMNEx0WlNLWmkzby1rMFdncEk2TWdObmFVeldtai1ZASk1uVmR3MG1Ra1F0Vlo2N1BTS3RlNGxLUXl1eTNqU2ZAraG9VczJrMHg1N25SZAVplbUpNRWc3UVBaVDdpNUpBZAFQ5WTNlYUJEQmhOUVZAHOVBlWkNOM2VXVG4wQ1hSbGVx"
+    }
+  }
+}

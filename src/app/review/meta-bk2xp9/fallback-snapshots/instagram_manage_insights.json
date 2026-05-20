@@ -1,0 +1,44 @@
+{
+  "captured_at": "2026-05-20T07:43:40.579Z",
+  "endpoint": "GET /17841446266971466/insights?metric=reach%2Cprofile_views%2Cviews&period=day&metric_type=total_value",
+  "merchant": "Bella Napoli Ristorante, Cork (Facebook Page ID 106478188163979)",
+  "http_status": 200,
+  "response": {
+    "data": [
+      {
+        "name": "reach",
+        "period": "day",
+        "title": "Accounts reached",
+        "description": "The number of unique accounts that have seen your content, at least once, including in ads. Content includes posts, stories, reels, videos and live videos. Reach is different from impressions, which may include multiple views of your content by the same accounts. This metric is estimated and in development.",
+        "total_value": {
+          "value": 242
+        },
+        "id": "17841446266971466/insights/reach/day"
+      },
+      {
+        "name": "profile_views",
+        "period": "day",
+        "title": "Profile visits",
+        "description": "The number of times your profile was visited.",
+        "total_value": {
+          "value": 56
+        },
+        "id": "17841446266971466/insights/profile_views/day"
+      },
+      {
+        "name": "views",
+        "period": "day",
+        "title": "Views",
+        "description": "The number of times your content was played or displayed. Content includes reels, posts, stories.",
+        "total_value": {
+          "value": 663
+        },
+        "id": "17841446266971466/insights/views/day"
+      }
+    ],
+    "paging": {
+      "previous": "https://graph.facebook.com/v25.0/17841446266971466/insights?access_token=REDACTED&metric=reach%2Cprofile_views%2Cviews&metric_type=total_value&period=day&since=1778917418&until=1779090218",
+      "next": "https://graph.facebook.com/v25.0/17841446266971466/insights?access_token=REDACTED&metric=reach%2Cprofile_views%2Cviews&metric_type=total_value&period=day&since=1779263020&until=1779435820"
+    }
+  }
+}

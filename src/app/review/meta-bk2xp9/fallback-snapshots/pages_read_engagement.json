@@ -1,0 +1,135 @@
+{
+  "captured_at": "2026-05-20T07:43:33.422Z",
+  "endpoint": "GET /106478188163979/posts?fields=message%2Ccreated_time%2Creactions.summary%28true%29%2Ccomments.summary%28true%29&limit=5",
+  "merchant": "Bella Napoli Ristorante, Cork (Facebook Page ID 106478188163979)",
+  "http_status": 200,
+  "response": {
+    "data": [
+      {
+        "message": "I like it like that 😍 #restaurant #italianfood #food #cork",
+        "created_time": "2026-04-28T20:44:47+0000",
+        "reactions": {
+          "data": [],
+          "paging": {
+            "cursors": {
+              "before": "QVFIUy1tajA3RmVqSVl1dWhCRlFZAdXRQV1VpVU9BNlFDQ3pnMHNVcVlRVGN3dDlsLWRxLUkzbTg1X2pVTDFOR2NST2JYTENRbnFlWjdJdTQwRzFqYXhfVVV3",
+              "after": "QVFIU24zUFYwNzJQQVkzWG4wUlFVa29zdEp0bzFOVVNsUFJFYjNzNHhOUVlTWTZAvaGdUbVh6eFREbDNDNkVoXy1BU29iNFVNRzNJYnFPSDBITi15QzRKd2ZAn"
+            }
+          },
+          "summary": {
+            "total_count": 3,
+            "viewer_reaction": "NONE"
+          }
+        },
+        "comments": {
+          "data": [],
+          "summary": {
+            "order": "chronological",
+            "total_count": 0,
+            "can_comment": true
+          }
+        },
+        "id": "106478188163979_1422513316579496"
+      },
+      {
+        "message": "Opening hours❣️",
+        "created_time": "2026-03-26T13:18:47+0000",
+        "reactions": {
+          "data": [],
+          "paging": {
+            "cursors": {
+              "before": "QVFIUzJ0RWpMQzU2UThSZAVZArSV9PaTZAiLTJFTTEwYXEtX3lvYmZAablFzT0w0QWx5U18xMFVoSERERHZAfeEJZAUzB5MXFuVG5Fc3FyTkRwS1o1MDRRbUVrT3RB",
+              "after": "QVFIUzJ0RWpMQzU2UThSZAVZArSV9PaTZAiLTJFTTEwYXEtX3lvYmZAablFzT0w0QWx5U18xMFVoSERERHZAfeEJZAUzB5MXFuVG5Fc3FyTkRwS1o1MDRRbUVrT3RB"
+            }
+          },
+          "summary": {
+            "total_count": 1,
+            "viewer_reaction": "NONE"
+          }
+        },
+        "comments": {
+          "data": [],
+          "summary": {
+            "order": "chronological",
+            "total_count": 0,
+            "can_comment": true
+          }
+        },
+        "id": "106478188163979_1394289226068572"
+      },
+      {
+        "message": "Have you tried our Affogato? 😍#italianfood #dessert",
+        "created_time": "2026-03-24T17:48:39+0000",
+        "reactions": {
+          "data": [],
+          "paging": {
+            "cursors": {
+              "before": "QVFIU2l6a0dUendVaGhVQ0RVOHpHR0JPTUJrSE50bDdhV0tjUENOeTdtY1Y1cF9YVTZA1blo3aFU4c0FXczlZAamh1UHZAmdnVHWUdOcUN0TUFmNFpRWUE3TmhB",
+              "after": "QVFIU0pHUXU3VzZAvQWdtUnE1aDJrVUZAUR29QcDZAOTnhrdkJYNVVGQVNQbFRENHpndjlYaC1EekNOY2pab0x2OXBtRlA2UDM1VFdoTm9sVTlILUFlM3ZAaa05B"
+            }
+          },
+          "summary": {
+            "total_count": 2,
+            "viewer_reaction": "NONE"
+          }
+        },
+        "comments": {
+          "data": [],
+          "summary": {
+            "order": "chronological",
+            "total_count": 0,
+            "can_comment": true
+          }
+        },
+        "id": "106478188163979_1392691536228341"
+      },
+      {
+        "message": "Treat your mum to an amazing dinner this Mothers Day 🌷❤️",
+        "created_time": "2026-03-15T09:53:25+0000",
+        "reactions": {
+          "data": [],
+          "summary": {
+            "total_count": 0,
+            "viewer_reaction": "NONE"
+          }
+        },
+        "comments": {
+          "data": [],
+          "summary": {
+            "order": "chronological",
+            "total_count": 0,
+            "can_comment": true
+          }
+        },
+        "id": "106478188163979_1384431763720985"
+      },
+      {
+        "message": "Lunch plans? We’ve got you covered 🍽️✨\n\nJoin us this weekend, we’re open from 1PM for a delicious lunch experience. Fresh flavors, beautiful plates, and the perfect way to slow down and savor your afternoon.",
+        "created_time": "2026-02-27T17:17:50+0000",
+        "reactions": {
+          "data": [],
+          "summary": {
+            "total_count": 0,
+            "viewer_reaction": "NONE"
+          }
+        },
+        "comments": {
+          "data": [],
+          "summary": {
+            "order": "chronological",
+            "total_count": 0,
+            "can_comment": true
+          }
+        },
+        "id": "106478188163979_1371583511672477"
+      }
+    ],
+    "paging": {
+      "cursors": {
+        "before": "QVFIU05jMWJ5MUtzN2tjNHQ5TUdxcl9YVUpOTEtlV3NrOUdydUluSXp3ZAkV6YWVhdUFnZAU8zaXJsLVlkamUyZAUdUcmtWenZARbHFReGVSRzZAhSHEzczNkS0hEZATgtRmJVUC13VnhXeVlRTjNlTHhxRmNFOExkbWIxQng4M2FjSnZAmb054eVVueGxmRWlPZAjdtVi1zY3RRdUN0QW4zd1lhWDBRS3RBM0c2ZAjhjZAUdsMzJoWXNoQlVWTWh2LWVIc29mU3UzZAUttRWgxZAlNhTS1MWGV2WG5NVVpPYl94eC1FeEQxMlQwZAVY3RnZAGLVA4VlByYVhoMDI2NDU3U3gwdEN0R3cyWUFWTG50Y1d0cVQtMmVXTkFTd0VlWmpFOWdoM0hjUl9PV2lXcDhzcWhObllBZA3BSbmxPaGp5SDNQRFI1TlROZAUF1SGFoTDFRenBfT3VnTVVMOURSZADUwWTY3a0drMGo3N01RcEhqOGhfLWVoQXlaLUdMXzBmMzZAyRDFWZAGNSdTlDYTQxYUFud3A0dzc0N3pZASldmN1R5N3Q2SGF2dXEtc0dWeTlYN0hoNEt3VjRGZAlA4NWZAGa1JWRzVYZADlTcGVXMTBPQ1VyNDRtQzhUazdxc1RPWV8zREZARNWRURTU1dzBWU0FHVzF4bzJQMERXenBQY0JmMURqeWtpOExWdDVEMmNCUldLTXk2aENUWmRUWk5kdzBhU3E1bDVZAVF9mSjFyLTFRM2N4aHpXX3FGUHJPcG9rSHJQajVuQ3UxZADF5RTBiemxxYnpkRnZAkNW1IOUxkNXNkemVua3BpM3RpQkVLRjdULUZAKMXpjb3hFWG8ZD",
+        "after": "QVFIU1BUZAWtwWGg5VE9Qb1FadGVJbUp5OFRBZA1RiaG96VkNVOUFReVBMc3dMOTllTTVwUjF6eEZALOFBFN2ZA0UkYwUFFMZAlBVWDliemdzQmdJOEZALNWNmaDExUmg4cWh3RjdZAX0hBRmpfU29KUmlSd1dWaUJQWlZAheEVLQ3lqU2prNk9qN09vd0l3OW52TDktQlNDbmlYam12cEVNZAWFFWThEZAFB4Y2RleTFYN3FYaUszOHNkNW5PcnUxZA1cyZAVJmX256aHN2OFlXUGxuMFYycFhHX2dETE5Hc0EtNXVSUXQyTF9LNHdDT29pOTVGUk9hY1I4azRzZAGxESnFNSlAySGRIT1ZA5YXRhRE9CSnlzdHF3THFMWTBJZAGhBNG9YWW5TdFduSDB1RHZAYMG4xOG83b1o1ZAlVib1dhSlRGdlQwWFJGYzNmdmJFNUNvSGoyMWlpOFp6c19faV91RWFmTG9icnNJRTVtTHZABQ0pLNXlnRlFVNzg1N0pFODBPM0FFOXlWZAXBhZAjh6djgwa1NYWjdKY2tCWEllSDN0Q1llemlVcTB1OEl2Q3l5VXZAMR25sYWcwOXpYb3RwRExNLWRaeFRQS2lXTGZAjTW9HN0FKQ3R1SWRXR0o0WVo3ZAzNYSllRRUxMeFUtUGZANOFJxRFVKTVRic1lzUmU1WWtqbnRaakswOXdILVBlS25jR1Y3bTR4VFRycGhWdDBuSmhfOTJYYzBobHBLYnFCT05DNEtjN3FPdDI5ZAlFMZA05fLVl4anhWSGNnNF9jZAl9ueFZA6YjJsaG5sbm5RVFRyZAzZA6RzlnbkI2YlFCWGllNmNGNm5EVE8tQkEZD"
+      },
+      "next": "https://graph.facebook.com/v25.0/106478188163979/posts?fields=message%2Ccreated_time%2Creactions.summary%28true%29%2Ccomments.summary%28true%29&limit=5&access_token=REDACTED&after=QVFIU1BUZAWtwWGg5VE9Qb1FadGVJbUp5OFRBZA1RiaG96VkNVOUFReVBMc3dMOTllTTVwUjF6eEZALOFBFN2ZA0UkYwUFFMZAlBVWDliemdzQmdJOEZALNWNmaDExUmg4cWh3RjdZAX0hBRmpfU29KUmlSd1dWaUJQWlZAheEVLQ3lqU2prNk9qN09vd0l3OW52TDktQlNDbmlYam12cEVNZAWFFWThEZAFB4Y2RleTFYN3FYaUszOHNkNW5PcnUxZA1cyZAVJmX256aHN2OFlXUGxuMFYycFhHX2dETE5Hc0EtNXVSUXQyTF9LNHdDT29pOTVGUk9hY1I4azRzZAGxESnFNSlAySGRIT1ZA5YXRhRE9CSnlzdHF3THFMWTBJZAGhBNG9YWW5TdFduSDB1RHZAYMG4xOG83b1o1ZAlVib1dhSlRGdlQwWFJGYzNmdmJFNUNvSGoyMWlpOFp6c19faV91RWFmTG9icnNJRTVtTHZABQ0pLNXlnRlFVNzg1N0pFODBPM0FFOXlWZAXBhZAjh6djgwa1NYWjdKY2tCWEllSDN0Q1llemlVcTB1OEl2Q3l5VXZAMR25sYWcwOXpYb3RwRExNLWRaeFRQS2lXTGZAjTW9HN0FKQ3R1SWRXR0o0WVo3ZAzNYSllRRUxMeFUtUGZANOFJxRFVKTVRic1lzUmU1WWtqbnRaakswOXdILVBlS25jR1Y3bTR4VFRycGhWdDBuSmhfOTJYYzBobHBLYnFCT05DNEtjN3FPdDI5ZAlFMZA05fLVl4anhWSGNnNF9jZAl9ueFZA6YjJsaG5sbm5RVFRyZAzZA6RzlnbkI2YlFCWGllNmNGNm5EVE8tQkEZD"
+    }
+  }
+}

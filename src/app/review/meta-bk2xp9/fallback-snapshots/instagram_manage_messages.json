@@ -1,0 +1,14 @@
+{
+  "captured_at": "2026-05-20T07:43:39.957Z",
+  "endpoint": "GET /17841446266971466/conversations?limit=3",
+  "merchant": "Bella Napoli Ristorante, Cork (Facebook Page ID 106478188163979)",
+  "http_status": 400,
+  "response": {
+    "error": {
+      "message": "(#3) Application does not have the capability to make this API call.",
+      "type": "OAuthException",
+      "code": 3,
+      "fbtrace_id": "AgG4lcDTDoYFOIg1zP_TV_y"
+    }
+  }
+}

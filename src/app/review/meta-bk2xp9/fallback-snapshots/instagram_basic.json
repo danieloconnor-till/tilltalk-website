@@ -1,0 +1,14 @@
+{
+  "captured_at": "2026-05-20T07:43:39.344Z",
+  "endpoint": "GET /17841446266971466?fields=username%2Cname%2Cprofile_picture_url%2Cfollowers_count%2Cmedia_count",
+  "merchant": "Bella Napoli Ristorante, Cork (Facebook Page ID 106478188163979)",
+  "http_status": 200,
+  "response": {
+    "username": "bellanapoli_ristorante",
+    "name": "Bella Napoli | Italian Cuisine",
+    "profile_picture_url": "https://scontent-lhr8-2.xx.fbcdn.net/v/t51.2885-15/475907479_1851363545617720_3929055386897270115_n.jpg?_nc_cat=103&ccb=1-7&_nc_sid=7d201b&_nc_ohc=ybtS79kCZVgQ7kNvwGVTzcF&_nc_oc=AdpDCwUZx6mv_fUE2rtQt_epLtcZUV82vT7fItiZNCLsq-Pw3PW-Y2BTGk3QeQ_NsDY&_nc_zt=23&_nc_ht=scontent-lhr8-2.xx&edm=AL-3X8kEAAAA&oh=00_Af4wgBb7JzOYFzDBE-bGubsyefcnAJ29NVJVArHFLuDERQ&oe=6A135059",
+    "followers_count": 3447,
+    "media_count": 166,
+    "id": "17841446266971466"
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "captured_at": "2026-05-20T07:43:33.004Z",
+  "endpoint": "GET /me/accounts",
+  "merchant": "Bella Napoli Ristorante, Cork (Facebook Page ID 106478188163979)",
+  "http_status": 200,
+  "response": {
+    "data": [
+      {
+        "access_token": "EAATg14plDIYBRralpSEdZAFZA82pcpoikS886Ir2XUBZBMPdoQ4thLT7ijz6iuJv214OcPNKIP2xCKqbXOPkOfaO1GrY7NvZAk2mWqCEeDWrZC1iVZCFdpBy5WRIkPPVSKvZAFw1E6LyZAqACOhCFbJ4SGzZA1FsRuN5sHRBtd96oSVAsroZCGZCw8TCPZCJm9rvM5WGjKcZD",
+        "category": "Restaurant",
+        "category_list": [
+          {
+            "id": "273819889375819",
+            "name": "Restaurant"
+          }
+        ],
+        "name": "Bella Napoli",
+        "id": "106478188163979",
+        "tasks": [
+          "ADVERTISE",
+          "ANALYZE",
+          "CREATE_CONTENT",
+          "MESSAGING",
+          "MODERATE",
+          "VIEW_MONETIZATION_INSIGHTS"
+        ]
+      }
+    ],
+    "paging": {
+      "cursors": {
+        "before": "QVFIUzEyeGNXYnVtZAVNvTEI4ZAXV6SDRPOTFyQlVOalN5c1VKUUtuWDlUWUdFdzVfQVpPY3BZANHRlM1V5TFdnWnZAyYk5MZAmFxTFMxOEQtYnk2d29tdUY2aktB",
+        "after": "QVFIUzEyeGNXYnVtZAVNvTEI4ZAXV6SDRPOTFyQlVOalN5c1VKUUtuWDlUWUdFdzVfQVpPY3BZANHRlM1V5TFdnWnZAyYk5MZAmFxTFMxOEQtYnk2d29tdUY2aktB"
+      }
+    }
+  }
+}

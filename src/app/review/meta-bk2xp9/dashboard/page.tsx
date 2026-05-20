@@ -1,25 +1,31 @@
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import DashboardTabs from './DashboardTabs'
+import {
+  ENDPOINTS,
+  TABS,
+  describeEndpoint,
+  resolvePath,
+  type EndpointDef,
+  type EndpointContext,
+  type EndpointTab,
+} from '../lib/endpoints'
+import { shouldRenderFallback, type GraphResponse } from '../lib/fallback'
+import { loadSnapshot, type SnapshotFile } from '../lib/snapshots'
 
 const GRAPH_VERSION = 'v25.0'
 const ENTRY_PATH = '/review/meta-bk2xp9/'
 const LOGOUT_PATH = '/review/meta-bk2xp9/logout'
 
-type CallResult = {
-  ok: boolean
-  status: number
-  body: string
-  note?: string
-}
+type CallResult = GraphResponse & { note?: string }
 
 async function call(
   token: string,
-  endpoint: string,
+  path: string,
   params: Record<string, string> = {},
 ): Promise<CallResult> {
   const url = new URL(
-    `https://graph.facebook.com/${GRAPH_VERSION}/${endpoint.replace(/^\//, '')}`,
+    `https://graph.facebook.com/${GRAPH_VERSION}/${path.replace(/^\//, '')}`,
   )
   for (const [k, v] of Object.entries(params)) url.searchParams.set(k, v)
   url.searchParams.set('access_token', token)
@@ -56,6 +62,11 @@ function prettyJson(s: string, maxChars = 500): string {
     : display
 }
 
+function prettyJsonObject(value: unknown, maxChars = 600): string {
+  const s = JSON.stringify(value, null, 2)
+  return s.length > maxChars ? s.slice(0, maxChars) + '\n... (truncated)' : s
+}
+
 function normalizeAdAccountId(id: string): string {
   return id.startsWith('act_') ? id : `act_${id}`
 }
@@ -68,45 +79,90 @@ const NA_RESULT: CallResult = {
 }
 
 type Panel = {
-  permission: string
-  endpoint: string
+  def: EndpointDef
+  endpointDescriptor: string
   result: CallResult
+  fallback: null | {
+    captionReason: string
+    snapshot: SnapshotFile
+  }
+}
+
+function CardHeader({ def }: { def: EndpointDef }) {
+  if (def.title) {
+    return (
+      <div>
+        <h3 className="text-base font-semibold text-gray-900">{def.title}</h3>
+        {def.subtitle ? (
+          <p className="text-xs text-gray-600 mt-1 leading-relaxed">
+            {def.subtitle}
+          </p>
+        ) : null}
+      </div>
+    )
+  }
+  return (
+    <h3 className="font-mono text-sm font-bold text-gray-900 break-all">
+      {def.permission}
+    </h3>
+  )
 }
 
 function PanelCard({ panel }: { panel: Panel }) {
-  const isNA = panel.result.note !== undefined
+  const { result, def, endpointDescriptor, fallback } = panel
+  const isNA = result.note !== undefined
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-5">
       <div className="flex items-start justify-between gap-3 mb-3">
         <div className="flex-1 min-w-0">
-          <h3 className="font-mono text-sm font-bold text-gray-900 break-all">
-            {panel.permission}
-          </h3>
-          <p className="font-mono text-xs text-gray-600 mt-1 break-all">
-            {panel.endpoint}
+          <CardHeader def={def} />
+          <p className="font-mono text-xs text-gray-600 mt-2 break-all">
+            {endpointDescriptor}
           </p>
         </div>
         {isNA ? (
           <span className="shrink-0 inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
             N/A
           </span>
-        ) : panel.result.ok ? (
+        ) : result.ok ? (
           <span className="shrink-0 inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
-            Success {panel.result.status}
+            Success {result.status}
           </span>
         ) : (
           <span className="shrink-0 inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700">
-            Error {panel.result.status || '—'}
+            Error {result.status || '—'}
           </span>
         )}
       </div>
       {isNA ? (
-        <p className="text-sm text-gray-500 italic">{panel.result.note}</p>
+        <p className="text-sm text-gray-500 italic">{result.note}</p>
       ) : (
         <pre className="bg-gray-900 text-gray-100 text-xs rounded-lg p-3 overflow-y-auto max-h-60 font-mono whitespace-pre-wrap break-all">
-          {prettyJson(panel.result.body)}
+          {prettyJson(result.body)}
         </pre>
       )}
+      {fallback ? (
+        <div className="mt-4 rounded-lg border border-amber-300 bg-amber-50 p-4">
+          <div className="flex items-start justify-between gap-3 mb-2">
+            <h4 className="text-sm font-semibold text-amber-900">
+              Demo data — Bella Napoli Ristorante, Cork
+            </h4>
+            <span className="shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-amber-200 text-amber-900 uppercase tracking-wide">
+              Captured
+            </span>
+          </div>
+          <p className="text-xs text-amber-900 leading-relaxed mb-3">
+            Your test account returned {fallback.captionReason}. The panel
+            below shows a real captured response from Bella Napoli Ristorante
+            (the live reference merchant for this submission), used with
+            merchant consent. Captured {fallback.snapshot.captured_at} from{' '}
+            <span className="font-mono">{fallback.snapshot.endpoint}</span>.
+          </p>
+          <pre className="bg-gray-900 text-gray-100 text-xs rounded-lg p-3 overflow-y-auto max-h-72 font-mono whitespace-pre-wrap break-all">
+            {prettyJsonObject(fallback.snapshot.response)}
+          </pre>
+        </div>
+      ) : null}
     </div>
   )
 }
@@ -122,24 +178,19 @@ export default async function MetaReviewDashboardPage() {
   const me = await call(userToken, 'me', { fields: 'id,name' })
   if (me.status === 401) redirect(LOGOUT_PATH)
 
-  // Resolve owning Page, BM, ad account in parallel.
-  const [accountsRes, businessesRes, adAccountsRes] = await Promise.all([
+  // Resolve owning Page and ad account in parallel.
+  const [accountsRes, adAccountsRes] = await Promise.all([
     call(userToken, 'me/accounts', { fields: 'id,name,access_token' }),
-    call(userToken, 'me/businesses', { fields: 'id,name' }),
     call(userToken, 'me/adaccounts', { fields: 'id,name' }),
   ])
 
   type AccountsResponse = {
     data?: Array<{ id: string; name?: string; access_token?: string }>
   }
-  type BusinessesResponse = { data?: Array<{ id: string; name?: string }> }
   type AdAccountsResponse = { data?: Array<{ id: string; name?: string }> }
 
   const accountsData = accountsRes.ok
     ? jsonParseSafe<AccountsResponse>(accountsRes.body)
-    : null
-  const businessesData = businessesRes.ok
-    ? jsonParseSafe<BusinessesResponse>(businessesRes.body)
     : null
   const adAccountsData = adAccountsRes.ok
     ? jsonParseSafe<AdAccountsResponse>(adAccountsRes.body)
@@ -148,14 +199,13 @@ export default async function MetaReviewDashboardPage() {
   const firstPage = accountsData?.data?.[0]
   const pageId = firstPage?.id ?? null
   const pageToken = firstPage?.access_token ?? null
-  const businessId = businessesData?.data?.[0]?.id ?? null
   const adAccountIdRaw = adAccountsData?.data?.[0]?.id ?? null
   const adAccountId = adAccountIdRaw ? normalizeAdAccountId(adAccountIdRaw) : null
 
   // IG user id is reachable only via the Page → resolve after Page is known.
   let igUserId: string | null = null
   if (pageId) {
-    const igRes = await call(userToken, pageId, {
+    const igRes = await call(pageToken ?? userToken, pageId, {
       fields: 'instagram_business_account',
     })
     if (igRes.ok) {
@@ -166,238 +216,107 @@ export default async function MetaReviewDashboardPage() {
     }
   }
 
-  // Page Access Token swap — required for Page-scoped endpoints (8 of the 17
-  // listed in the prompt). If swap fails for some reason, fall back to the
-  // User token so panels return Meta's specific error rather than crashing.
+  // Page Access Token swap — required for Page-scoped endpoints. If swap
+  // failed, fall back to the User token so panels return Meta's specific
+  // error rather than crashing.
   const tokenForPage = pageToken ?? userToken
+  const ctx: EndpointContext = { pageId, adAccountId, igUserId }
 
-  // Each panel is independent — build them as Promises and resolve via
-  // Promise.allSettled so any single 4xx/5xx never kills the whole render.
-  const buildPanel = async (
-    permission: string,
-    endpointDesc: string,
-    fetchFn: () => Promise<CallResult>,
-    missing: boolean,
-  ): Promise<Panel> => {
-    if (missing)
-      return { permission, endpoint: endpointDesc, result: NA_RESULT }
-    const result = await fetchFn()
-    return { permission, endpoint: endpointDesc, result }
-  }
-
-  const panelPromises: Array<Promise<Panel>> = [
-    // ── Tab 1 — Pages & Content (7) ─────────────────────────────────────
-    buildPanel(
-      'pages_show_list',
-      'GET /me/accounts',
-      () => call(userToken, 'me/accounts', { fields: 'id,name' }),
-      false,
-    ),
-    buildPanel(
-      'pages_read_engagement',
-      `GET /${pageId ?? '{page_id}'}`,
-      () =>
-        call(tokenForPage, pageId!, {
-          fields: 'name,fan_count,followers_count',
-        }),
-      !pageId,
-    ),
-    buildPanel(
-      'pages_manage_ads',
-      `GET /${pageId ?? '{page_id}'}`,
-      () => call(tokenForPage, pageId!, { fields: 'name,id' }),
-      !pageId,
-    ),
-    buildPanel(
-      'pages_manage_engagement',
-      `GET /${pageId ?? '{page_id}'}`,
-      () => call(tokenForPage, pageId!, { fields: 'name,id' }),
-      !pageId,
-    ),
-    buildPanel(
-      'pages_read_user_content',
-      `GET /${pageId ?? '{page_id}'}/ratings`,
-      () => call(tokenForPage, `${pageId}/ratings`, { limit: '1' }),
-      !pageId,
-    ),
-    buildPanel(
-      'pages_manage_metadata',
-      `GET /${pageId ?? '{page_id}'}/subscribed_apps`,
-      () => call(tokenForPage, `${pageId}/subscribed_apps`),
-      !pageId,
-    ),
-    buildPanel(
-      'pages_messaging',
-      `GET /${pageId ?? '{page_id}'}/conversations`,
-      () => call(tokenForPage, `${pageId}/conversations`, { limit: '1' }),
-      !pageId,
-    ),
-    // ── Tab 2 — Insights & Attribution (2) ──────────────────────────────
-    buildPanel(
-      'read_insights',
-      `GET /${pageId ?? '{page_id}'}/insights`,
-      () =>
-        call(tokenForPage, `${pageId}/insights`, {
-          metric: 'page_impressions_unique',
-          period: 'day',
-          limit: '1',
-        }),
-      !pageId,
-    ),
-    buildPanel(
-      'attribution_read',
-      `GET /${adAccountId ?? 'act_{ad_account_id}'}/insights`,
-      () =>
-        call(userToken, `${adAccountId}/insights`, {
-          fields: 'spend',
-          limit: '1',
-        }),
-      !adAccountId,
-    ),
-    // ── Tab 3 — Ads & Business (4) ──────────────────────────────────────
-    buildPanel(
-      'ads_read',
-      `GET /${adAccountId ?? 'act_{ad_account_id}'}/campaigns`,
-      () =>
-        call(userToken, `${adAccountId}/campaigns`, {
-          fields: 'id,name',
-          limit: '1',
-        }),
-      !adAccountId,
-    ),
-    buildPanel(
-      'ads_management',
-      `GET /${adAccountId ?? 'act_{ad_account_id}'}`,
-      () =>
-        call(userToken, adAccountId!, {
-          fields: 'id,name,account_status',
-        }),
-      !adAccountId,
-    ),
-    buildPanel(
-      'business_management',
-      `GET /${businessId ?? '{business_id}'}`,
-      () =>
-        call(userToken, businessId!, {
-          fields: 'id,name,verification_status',
-        }),
-      !businessId,
-    ),
-    buildPanel(
-      'leads_retrieval',
-      `GET /${pageId ?? '{page_id}'}/leadgen_forms`,
-      () =>
-        call(tokenForPage, `${pageId}/leadgen_forms`, {
-          fields: 'id,name',
-          limit: '1',
-        }),
-      !pageId,
-    ),
-    // ── Tab 4 — Instagram (4) ───────────────────────────────────────────
-    buildPanel(
-      'instagram_basic',
-      `GET /${igUserId ?? '{ig_user_id}'}`,
-      () =>
-        call(userToken, igUserId!, {
-          fields: 'id,username,followers_count',
-        }),
-      !igUserId,
-    ),
-    buildPanel(
-      'instagram_manage_comments',
-      `GET /${igUserId ?? '{ig_user_id}'}/media`,
-      () =>
-        call(userToken, `${igUserId}/media`, {
-          fields: 'id,comments_count',
-          limit: '1',
-        }),
-      !igUserId,
-    ),
-    buildPanel(
-      'instagram_manage_insights',
-      `GET /${igUserId ?? '{ig_user_id}'}/insights`,
-      () =>
-        call(userToken, `${igUserId}/insights`, {
-          metric: 'reach',
-          metric_type: 'total_value',
-          period: 'day',
-        }),
-      !igUserId,
-    ),
-    buildPanel(
-      'instagram_manage_messages',
-      `GET /${igUserId ?? '{ig_user_id}'}/conversations`,
-      () =>
-        call(userToken, `${igUserId}/conversations`, {
-          platform: 'instagram',
-          limit: '1',
-        }),
-      !igUserId,
-    ),
-  ]
+  // Resolve each endpoint in parallel. Promise.allSettled isolates failures so
+  // one rejected promise can never kill the whole render.
+  const panelPromises: Array<Promise<Panel>> = ENDPOINTS.map(async (def) => {
+    const resolved = resolvePath(def.path, ctx)
+    const descriptor = describeEndpoint(def, ctx)
+    if (!resolved) {
+      return {
+        def,
+        endpointDescriptor: descriptor,
+        result: NA_RESULT,
+        fallback: null,
+      }
+    }
+    const token = def.tokenType === 'page' ? tokenForPage : userToken
+    const result = await call(token, resolved, def.params)
+    return {
+      def,
+      endpointDescriptor: descriptor,
+      result,
+      fallback: null,
+    }
+  })
 
   const settled = await Promise.allSettled(panelPromises)
-  const allPanels: Panel[] = settled.map((s) =>
-    s.status === 'fulfilled'
-      ? s.value
-      : {
-          permission: 'unknown',
-          endpoint: 'unknown',
-          result: { ok: false, status: 0, body: 'Promise rejected' },
-        },
+  const allPanels: Panel[] = settled.map((s, i) => {
+    if (s.status === 'fulfilled') return s.value
+    const def = ENDPOINTS[i]
+    return {
+      def,
+      endpointDescriptor: describeEndpoint(def, ctx),
+      result: {
+        ok: false,
+        status: 0,
+        body: 'Promise rejected — see server logs',
+      },
+      fallback: null,
+    }
+  })
+
+  // For each panel, evaluate the fallback trigger and load the snapshot if
+  // needed. Only the snapshots for triggered panels are loaded.
+  await Promise.all(
+    allPanels.map(async (panel) => {
+      // N/A panels (missing identifier) also trigger fallback — they're
+      // effectively "the live call could not be made at all".
+      const decision = panel.result.note
+        ? { trigger: true, reason: panel.result.note }
+        : shouldRenderFallback(panel.result)
+      if (!decision.trigger) return
+      const snapshot = await loadSnapshot(panel.def.permission)
+      if (!snapshot) return
+      // Special-case caption for instagram_manage_messages — the live 400 is
+      // an app-level capability block, not an empty/missing data issue.
+      const captionReason =
+        panel.def.permission === 'instagram_manage_messages'
+          ? 'the linked Bella Napoli IG account has a known app-level capability block separate from this submission'
+          : decision.reason
+      panel.fallback = { captionReason, snapshot }
+    }),
   )
 
-  const tabs = [
-    {
-      label: 'Pages & Content',
-      count: 7,
-      note:
-        'These calls use a Page Access Token (swapped from the User Token via /me/accounts), as required by Meta for Page-scoped endpoints. The first call (pages_show_list) uses the User Token, since /me/accounts is the endpoint that returns the Page list and its Page tokens.',
-      panels: allPanels.slice(0, 7),
-    },
-    {
-      label: 'Insights & Attribution',
-      count: 2,
-      note:
-        'read_insights uses a Page Access Token; attribution_read uses the User Token against the ad account.',
-      panels: allPanels.slice(7, 9),
-    },
-    {
-      label: 'Ads & Business',
-      count: 4,
-      note:
-        'leads_retrieval uses a Page Access Token; the other three use the User Token.',
-      panels: allPanels.slice(9, 13),
-    },
-    {
-      label: 'Instagram',
-      count: 4,
-      note:
-        'All Instagram calls use the User Token. The IG user id is resolved from the connected Page via instagram_business_account.',
-      panels: allPanels.slice(13, 17),
-    },
-  ]
+  // Group by tab in the order defined in TABS, preserving ENDPOINTS order
+  // within each tab.
+  const panelsByTab: Record<EndpointTab, Panel[]> = {
+    pages: [],
+    insights: [],
+    ads: [],
+    instagram: [],
+  }
+  for (const p of allPanels) panelsByTab[p.def.tab].push(p)
 
   return (
     <div className="max-w-5xl mx-auto py-10 px-4">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900">
-          Meta App Review — 17 Permissions Demo
+          Meta App Review — 19 Permissions Demo
         </h1>
         <p className="text-sm text-gray-600 mt-1">
           Live Graph API <code className="font-mono">{GRAPH_VERSION}</code>{' '}
           calls, server-side, using the Test App OAuth token in your session.
+          Where the live call returns empty data or an error on a thin
+          reviewer account, a clearly labelled &ldquo;Demo data&rdquo; panel
+          below shows a captured snapshot from Bella Napoli Ristorante so you
+          can see what populated data looks like.
         </p>
       </div>
       <DashboardTabs
-        tabs={tabs.map((t) => ({
+        tabs={TABS.map((t) => ({
           label: t.label,
           count: t.count,
           note: t.note,
           content: (
             <div className="grid gap-4">
-              {t.panels.map((p, i) => (
-                <PanelCard key={`${t.label}-${i}`} panel={p} />
+              {panelsByTab[t.id].map((p, i) => (
+                <PanelCard key={`${t.id}-${i}-${p.def.permission}`} panel={p} />
               ))}
             </div>
           ),

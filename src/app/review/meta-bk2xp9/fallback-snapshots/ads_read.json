@@ -1,0 +1,9 @@
+{
+  "captured_at": "2026-05-20T07:43:38.535Z",
+  "endpoint": "GET /act_1518928786436243/insights?fields=campaign_name%2Cspend%2Cimpressions%2Cclicks&level=campaign&date_preset=last_7d",
+  "merchant": "Bella Napoli Ristorante, Cork (Facebook Page ID 106478188163979)",
+  "http_status": 200,
+  "response": {
+    "data": []
+  }
+}

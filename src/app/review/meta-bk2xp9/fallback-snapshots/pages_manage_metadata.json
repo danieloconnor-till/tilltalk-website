@@ -1,0 +1,14 @@
+{
+  "captured_at": "2026-05-20T07:43:34.338Z",
+  "endpoint": "GET /106478188163979?fields=name%2Ccategory%2Cabout%2Cwebsite%2Cphone",
+  "merchant": "Bella Napoli Ristorante, Cork (Facebook Page ID 106478188163979)",
+  "http_status": 200,
+  "response": {
+    "name": "Bella Napoli",
+    "category": "Restaurant",
+    "about": "🇮🇹 Authentic Italian Food 🍝\n📍 Cork City Centre\n▪️Bookings welcome, follow the link below⬇️",
+    "website": "https://www.bellanapolicork.com/",
+    "phone": "+353214279122",
+    "id": "106478188163979"
+  }
+}
