@@ -10,13 +10,18 @@ export default function MetaReviewEntryPage() {
           Meta App Review — Permission Demonstrations
         </h1>
         <p className="text-gray-700 mb-3">
-          This page demonstrates the 17 permissions requested by TillTalk&rsquo;s
+          This page demonstrates the 19 permissions requested by TillTalk&rsquo;s
           Meta App (ID 1373116251311238).
         </p>
         <p className="text-gray-700 mb-3">
-          Click below to log in with the Test User account provided in the
-          submission notes. After granting permissions, you&rsquo;ll see each
-          permission used live against the Graph API.
+          Click below to log in with your Meta account. After granting
+          permissions, you&rsquo;ll see each one exercised live against the
+          Graph API. Where your account returns empty or limited data (no
+          linked Instagram Business account, no Lead Ads history, no
+          attribution data, etc.), a clearly labelled &ldquo;Demo data&rdquo;
+          panel renders alongside the live response showing a captured
+          snapshot from Bella Napoli Ristorante, TillTalk&rsquo;s live
+          reference merchant.
         </p>
         <p className="text-gray-500 text-sm mb-8">
           All Graph API calls happen server-side. The Test App secret is never
