@@ -4,7 +4,7 @@ export default function PrivacyPage() {
       <div className="bg-white rounded-2xl border border-gray-200 p-8 md:p-12">
         <h1 className="text-3xl font-bold text-gray-900 mb-1">Privacy Policy</h1>
         <p className="text-gray-500 text-sm mb-2">
-          <strong>Last updated:</strong> 19 May 2026 &middot; <strong>Effective:</strong> 19 May 2026 &middot; Prime Construct Ltd (trading as TillTalk)
+          <strong>Last updated:</strong> 21 May 2026 &middot; <strong>Effective:</strong> 21 May 2026 &middot; Prime Construct Ltd (trading as TillTalk)
         </p>
         <p className="text-gray-500 text-xs mb-8">
           This version supersedes the version dated 8 May 2026. Changes in this revision: explicit disclosure of TillTalk&apos;s use of merchant data to operate per-merchant marketing and to inform aggregate decision-policy heuristics across the service (new &sect;5); explicit naming of the Meta marketing-platform data categories accessed under OAuth (&sect;3.5); explicit naming of key named sub-processors and Anthropic&apos;s data-training position (&sect;6.1); update of the change-notification mechanism (&sect;14).
@@ -323,6 +323,31 @@ export default function PrivacyPage() {
             <p className="mt-3 bg-gray-50 rounded-lg p-4">
               <strong>A note on the customers of our clients:</strong> if you are a customer of a TillTalk client and want to exercise rights over your personal data, please contact the client directly &mdash; they are the data controller and hold the relationship with you. TillTalk will assist the client in fulfilling your request.
             </p>
+
+            <div className="mt-6 pt-6 border-t border-gray-100">
+              <h3 className="font-semibold text-gray-900 mb-2">9.1 Two ways to stop sharing data with TillTalk</h3>
+              <p className="mb-3">
+                Beyond the formal rights listed above, you can stop TillTalk from processing your data in two practical ways. Each has a different scope.
+              </p>
+              <p className="mb-2">
+                <strong>(a) Disconnect an individual integration.</strong> If you uninstall the TillTalk app from one of your connected systems (for example, removing it from your Clover dashboard, revoking permissions from your Meta account, or disconnecting any other integration), TillTalk will automatically and without further request:
+              </p>
+              <ul className="list-disc list-inside space-y-1 text-gray-600 mb-3">
+                <li>delete the access token or credential we held for that integration;</li>
+                <li>delete the raw data we cached from that platform (for example, individual transaction snapshots, fetch logs, webhook events older than 90 days);</li>
+                <li>mark the integration as disconnected in your TillTalk account.</li>
+              </ul>
+              <p className="mb-3">
+                Your TillTalk account itself, your other connected integrations, your conversation history with us, and any aggregated reports already delivered to you are preserved. You can reconnect the integration at any time by reauthorising it; doing so issues a new access token and resumes normal operation.
+              </p>
+              <p className="mb-3">
+                <strong>(b) Cancel your TillTalk account.</strong> If you cancel your account (currently by emailing{' '}
+                <a href="mailto:daniel@tilltalk.ie" className="text-green-600 hover:underline">daniel@tilltalk.ie</a>; a self-service cancellation flow will be added to the dashboard), TillTalk will delete all data we hold about your business across every connected platform. Some records &mdash; billing records, audit logs, error logs &mdash; are retained for the legally-mandated periods set out in &sect;8 and then deleted.
+              </p>
+              <p>
+                The first option is the right one if a specific integration is no longer useful to you, if you are migrating to a different POS or ad platform, or if you uninstalled an app by accident and want to reconnect later. The second is the right one if you are ending your TillTalk subscription entirely.
+              </p>
+            </div>
           </section>
 
           <section>

@@ -39,6 +39,11 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
+                <Link href="/data-deletion" className="text-sm text-gray-400 hover:text-white transition-colors">
+                  Data Deletion
+                </Link>
+              </li>
+              <li>
                 <Link href="/clover-addendum" className="text-sm text-gray-400 hover:text-white transition-colors">
                   Clover Addendum
                 </Link>
