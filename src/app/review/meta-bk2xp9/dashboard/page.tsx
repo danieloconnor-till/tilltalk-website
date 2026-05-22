@@ -11,6 +11,7 @@ import {
   type EndpointTab,
 } from '../lib/endpoints'
 import { shouldRenderFallback, type GraphResponse } from '../lib/fallback'
+import { redactSensitive } from '../lib/redact'
 import { loadSnapshot, type SnapshotFile } from '../lib/snapshots'
 
 const GRAPH_VERSION = 'v25.0'
@@ -53,7 +54,7 @@ function jsonParseSafe<T>(s: string): T | null {
 function prettyJson(s: string, maxChars = 500): string {
   let display: string
   try {
-    display = JSON.stringify(JSON.parse(s), null, 2)
+    display = JSON.stringify(redactSensitive(JSON.parse(s)), null, 2)
   } catch {
     display = s
   }
@@ -63,7 +64,7 @@ function prettyJson(s: string, maxChars = 500): string {
 }
 
 function prettyJsonObject(value: unknown, maxChars = 600): string {
-  const s = JSON.stringify(value, null, 2)
+  const s = JSON.stringify(redactSensitive(value), null, 2)
   return s.length > maxChars ? s.slice(0, maxChars) + '\n... (truncated)' : s
 }
 
