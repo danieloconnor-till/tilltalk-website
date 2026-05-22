@@ -29,6 +29,38 @@ const SUB_PROCESSORS = [
     dpa: "Anthropic Commercial Data Processing Agreement",
   },
   {
+    service: "OpenAI",
+    category: "AI Processing (fallback)",
+    purpose: "Provides fallback AI inference for the TillTalk marketing agent when Anthropic is unavailable or for specific embedding workloads",
+    dataProcessed: "Query content, business context, conversation history (no raw customer PII)",
+    region: "USA",
+    dpa: "OpenAI Data Processing Addendum",
+  },
+  {
+    service: "Meta Platforms Ireland Ltd",
+    category: "Ad Platform (Meta / Facebook / Instagram)",
+    purpose: "Operates Facebook Page, Instagram Business account, and Meta Ads campaigns on the Merchant's behalf under merchant authorisation. Receives hashed customer identifiers via the Marketing API and Conversions API.",
+    dataProcessed: "Campaign configurations, ad creatives approved by the Merchant, hashed customer identifiers (SHA-256), aggregate engagement and conversion metrics",
+    region: "EU (Ireland)",
+    dpa: "Meta Platform Terms & Data Processing Terms",
+  },
+  {
+    service: "Google Ireland Ltd",
+    category: "Ad Platform (Google Ads)",
+    purpose: "Operates Google Ads campaigns and Enhanced Conversions on the Merchant's behalf when the Merchant authorises Google Ads. Receives hashed customer identifiers via the Google Ads API and Customer Match.",
+    dataProcessed: "Campaign configurations, ad creatives approved by the Merchant, hashed customer identifiers (SHA-256), aggregate engagement and conversion metrics",
+    region: "EU (Ireland)",
+    dpa: "Google Ads Data Processing Terms",
+  },
+  {
+    service: "TikTok Technology Limited",
+    category: "Ad Platform (TikTok For Business)",
+    purpose: "Operates TikTok For Business campaigns on the Merchant's behalf when the Merchant authorises TikTok. Receives hashed customer identifiers via the TikTok Marketing API and Events API.",
+    dataProcessed: "Campaign configurations, ad creatives approved by the Merchant, hashed customer identifiers (SHA-256), aggregate engagement and conversion metrics",
+    region: "EU (Ireland)",
+    dpa: "TikTok For Business Commercial Terms & DPA",
+  },
+  {
     service: "Stripe",
     category: "Payment Processing",
     purpose: "Processes subscription billing and payment management for TillTalk clients",
@@ -76,7 +108,7 @@ export default function SubProcessorsPage() {
       <div className="bg-white rounded-2xl border border-gray-200 p-8 md:p-12">
         <h1 className="text-3xl font-bold text-gray-900 mb-1">Sub-Processor List</h1>
         <p className="text-gray-500 text-sm mb-8">
-          <strong>Last updated:</strong> 8 May 2026 &middot; Prime Construct Ltd (trading as TillTalk)
+          <strong>Last updated:</strong> 22 May 2026 &middot; Prime Construct Ltd (trading as TillTalk)
         </p>
 
         <div className="space-y-6 text-sm leading-relaxed text-gray-700">
