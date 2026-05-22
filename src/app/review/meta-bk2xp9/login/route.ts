@@ -2,7 +2,7 @@ import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 import crypto from 'node:crypto'
 
-// The 17 permissions covered by this demo. Listed in the prompt under "The 17
+// The 18 permissions covered by this demo. Listed in the prompt under "The 18
 // permissions to demonstrate" — kept here as the OAuth scope string source of
 // truth so the dashboard panels and the OAuth dialog stay in sync.
 const SCOPES = [
@@ -27,6 +27,7 @@ const SCOPES = [
   'instagram_manage_comments',
   'instagram_manage_insights',
   'instagram_manage_messages',
+  'instagram_content_publish',
 ].join(',')
 
 const COOKIE_PATH = '/review/meta-bk2xp9'
