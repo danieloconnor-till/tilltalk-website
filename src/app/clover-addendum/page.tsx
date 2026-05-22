@@ -136,7 +136,8 @@ export default function CloverAddendumPage() {
                 <a href="mailto:daniel@tilltalk.ie" className="text-green-600 hover:underline">daniel@tilltalk.ie</a>.
               </p>
               <p>
-                <strong>Disconnection and deletion:</strong> a Merchant may revoke TillTalk&apos;s Clover access at any time via the Clover dashboard or by contacting TillTalk. Upon revocation, TillTalk will cease all further reads from Clover. Hashed transaction data already stored is retained for the period set out in §4, unless the Merchant requests earlier deletion. On request, TillTalk will delete all hashed records for the Merchant within 30 days.
+                <strong>Disconnection and deletion:</strong> A Merchant may disconnect their Clover integration at any time by uninstalling the TillTalk app from the Clover App Market. Disconnection automatically triggers the deletion process described in &sect;6.5. The Merchant&apos;s TillTalk account itself, and any other connectors (Meta, Google, TikTok, etc.) the Merchant has authorised, are preserved. To delete the entire TillTalk account and cascade deletion across all connectors, see{' '}
+                <a href="/data-deletion" className="text-green-600 hover:underline">tilltalk.ie/data-deletion</a>.
               </p>
               <p>
                 <strong>Correction:</strong> transaction data is read-only from Clover and cannot be modified by TillTalk. To correct a transaction record, update it in the Clover system; TillTalk will reflect the correction on the next data sync.

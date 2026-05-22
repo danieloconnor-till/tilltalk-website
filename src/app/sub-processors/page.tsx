@@ -100,6 +100,14 @@ const SUB_PROCESSORS = [
     region: "Global CDN (data processed in USA)",
     dpa: "Vercel Data Processing Addendum",
   },
+  {
+    service: "Sentry",
+    category: "Application Error Monitoring",
+    purpose: "Captures application errors and performance traces from the TillTalk backend and website to detect and resolve faults",
+    dataProcessed: "Error stack traces, request context, sanitised application logs (no raw PII; access tokens redacted at source)",
+    region: "USA / EU",
+    dpa: "Sentry Data Processing Addendum",
+  },
 ];
 
 export default function SubProcessorsPage() {
