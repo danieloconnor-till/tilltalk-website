@@ -4,7 +4,7 @@ export default function PrivacyPage() {
       <div className="bg-white rounded-2xl border border-gray-200 p-8 md:p-12">
         <h1 className="text-3xl font-bold text-gray-900 mb-1">Privacy Policy</h1>
         <p className="text-gray-500 text-sm mb-2">
-          <strong>Last updated:</strong> 21 May 2026 &middot; <strong>Effective:</strong> 21 May 2026 &middot; Prime Construct Ltd (trading as TillTalk)
+          <strong>Last updated:</strong> 22 May 2026 &middot; <strong>Effective:</strong> 22 May 2026 &middot; Prime Construct Ltd (trading as TillTalk)
         </p>
         <p className="text-gray-500 text-xs mb-8">
           This version supersedes the version dated 8 May 2026. Changes in this revision: explicit disclosure of TillTalk&apos;s use of merchant data to operate per-merchant marketing and to inform aggregate decision-policy heuristics across the service (new &sect;5); explicit naming of the Meta marketing-platform data categories accessed under OAuth (&sect;3.5); explicit naming of key named sub-processors and Anthropic&apos;s data-training position (&sect;6.1); update of the change-notification mechanism (&sect;14).
@@ -186,7 +186,9 @@ export default function PrivacyPage() {
                 <h3 className="font-semibold text-gray-900 mb-2">6.1 Named key sub-processors</h3>
                 <p className="mb-3">TillTalk currently shares personal data with the following named recipients to operate the service:</p>
                 <ul className="list-disc list-inside space-y-2 text-gray-600 mb-3">
-                  <li><strong>Meta (Facebook / Instagram), Google, TikTok</strong> &mdash; to operate campaigns and push CAPI / Enhanced Conversions / Events API conversion events. The client has separate relationships with these platforms; TillTalk acts on the client&apos;s behalf under their OAuth grant.</li>
+                  <li><strong>Meta Platforms Ireland Ltd</strong> (Ireland, EU) &mdash; operate Facebook Page, Instagram Business account, and Meta Ads campaigns on the Merchant&apos;s behalf under merchant authorisation. Receives hashed customer identifiers via the Marketing API and Conversions API.</li>
+                  <li><strong>Google Ireland Ltd</strong> (Ireland, EU) &mdash; operate Google Ads campaigns and Enhanced Conversions on the Merchant&apos;s behalf when the Merchant authorises Google Ads. Receives hashed customer identifiers via the Google Ads API and Customer Match.</li>
+                  <li><strong>TikTok Technology Limited</strong> (Ireland, EU) &mdash; operate TikTok For Business campaigns on the Merchant&apos;s behalf when the Merchant authorises TikTok. Receives hashed customer identifiers via the TikTok Marketing API and Events API.</li>
                   <li><strong>Anthropic</strong> &mdash; TillTalk uses Claude (Anthropic&apos;s AI) to perform agent reasoning. Data sent to Anthropic via the API is processed under Anthropic&apos;s data processing terms. No data sent to Anthropic via the standard API is used to train Anthropic&apos;s foundation models.</li>
                   <li><strong>Supabase</strong> &mdash; the database provider that hosts TillTalk&apos;s per-client records. Located in the EU.</li>
                   <li><strong>Railway and Vercel</strong> &mdash; compute and hosting providers for the TillTalk backend and dashboard.</li>

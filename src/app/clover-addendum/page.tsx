@@ -9,7 +9,7 @@ export default function CloverAddendumPage() {
       <div className="bg-white rounded-2xl border border-gray-200 p-8 md:p-12">
         <h1 className="text-3xl font-bold text-gray-900 mb-1">Clover Privacy Addendum</h1>
         <p className="text-gray-500 text-sm mb-8">
-          <strong>Last updated:</strong> 8 May 2026 &middot; <strong>Effective:</strong> 8 May 2026 &middot; Prime Construct Ltd (trading as TillTalk)
+          <strong>Last updated:</strong> 22 May 2026 &middot; <strong>Effective:</strong> 22 May 2026 &middot; Prime Construct Ltd (trading as TillTalk)
         </p>
 
         <div className="space-y-8 text-sm leading-relaxed text-gray-700">
@@ -145,6 +145,11 @@ export default function CloverAddendumPage() {
                 <strong>Customer deletion requests:</strong> if a customer of the Merchant requests deletion of their data, the Merchant should instruct TillTalk at{' '}
                 <a href="mailto:daniel@tilltalk.ie" className="text-green-600 hover:underline">daniel@tilltalk.ie</a>.
                 {' '}TillTalk will delete the relevant hashed records and, where ad platforms expose deletion APIs (such as Meta&apos;s CAPI deletion event), will propagate the deletion to the relevant platform on the Merchant&apos;s instruction.
+              </p>
+              <p>
+                <strong>Automated deletion on Clover uninstall:</strong> When a Merchant uninstalls the TillTalk Clover app, TillTalk receives an <code className="font-mono text-xs">APP_UNINSTALLED</code> webhook from Clover and immediately marks the Merchant&apos;s Clover data as pending deletion. The access token and Clover-sourced records are retained for 48 hours to allow accidental-uninstall recovery &mdash; reinstalling within that window restores access without data loss. After 48 hours, an automated job hard-deletes the access token, transaction snapshots, identity records, and webhook events older than 90 days. The Merchant&apos;s TillTalk account and other connectors are preserved either way; see{' '}
+                <a href="/data-deletion" className="text-green-600 hover:underline">tilltalk.ie/data-deletion</a>{' '}
+                for full-account deletion.
               </p>
             </div>
           </section>
