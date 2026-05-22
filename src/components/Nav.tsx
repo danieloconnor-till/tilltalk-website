@@ -1,25 +1,17 @@
 'use client'
 
 import Link from 'next/link'
-import { useRouter, usePathname } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import { Menu, X } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
+const WHATSAPP_URL = 'https://wa.me/353894633835'
+
 export default function Nav() {
   const [open, setOpen] = useState(false)
   const [loggedIn, setLoggedIn] = useState(false)
-  const router   = useRouter()
-  const pathname = usePathname()
-
-  function handleStartTrial() {
-    setOpen(false)
-    if (pathname === '/') {
-      document.getElementById('chat')?.scrollIntoView({ behavior: 'smooth' })
-    } else {
-      router.push('/#chat')
-    }
-  }
+  const router = useRouter()
 
   useEffect(() => {
     const supabase = createClient()
@@ -53,19 +45,6 @@ export default function Nav() {
             TillTalk
           </Link>
 
-          {/* Desktop nav */}
-          <div className="hidden md:flex items-center gap-8">
-            <Link href="/#features" className="text-gray-600 hover:text-gray-900 text-sm font-medium">
-              Features
-            </Link>
-            <Link href="/#pricing" className="text-gray-600 hover:text-gray-900 text-sm font-medium">
-              Pricing
-            </Link>
-            <Link href="/#how-it-works" className="text-gray-600 hover:text-gray-900 text-sm font-medium">
-              How It Works
-            </Link>
-          </div>
-
           {/* Desktop actions */}
           <div className="hidden md:flex items-center gap-4">
             {loggedIn ? (
@@ -88,12 +67,14 @@ export default function Nav() {
                 <Link href="/login" className="text-gray-600 hover:text-gray-900 text-sm font-medium">
                   Sign In
                 </Link>
-                <button
-                  onClick={handleStartTrial}
+                <a
+                  href={WHATSAPP_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="bg-green-600 hover:bg-green-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
                 >
-                  Start Free Trial
-                </button>
+                  Get Early Access
+                </a>
               </>
             )}
           </div>
@@ -112,27 +93,6 @@ export default function Nav() {
       {/* Mobile menu */}
       {open && (
         <div className="md:hidden bg-white border-t border-gray-200 px-4 py-4 space-y-3">
-          <Link
-            href="/#features"
-            className="block text-gray-600 hover:text-gray-900 text-sm font-medium py-2"
-            onClick={() => setOpen(false)}
-          >
-            Features
-          </Link>
-          <Link
-            href="/#pricing"
-            className="block text-gray-600 hover:text-gray-900 text-sm font-medium py-2"
-            onClick={() => setOpen(false)}
-          >
-            Pricing
-          </Link>
-          <Link
-            href="/#how-it-works"
-            className="block text-gray-600 hover:text-gray-900 text-sm font-medium py-2"
-            onClick={() => setOpen(false)}
-          >
-            How It Works
-          </Link>
           {loggedIn ? (
             <>
               <Link
@@ -158,12 +118,15 @@ export default function Nav() {
               >
                 Sign In
               </Link>
-              <button
-                onClick={handleStartTrial}
+              <a
+                href={WHATSAPP_URL}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="block w-full bg-green-600 hover:bg-green-700 text-white text-sm font-medium px-4 py-2 rounded-lg text-center transition-colors"
+                onClick={() => setOpen(false)}
               >
-                Start Free Trial
-              </button>
+                Get Early Access
+              </a>
             </>
           )}
         </div>

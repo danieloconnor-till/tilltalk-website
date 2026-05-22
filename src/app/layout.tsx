@@ -12,9 +12,9 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  title: 'TillTalk — WhatsApp Sales Analytics for Your POS',
+  title: 'TillTalk — AI-managed marketing for hospitality & retail',
   description:
-    'Connect your POS system and get instant sales insights on WhatsApp. No dashboards needed. Try free for 14 days.',
+    'TillTalk runs your Meta, Google, and TikTok campaigns, reads your till to verify what actually drove revenue, and only charges a percentage of the new revenue we bring in.',
   manifest: '/manifest.json',
   icons: {
     icon: '/favicon.ico',
