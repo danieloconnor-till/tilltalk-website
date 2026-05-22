@@ -19,7 +19,7 @@ export const TABS: Array<{
   {
     id: 'pages',
     label: 'Pages & Content',
-    count: 8,
+    count: 7,
     note:
       'These calls use a Page Access Token (swapped from the User Token via /me/accounts), as required by Meta for Page-scoped endpoints. The first call (pages_show_list) uses the User Token, since /me/accounts is the endpoint that returns the Page list and its Page tokens.',
   },
@@ -47,7 +47,7 @@ export const TABS: Array<{
 ]
 
 export const ENDPOINTS: EndpointDef[] = [
-  // ── Tab 1 — Pages & Content (8) ─────────────────────────────────────
+  // ── Tab 1 — Pages & Content (7) ─────────────────────────────────────
   {
     permission: 'pages_show_list',
     tab: 'pages',
@@ -110,19 +110,6 @@ export const ENDPOINTS: EndpointDef[] = [
       fields:
         'participants,updated_time,messages.limit(1){message,from,created_time}',
       limit: '3',
-    },
-    tokenType: 'page',
-  },
-  {
-    permission: 'pages_manage_posts',
-    tab: 'pages',
-    title: 'Page Feed (pages_manage_posts)',
-    subtitle:
-      "Demonstrates permission to publish posts to the merchant's Page. This dashboard exercises the permission by reading the Page feed; actual publishing in production happens under merchant approval over WhatsApp.",
-    path: '{page-id}/feed',
-    params: {
-      fields: 'id,message,created_time',
-      limit: '1',
     },
     tokenType: 'page',
   },

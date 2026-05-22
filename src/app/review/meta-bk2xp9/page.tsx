@@ -10,7 +10,7 @@ export default function MetaReviewEntryPage() {
           Meta App Review — Permission Demonstrations
         </h1>
         <p className="text-gray-700 mb-3">
-          This page demonstrates the 19 permissions requested by TillTalk&rsquo;s
+          This page demonstrates the 18 permissions requested by TillTalk&rsquo;s
           Meta App (ID 1373116251311238).
         </p>
         <p className="text-gray-700 mb-3">

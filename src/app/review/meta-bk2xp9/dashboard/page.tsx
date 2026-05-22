@@ -297,7 +297,7 @@ export default async function MetaReviewDashboardPage() {
     <div className="max-w-5xl mx-auto py-10 px-4">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900">
-          Meta App Review — 19 Permissions Demo
+          Meta App Review — 18 Permissions Demo
         </h1>
         <p className="text-sm text-gray-600 mt-1">
           Live Graph API <code className="font-mono">{GRAPH_VERSION}</code>{' '}

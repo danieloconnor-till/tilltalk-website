@@ -13,8 +13,8 @@ const SNAPSHOT_DIR = join(
 )
 
 describe('endpoints', () => {
-  it('exports 19 endpoint definitions', () => {
-    expect(ENDPOINTS).toHaveLength(19)
+  it('exports 18 endpoint definitions', () => {
+    expect(ENDPOINTS).toHaveLength(18)
   })
 
   it('has unique permission names', () => {
@@ -22,10 +22,10 @@ describe('endpoints', () => {
     expect(new Set(names).size).toBe(names.length)
   })
 
-  it('includes the two new permissions', () => {
+  it('includes instagram_content_publish and excludes the dropped pages_manage_posts', () => {
     const names = new Set(ENDPOINTS.map((e) => e.permission))
-    expect(names.has('pages_manage_posts')).toBe(true)
     expect(names.has('instagram_content_publish')).toBe(true)
+    expect(names.has('pages_manage_posts')).toBe(false)
   })
 })
 
