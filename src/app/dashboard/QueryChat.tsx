@@ -29,13 +29,11 @@ interface Props {
 // ---------------------------------------------------------------------------
 
 const PROMPTS = [
-  'Sales this week',
-  'Top products this month',
-  'Compare this month vs last month',
-  'Revenue by day of week',
-  'Hourly sales pattern',
-  'Best weeks this year',
-  'Refund rate trend',
+  'How much did we do yesterday?',
+  "What's our busiest day of the week?",
+  'When are we quietest?',
+  'Top 5 selling items in the last 7 days',
+  "What's our hourly revenue last night?",
 ]
 
 // ---------------------------------------------------------------------------
@@ -80,7 +78,14 @@ export default function QueryChat({ businessName, locationIds }: Props) {
     const historySlice = messages.slice(-6).map(m => ({ role: m.role, text: m.text }))
 
     try {
-      const res  = await fetch('/api/dashboard/query', {
+      // /api/chat proxies to Railway's /api/chat (Client Agent). Response
+      // shape: { response, model_id }. The dashboard-side /api/dashboard/query
+      // route never existed — this fetch was pointing at a void.
+      // history + location_ids are accepted by the proxy but the Client Agent
+      // pulls conversation memory from agent_decisions on the Railway side,
+      // so passing them is a no-op until per-session memory ships. Sending
+      // anyway keeps the proxy backward-compatible for any future consumer.
+      const res  = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -92,20 +97,13 @@ export default function QueryChat({ businessName, locationIds }: Props) {
       const data = await res.json().catch(() => ({}))
 
       const assistantMsg: Message = {
-        role:       'assistant',
-        text:       data.text || data.error || 'No response received.',
-        chart_data: data.chart_data || null,
+        role: 'assistant',
+        text: data.response || data.error || 'No response received.',
+        // The Client Agent doesn't produce charts. Leave the chart UI
+        // intact but always pass null — the empty-state renders below.
+        chart_data: null,
       }
       setMessages(prev => [...prev, assistantMsg])
-
-      if (data.chart_data) {
-        setCurrentChart(data.chart_data)
-        setCurrentTitle(msg)
-        setChartHistory(prev => [
-          { id: Date.now(), title: msg, data: data.chart_data },
-          ...prev.slice(0, 9),
-        ])
-      }
     } catch {
       setMessages(prev => [
         ...prev,
@@ -304,7 +302,7 @@ export default function QueryChat({ businessName, locationIds }: Props) {
               </div>
               <p className="text-sm font-medium text-gray-600 mb-1">Ask about your business</p>
               <p className="text-xs text-gray-400 max-w-xs">
-                Try &ldquo;Sales this week&rdquo; or &ldquo;Top products this month&rdquo; — charts render right above.
+                Try &ldquo;How much did we do yesterday?&rdquo; or pick a suggested prompt below.
               </p>
             </div>
           ) : (

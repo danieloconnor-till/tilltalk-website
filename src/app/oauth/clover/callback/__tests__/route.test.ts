@@ -1,5 +1,50 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
+// Shared mock state for the Supabase admin client — reset per test.
+let mockAdmin: ReturnType<typeof makeMockAdmin>
+
+function makeMockAdmin() {
+  const createUser = vi.fn().mockResolvedValue({
+    data: { user: { id: 'sb-user-id-default' } },
+    error: null,
+  })
+  const generateLink = vi.fn().mockResolvedValue({
+    data: {
+      properties: {
+        action_link: 'https://vxcmaluzktaxzhjskhhw.supabase.co/auth/v1/verify?token=t&type=magiclink',
+      },
+    },
+    error: null,
+  })
+  const profilesInsert = vi.fn().mockResolvedValue({ error: null })
+  const profilesSelectMaybeSingle = vi.fn().mockResolvedValue({ data: null, error: null })
+
+  return {
+    createUser,
+    generateLink,
+    profilesInsert,
+    profilesSelectMaybeSingle,
+    client: {
+      auth: { admin: { createUser, generateLink } },
+      from: (table: string) => {
+        if (table === 'profiles') {
+          return {
+            insert: profilesInsert,
+            select: () => ({
+              eq: () => ({ maybeSingle: profilesSelectMaybeSingle }),
+            }),
+          }
+        }
+        return { insert: vi.fn(), select: () => ({ eq: () => ({ maybeSingle: vi.fn() }) }) }
+      },
+    },
+  }
+}
+
+vi.mock('@/lib/supabase/admin', () => ({
+  createServiceRoleClient: () => mockAdmin.client,
+}))
+
 // Mock next/server before importing the route
 vi.mock('next/server', () => {
   function makeCookieJar() {
@@ -106,6 +151,7 @@ function expectCookieCleared(result: { _cookies: Map<string, Record<string, unkn
 describe('GET /oauth/clover/callback', () => {
   beforeEach(() => {
     vi.stubGlobal('fetch', vi.fn())
+    mockAdmin = makeMockAdmin()
   })
 
   it('returns 400 missing_state when neither state nor cookie is present', async () => {
@@ -276,5 +322,238 @@ describe('GET /oauth/clover/callback', () => {
 
     expect(result.url).toContain('error=storage_failed')
     expectCookieCleared(result)
+  })
+
+  // ---------------------------------------------- auto-provisioned branch
+
+  function autoProvisionedFetchMock(opts?: { railwayBody?: Record<string, unknown>; linkOk?: boolean }) {
+    const body = opts?.railwayBody ?? {
+      status: 'ok',
+      auto_provisioned: true,
+      client_id: 42,
+      location_id: 7,
+      merchant_id: 'NEW123',
+    }
+    const linkOk = opts?.linkOk ?? true
+    return vi
+      .fn()
+      // token exchange
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ access_token: 'tok', refresh_token: 'ref', expires_in: 3600 }),
+      })
+      // Railway /api/onboard/clover
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => body,
+      })
+      // Railway /api/onboard/clover/link-supabase-user
+      .mockResolvedValueOnce({
+        ok: linkOk,
+        status: linkOk ? 200 : 500,
+        text: async () => (linkOk ? 'ok' : 'storage_failed'),
+      })
+  }
+
+  it('auto-provisioned: redirects to Supabase magic-link URL', async () => {
+    vi.stubGlobal('fetch', autoProvisionedFetchMock())
+
+    const state = buildSignedState('test-state-secret')
+    const result = (await GET(
+      makeRequest(
+        {
+          merchant_id: 'NEW123',
+          employee_id: 'EMP1',
+          client_id: 'test-app-id',
+          code: 'auth-code',
+          state,
+        },
+        { clover_oauth_state: state },
+      ),
+    )) as unknown as RedirectResult
+
+    expect(result.status).toBe(302)
+    expect(result.url).toContain('supabase.co/auth/v1/verify')
+    expect(result.url).toContain('type=magiclink')
+    expect(result.url).not.toContain('error=')
+    expectCookieCleared(result)
+
+    // createUser was called with the synthetic email + clover metadata.
+    expect(mockAdmin.createUser).toHaveBeenCalledTimes(1)
+    const createUserCall = mockAdmin.createUser.mock.calls[0][0] as {
+      email: string
+      email_confirm: boolean
+      user_metadata: Record<string, string>
+    }
+    expect(createUserCall.email).toBe('clover-new123@tilltalk.ie')
+    expect(createUserCall.email_confirm).toBe(true)
+    expect(createUserCall.user_metadata.clover_merchant_id).toBe('NEW123')
+    expect(createUserCall.user_metadata.provisioned_via).toBe('clover_oauth')
+
+    // profiles row inserted with placeholder values + trial plan.
+    expect(mockAdmin.profilesInsert).toHaveBeenCalledTimes(1)
+    const profileRow = mockAdmin.profilesInsert.mock.calls[0][0] as Record<string, unknown>
+    expect(profileRow.id).toBe('sb-user-id-default')
+    expect(profileRow.email).toBe('clover-new123@tilltalk.ie')
+    expect(profileRow.plan).toBe('trial')
+    expect(profileRow.pos_type).toBe('clover')
+
+    // Magic link generated with /dashboard redirect target.
+    expect(mockAdmin.generateLink).toHaveBeenCalledTimes(1)
+    const linkCall = mockAdmin.generateLink.mock.calls[0][0] as {
+      type: string
+      email: string
+      options: { redirectTo: string }
+    }
+    expect(linkCall.type).toBe('magiclink')
+    expect(linkCall.email).toBe('clover-new123@tilltalk.ie')
+    expect(linkCall.options.redirectTo).toBe('https://tilltalk.ie/dashboard')
+  })
+
+  it('auto-provisioned: createUser failure redirects to /welcome?error=user_creation_failed', async () => {
+    mockAdmin.createUser.mockResolvedValueOnce({
+      data: { user: null },
+      error: { message: 'database error', status: 500 },
+    })
+    vi.stubGlobal('fetch', autoProvisionedFetchMock())
+
+    const state = buildSignedState('test-state-secret')
+    const result = (await GET(
+      makeRequest(
+        {
+          merchant_id: 'NEW123',
+          employee_id: 'EMP1',
+          client_id: 'test-app-id',
+          code: 'auth-code',
+          state,
+        },
+        { clover_oauth_state: state },
+      ),
+    )) as unknown as RedirectResult
+
+    expect(result.url).toContain('error=user_creation_failed')
+    expectCookieCleared(result)
+  })
+
+  it('auto-provisioned: link-supabase-user failure still signs the user in', async () => {
+    vi.stubGlobal('fetch', autoProvisionedFetchMock({ linkOk: false }))
+
+    const state = buildSignedState('test-state-secret')
+    const result = (await GET(
+      makeRequest(
+        {
+          merchant_id: 'NEW123',
+          employee_id: 'EMP1',
+          client_id: 'test-app-id',
+          code: 'auth-code',
+          state,
+        },
+        { clover_oauth_state: state },
+      ),
+    )) as unknown as RedirectResult
+
+    // User still lands in the magic-link verify URL despite link failure.
+    expect(result.url).toContain('supabase.co/auth/v1/verify')
+    expect(result.url).not.toContain('error=')
+    expect(mockAdmin.createUser).toHaveBeenCalled()
+    expect(mockAdmin.generateLink).toHaveBeenCalled()
+  })
+
+  it('auto-provisioned: createUser already-registered re-uses existing profiles row', async () => {
+    mockAdmin.createUser.mockResolvedValueOnce({
+      data: { user: null },
+      error: { message: 'A user with this email has already been registered', status: 422 },
+    })
+    mockAdmin.profilesSelectMaybeSingle.mockResolvedValueOnce({
+      data: { id: 'existing-user-id' },
+      error: null,
+    })
+    vi.stubGlobal('fetch', autoProvisionedFetchMock())
+
+    const state = buildSignedState('test-state-secret')
+    const result = (await GET(
+      makeRequest(
+        {
+          merchant_id: 'NEW123',
+          employee_id: 'EMP1',
+          client_id: 'test-app-id',
+          code: 'auth-code',
+          state,
+        },
+        { clover_oauth_state: state },
+      ),
+    )) as unknown as RedirectResult
+
+    expect(result.url).toContain('supabase.co/auth/v1/verify')
+    // No profiles insert on re-use of an existing user.
+    expect(mockAdmin.profilesInsert).not.toHaveBeenCalled()
+    expect(mockAdmin.generateLink).toHaveBeenCalled()
+  })
+
+  // ----------------------------------------- existing-merchant branch intact
+
+  it('existing merchant (no auto_provisioned): redirects to /welcome?merchant_id=...', async () => {
+    vi.stubGlobal('fetch', vi
+      .fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ access_token: 'tok', refresh_token: 'r', expires_in: 3600 }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ status: 'ok', grace_recovered: false }),
+      }))
+
+    const state = buildSignedState('test-state-secret')
+    const result = (await GET(
+      makeRequest(
+        {
+          merchant_id: 'MERCH1',
+          employee_id: 'EMP1',
+          client_id: 'test-app-id',
+          code: 'auth-code',
+          state,
+        },
+        { clover_oauth_state: state },
+      ),
+    )) as unknown as RedirectResult
+
+    expect(result.url).toContain('/welcome')
+    expect(result.url).toContain('merchant_id=MERCH1')
+    expect(result.url).not.toContain('error=')
+    // Auto-provision side effects must NOT fire.
+    expect(mockAdmin.createUser).not.toHaveBeenCalled()
+    expect(mockAdmin.generateLink).not.toHaveBeenCalled()
+  })
+
+  it('sandbox (no auto_provisioned): redirects to /welcome?merchant_id=...', async () => {
+    vi.stubGlobal('fetch', vi
+      .fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ access_token: 'tok', refresh_token: 'r', expires_in: 3600 }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ status: 'ok', is_sandbox: true }),
+      }))
+
+    const state = buildSignedState('test-state-secret')
+    const result = (await GET(
+      makeRequest(
+        {
+          merchant_id: 'SBX1',
+          employee_id: 'EMP1',
+          client_id: 'test-app-id',
+          code: 'auth-code',
+          state,
+        },
+        { clover_oauth_state: state },
+      ),
+    )) as unknown as RedirectResult
+
+    expect(result.url).toContain('/welcome')
+    expect(result.url).toContain('merchant_id=SBX1')
+    expect(mockAdmin.createUser).not.toHaveBeenCalled()
   })
 })
