@@ -37,27 +37,27 @@ const SUB_PROCESSORS = [
     dpa: "OpenAI Data Processing Addendum",
   },
   {
-    service: "Meta Platforms Ireland Ltd",
-    category: "Ad Platform (Meta / Facebook / Instagram)",
-    purpose: "Operates Facebook Page, Instagram Business account, and Meta Ads campaigns on the Merchant's behalf under merchant authorisation. Receives hashed customer identifiers via the Marketing API and Conversions API.",
-    dataProcessed: "Campaign configurations, ad creatives approved by the Merchant, hashed customer identifiers (SHA-256), aggregate engagement and conversion metrics",
-    region: "EU (Ireland)",
+    service: "Meta (Facebook / Instagram)",
+    category: "Ad Platform — Conversion Matching",
+    purpose: "Receives hashed conversion events via the Meta Conversions API (CAPI) to attribute and measure advertising campaigns run on the client's behalf on Facebook and Instagram",
+    dataProcessed: "Hashed customer identifiers (email, phone, first name, last name), transaction value, transaction timestamp, event type",
+    region: "USA / EU (Ireland)",
     dpa: "Meta Platform Terms & Data Processing Terms",
   },
   {
-    service: "Google Ireland Ltd",
-    category: "Ad Platform (Google Ads)",
-    purpose: "Operates Google Ads campaigns and Enhanced Conversions on the Merchant's behalf when the Merchant authorises Google Ads. Receives hashed customer identifiers via the Google Ads API and Customer Match.",
-    dataProcessed: "Campaign configurations, ad creatives approved by the Merchant, hashed customer identifiers (SHA-256), aggregate engagement and conversion metrics",
-    region: "EU (Ireland)",
+    service: "Google Ads",
+    category: "Ad Platform — Conversion Matching",
+    purpose: "Receives hashed conversion events via Google Enhanced Conversions to attribute and measure advertising campaigns run on the client's behalf across Google's advertising network",
+    dataProcessed: "Hashed customer identifiers (email, phone, first name, last name), transaction value, transaction timestamp",
+    region: "USA / EU (Ireland)",
     dpa: "Google Ads Data Processing Terms",
   },
   {
-    service: "TikTok Technology Limited",
-    category: "Ad Platform (TikTok For Business)",
-    purpose: "Operates TikTok For Business campaigns on the Merchant's behalf when the Merchant authorises TikTok. Receives hashed customer identifiers via the TikTok Marketing API and Events API.",
-    dataProcessed: "Campaign configurations, ad creatives approved by the Merchant, hashed customer identifiers (SHA-256), aggregate engagement and conversion metrics",
-    region: "EU (Ireland)",
+    service: "TikTok (TikTok Information Technologies UK Ltd / ByteDance)",
+    category: "Ad Platform — Conversion Matching",
+    purpose: "Receives hashed conversion events via the TikTok Events API to attribute and measure advertising campaigns run on the client's behalf on TikTok",
+    dataProcessed: "Hashed customer identifiers (email, phone, first name, last name), transaction value, transaction timestamp, event type",
+    region: "Ireland / USA / Singapore",
     dpa: "TikTok For Business Commercial Terms & DPA",
   },
   {
@@ -116,13 +116,19 @@ export default function SubProcessorsPage() {
       <div className="bg-white rounded-2xl border border-gray-200 p-8 md:p-12">
         <h1 className="text-3xl font-bold text-gray-900 mb-1">Sub-Processor List</h1>
         <p className="text-gray-500 text-sm mb-8">
-          <strong>Last updated:</strong> 22 May 2026 &middot; Prime Construct Ltd (trading as TillTalk)
+          <strong>Last updated:</strong> 24 May 2026 &middot; Prime Construct Ltd (trading as TillTalk)
         </p>
 
         <div className="space-y-6 text-sm leading-relaxed text-gray-700">
 
           <p>
             TillTalk uses the following third-party service providers (&ldquo;sub-processors&rdquo;) to deliver its service. Each sub-processor processes personal data only as necessary to perform the services described below and under a Data Processing Agreement (DPA) or equivalent contractual arrangement with TillTalk.
+          </p>
+
+          <p>
+            Ad platforms listed below receive hashed conversion events only when a client has authorised TillTalk to run campaigns on that platform on their behalf. See &sect;5.2 and &sect;10 of the{' '}
+            <a href="/privacy" className="text-green-600 hover:underline">Privacy Policy</a>{' '}
+            for details on the hashing methodology and the legal basis.
           </p>
 
           <p>
