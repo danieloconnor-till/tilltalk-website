@@ -140,9 +140,15 @@ async function autoProvisionAndSignIn(args: {
     console.error('[clover-oauth] auto-provision: link-supabase-user request error:', err)
   }
 
-  // 4. Generate a magic link and return the action_link for the browser to
-  //    follow. Supabase validates the token, sets the auth cookie, and
-  //    redirects to redirect_to (/dashboard).
+  // 4. Generate a magic link and route the browser through our own
+  //    /auth/confirm server route using the hashed_token. The implicit/hash
+  //    flow (redirecting straight to action_link) lands tokens in the URL
+  //    fragment, which never reaches the server — so /dashboard (a server
+  //    component reading the auth cookie) would bounce to /login. Instead we
+  //    pass hashed_token to /auth/confirm, which calls verifyOtp server-side,
+  //    sets the cookie, then redirects to next (/dashboard). redirectTo is
+  //    kept for clarity but is not the operative destination.
+  //    See decisions/2026-05-26-adr-magic-link-server-side-confirm-flow.md.
   const { data: linkData, error: linkErr } = await admin.auth.admin.generateLink({
     type: 'magiclink',
     email,
@@ -150,11 +156,16 @@ async function autoProvisionAndSignIn(args: {
       redirectTo: 'https://tilltalk.ie/dashboard',
     },
   })
-  if (linkErr || !linkData?.properties?.action_link) {
+  if (linkErr || !linkData?.properties?.hashed_token) {
     console.error('[clover-oauth] auto-provision: magic-link generation failed:', linkErr)
     return null
   }
-  return linkData.properties.action_link
+  const params = new URLSearchParams({
+    token_hash: linkData.properties.hashed_token,
+    type: 'magiclink',
+    next: '/dashboard',
+  })
+  return `https://tilltalk.ie/auth/confirm?${params.toString()}`
 }
 
 function stateError(error: 'missing_state' | 'invalid_state' | 'server_misconfigured', status: number): NextResponse {

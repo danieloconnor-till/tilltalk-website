@@ -11,6 +11,7 @@ function makeMockAdmin() {
   const generateLink = vi.fn().mockResolvedValue({
     data: {
       properties: {
+        hashed_token: 'hashed-tok-abc123',
         action_link: 'https://vxcmaluzktaxzhjskhhw.supabase.co/auth/v1/verify?token=t&type=magiclink',
       },
     },
@@ -373,8 +374,12 @@ describe('GET /oauth/clover/callback', () => {
     )) as unknown as RedirectResult
 
     expect(result.status).toBe(302)
-    expect(result.url).toContain('supabase.co/auth/v1/verify')
+    // Routes through our own /auth/confirm server route (hashed_token flow),
+    // not straight to Supabase's /auth/v1/verify (the old hash-fragment flow).
+    expect(result.url).toContain('tilltalk.ie/auth/confirm')
+    expect(result.url).toContain('token_hash=hashed-tok-abc123')
     expect(result.url).toContain('type=magiclink')
+    expect(result.url).toContain('next=%2Fdashboard')
     expect(result.url).not.toContain('error=')
     expectCookieCleared(result)
 
@@ -452,8 +457,9 @@ describe('GET /oauth/clover/callback', () => {
       ),
     )) as unknown as RedirectResult
 
-    // User still lands in the magic-link verify URL despite link failure.
-    expect(result.url).toContain('supabase.co/auth/v1/verify')
+    // User still lands in the /auth/confirm route despite link failure.
+    expect(result.url).toContain('tilltalk.ie/auth/confirm')
+    expect(result.url).toContain('token_hash=hashed-tok-abc123')
     expect(result.url).not.toContain('error=')
     expect(mockAdmin.createUser).toHaveBeenCalled()
     expect(mockAdmin.generateLink).toHaveBeenCalled()
@@ -484,7 +490,7 @@ describe('GET /oauth/clover/callback', () => {
       ),
     )) as unknown as RedirectResult
 
-    expect(result.url).toContain('supabase.co/auth/v1/verify')
+    expect(result.url).toContain('tilltalk.ie/auth/confirm')
     // No profiles insert on re-use of an existing user.
     expect(mockAdmin.profilesInsert).not.toHaveBeenCalled()
     expect(mockAdmin.generateLink).toHaveBeenCalled()
