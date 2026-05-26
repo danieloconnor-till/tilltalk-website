@@ -247,7 +247,8 @@ export async function GET(request: Request): Promise<NextResponse> {
     const tokenData = await tokenRes.json() as {
       access_token?: string
       refresh_token?: string
-      expires_in?: number
+      access_token_expiration?: number    // Clover v2: absolute epoch seconds
+      expires_in?: number                 // legacy/alternate: relative seconds
     }
 
     if (!tokenData.access_token) {
@@ -257,7 +258,24 @@ export async function GET(request: Request): Promise<NextResponse> {
 
     accessToken  = tokenData.access_token
     refreshToken = tokenData.refresh_token
-    expiresIn    = tokenData.expires_in
+
+    // Clover v2 returns `access_token_expiration` as an absolute epoch (seconds).
+    // We convert it to `expires_in` (seconds-from-now) for the Railway payload
+    // because that's the shape the DB layer (`upsert_sandbox_location` and
+    // `onboard_clover` auto-provision) already understands. Fall back to
+    // `expires_in` if a future Clover response shape ever sends it directly.
+    if (typeof tokenData.access_token_expiration === 'number') {
+      const nowSec = Math.floor(Date.now() / 1000)
+      expiresIn = Math.max(0, tokenData.access_token_expiration - nowSec)
+    } else if (typeof tokenData.expires_in === 'number') {
+      expiresIn = tokenData.expires_in
+    } else {
+      console.warn(
+        '[clover-oauth] token response has no access_token_expiration or expires_in:',
+        Object.keys(tokenData),
+      )
+      expiresIn = undefined
+    }
   } catch (err) {
     console.error('[clover-oauth] token exchange error:', err)
     return welcomeRedirect({ error: 'token_exchange_failed' })
@@ -293,6 +311,7 @@ export async function GET(request: Request): Promise<NextResponse> {
         access_token:  accessToken,
         refresh_token: refreshToken,
         expires_in:    expiresIn,
+        oauth_app_id:  appId,
         is_sandbox:    isSandbox,
       }),
       signal: AbortSignal.timeout(12000),
