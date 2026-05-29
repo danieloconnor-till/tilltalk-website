@@ -4,10 +4,10 @@ export default function PrivacyPage() {
       <div className="bg-white rounded-2xl border border-gray-200 p-8 md:p-12">
         <h1 className="text-3xl font-bold text-gray-900 mb-1">Privacy Policy</h1>
         <p className="text-gray-500 text-sm mb-2">
-          <strong>Last updated:</strong> 22 May 2026 &middot; <strong>Effective:</strong> 22 May 2026 &middot; Prime Construct Ltd (trading as TillTalk)
+          <strong>Last updated:</strong> 29 May 2026 &middot; <strong>Effective:</strong> 29 May 2026 &middot; Prime Construct Ltd (trading as TillTalk)
         </p>
         <p className="text-gray-500 text-xs mb-8">
-          This version supersedes the version dated 8 May 2026. Changes in this revision: explicit disclosure of TillTalk&apos;s use of merchant data to operate per-merchant marketing and to inform aggregate decision-policy heuristics across the service (new &sect;5); explicit naming of the Meta marketing-platform data categories accessed under OAuth (&sect;3.5); explicit naming of key named sub-processors and Anthropic&apos;s data-training position (&sect;6.1); update of the change-notification mechanism (&sect;14).
+          This version supersedes the version dated 22 May 2026. Changes in this revision: corrected the description of where customer data originates — customer contact data comes from each client&apos;s connected identity source(s), which vary by client, and the POS is a revenue/transaction source rather than the assumed source of customer identity data (&sect;2, &sect;3.3, &sect;3.4, &sect;11); clarified that TillTalk is a processor for per-client operational marketing and a controller for the aggregate, non-identifying decision-policy heuristics described in &sect;5 (&sect;1).
         </p>
 
         <div className="space-y-8 text-sm leading-relaxed text-gray-700">
@@ -39,7 +39,7 @@ export default function PrivacyPage() {
               <p>Contact: <a href="mailto:daniel@tilltalk.ie" className="text-green-600 hover:underline">daniel@tilltalk.ie</a></p>
             </div>
             <p>
-              For the personal data of our clients&apos; customers, TillTalk acts as a <strong>data processor</strong> on behalf of the client. The client is the data controller of their own customer data; TillTalk processes that data only on the client&apos;s instructions, under a Data Processing Agreement (DPA).
+              For the personal data of our clients&apos; customers processed to operate that client&apos;s own marketing, TillTalk acts as a <strong>data processor</strong> on the client&apos;s behalf and on the client&apos;s instructions. The client is the data controller of their own customer data. Separately, for the aggregate, non-identifying decision-policy heuristics described in &sect;5, TillTalk acts as a <strong>controller</strong> in its own right; that activity does not process clients&apos; customers&apos; personal data in identifiable form. Processing of clients&apos; customer data is governed by a Data Processing Agreement (DPA) between TillTalk and the client where applicable.
             </p>
           </section>
 
@@ -48,8 +48,8 @@ export default function PrivacyPage() {
             <p className="mb-3">TillTalk is an AI-managed marketing service for independent hospitality and retail businesses. Our system:</p>
             <ul className="list-disc list-inside space-y-2 text-gray-600">
               <li>Runs Meta, Google, and TikTok advertising campaigns on behalf of our clients</li>
-              <li>Reads point-of-sale (POS) transaction data from our clients&apos; till systems (Clover, Square, etc.) on a strictly read-only basis</li>
-              <li>Pushes hashed conversion events to ad platforms via the Meta Conversions API (CAPI), Google Enhanced Conversions, and TikTok Events API to verify which ads led to real revenue</li>
+              <li>Reads revenue and transaction data from each client&apos;s connected source systems (such as their POS/till system) on a strictly read-only basis</li>
+              <li>Joins customer contact data (from the client&apos;s connected identity sources, which vary by client) with revenue data, and pushes hashed conversion events to ad platforms via the Meta Conversions API (CAPI), Google Enhanced Conversions, and TikTok Events API to verify which ads led to real revenue</li>
               <li>Manages Facebook Page and Instagram Business comments, direct messages, and organic publishing under each client&apos;s approval</li>
               <li>Generates weekly reports and recommendations for each client</li>
             </ul>
@@ -86,14 +86,14 @@ export default function PrivacyPage() {
 
               <div>
                 <h3 className="font-semibold text-gray-900 mb-2">3.3 From clients&apos; customers (your customers&apos; data, when you are a client)</h3>
-                <p className="mb-2">When TillTalk reads your client&apos;s POS transactions to verify ad performance, the following customer-level fields may be processed:</p>
+                <p className="mb-2">To operate and verify your marketing, TillTalk processes customer-level data from the source systems you connect. Customer contact data comes from the identity source(s) you connect (which may be a booking, loyalty, online-ordering, CRM, or POS system, depending on your setup); revenue and transaction data comes from your revenue source(s). The following customer-level fields may be processed:</p>
                 <ul className="list-disc list-inside space-y-1 text-gray-600">
                   <li><strong>Hashed identifiers:</strong> customer email, phone number, first name, last name (each hashed via deterministic SHA-256 before any storage or transmission)</li>
                   <li><strong>Card token:</strong> an opaque token from the POS system, never the card number itself</li>
                   <li><strong>Transaction metadata:</strong> amount, tip, tender type (cash/card/gift card), channel, timestamp, refund status</li>
                 </ul>
                 <p className="mt-3 font-medium text-gray-800">
-                  TillTalk does not store raw email addresses, raw phone numbers, or raw names of clients&apos; customers. Only deterministic hashes are persisted. The original raw values are read from the POS system, hashed in memory, and discarded.
+                  TillTalk does not store raw email addresses, raw phone numbers, or raw names of clients&apos; customers. Only deterministic hashes are persisted. The original raw values are read from the client&apos;s connected source system, hashed in memory, and discarded.
                 </p>
               </div>
 
@@ -102,7 +102,7 @@ export default function PrivacyPage() {
                 <ul className="list-disc list-inside space-y-1 text-gray-600">
                   <li><strong>Stripe:</strong> billing and subscription status</li>
                   <li><strong>Twilio:</strong> WhatsApp delivery confirmations</li>
-                  <li><strong>POS providers (Clover, Square, etc.):</strong> transaction data on the client&apos;s instruction</li>
+                  <li><strong>Client-connected source systems (POS, booking, loyalty, online-ordering, CRM):</strong> revenue and/or customer contact data on the client&apos;s instruction, depending on which systems the client connects</li>
                   <li><strong>Ad platforms (Meta, Google, TikTok):</strong> aggregated ad performance metrics and audience match rates relating to campaigns we run on the client&apos;s behalf</li>
                 </ul>
               </div>
@@ -372,11 +372,11 @@ export default function PrivacyPage() {
             <h2 className="text-xl font-semibold text-gray-900 mb-3">11. Specific notes on customer data hashing and ad platform matching</h2>
             <p className="mb-3">This section explains how TillTalk handles your customers&apos; data (when you are a client) and your data (when you are a customer of a TillTalk client).</p>
             <p className="mb-3">
-              When a customer pays at a TillTalk client&apos;s POS, the transaction may include identifying fields such as email, phone, or name (entered at the till, captured by a loyalty system, or provided through online ordering).
+              A customer&apos;s contact details (such as email, phone, or name) reach TillTalk from the client&apos;s connected source systems — for example a booking system, loyalty system, online-ordering platform, CRM, or POS, depending on the client&apos;s setup. These are joined with revenue and transaction data from the client&apos;s revenue source.
             </p>
             <p className="mb-2"><strong>TillTalk&apos;s processing pipeline:</strong></p>
             <ol className="list-decimal list-inside space-y-2 text-gray-600 mb-4">
-              <li><strong>Read</strong> the transaction from the POS API</li>
+              <li><strong>Read</strong> the contact and transaction data from the client&apos;s connected source systems</li>
               <li><strong>Normalise</strong> the identifying fields (lowercase email, strip phone formatting, etc.)</li>
               <li><strong>Hash</strong> each field using deterministic SHA-256</li>
               <li><strong>Store</strong> only the hashes &mdash; raw values are never written to disk by TillTalk</li>

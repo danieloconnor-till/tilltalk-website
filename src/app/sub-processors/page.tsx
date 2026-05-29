@@ -8,7 +8,7 @@ const SUB_PROCESSORS = [
     service: "Clover (Fiserv)",
     category: "POS Integration",
     purpose: "Reads transaction data on the merchant's instruction to verify ad performance",
-    dataProcessed: "Transaction amounts, timestamps, tender type; hashed customer identifiers (email, phone, name) derived from POS records",
+    dataProcessed: "Transaction amounts, timestamps, tender type; hashed customer identifiers (email, phone, name) where present in the connected source",
     region: "USA",
     dpa: "Clover Developer Agreement",
   },
@@ -116,7 +116,7 @@ export default function SubProcessorsPage() {
       <div className="bg-white rounded-2xl border border-gray-200 p-8 md:p-12">
         <h1 className="text-3xl font-bold text-gray-900 mb-1">Sub-Processor List</h1>
         <p className="text-gray-500 text-sm mb-8">
-          <strong>Last updated:</strong> 24 May 2026 &middot; Prime Construct Ltd (trading as TillTalk)
+          <strong>Last updated:</strong> 29 May 2026 &middot; Prime Construct Ltd (trading as TillTalk)
         </p>
 
         <div className="space-y-6 text-sm leading-relaxed text-gray-700">
@@ -126,7 +126,7 @@ export default function SubProcessorsPage() {
           </p>
 
           <p>
-            Ad platforms listed below receive hashed conversion events only when a client has authorised TillTalk to run campaigns on that platform on their behalf. See &sect;5.2 and &sect;10 of the{' '}
+            Ad platforms listed below receive hashed conversion events only when a client has authorised TillTalk to run campaigns on that platform on their behalf. See &sect;5, &sect;6.3, and &sect;11 of the{' '}
             <a href="/privacy" className="text-green-600 hover:underline">Privacy Policy</a>{' '}
             for details on the hashing methodology and the legal basis.
           </p>
