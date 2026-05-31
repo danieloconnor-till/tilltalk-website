@@ -30,10 +30,10 @@ interface Props {
 
 const PROMPTS = [
   'How much did we do yesterday?',
-  "What's our busiest day of the week?",
-  'When are we quietest?',
   'Top 5 selling items in the last 7 days',
-  "What's our hourly revenue last night?",
+  "Who's our top seller this week?",
+  'What are our opening hours?',
+  "What's our busiest day of the week?",
 ]
 
 // ---------------------------------------------------------------------------
