@@ -60,10 +60,21 @@ export default function QueryChat({ businessName, locationIds }: Props) {
 
   const endRef      = useRef<HTMLDivElement>(null)
   const inputRef    = useRef<HTMLTextAreaElement>(null)
+  const scrollBoxRef = useRef<HTMLDivElement>(null)
+  const didMountRef  = useRef(false)
   const printAreaId = 'tilltalk-print-area'
 
   useEffect(() => {
-    endRef.current?.scrollIntoView({ behavior: 'smooth' })
+    // Skip the initial mount — only auto-scroll once real messages exist,
+    // and only scroll the inner messages box, never the page.
+    if (!didMountRef.current) {
+      didMountRef.current = true
+      return
+    }
+    const box = scrollBoxRef.current
+    if (box) {
+      box.scrollTop = box.scrollHeight
+    }
   }, [messages, loading])
 
   const send = useCallback(async (text: string) => {
@@ -292,6 +303,7 @@ export default function QueryChat({ businessName, locationIds }: Props) {
 
         {/* Messages */}
         <div
+          ref={scrollBoxRef}
           className="overflow-y-auto p-4 space-y-3"
           style={{ minHeight: 200, maxHeight: 340 }}
         >
