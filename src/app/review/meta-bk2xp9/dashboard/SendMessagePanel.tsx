@@ -15,7 +15,27 @@
 import { useState } from 'react'
 
 const SEND_ENDPOINT = '/review/meta-bk2xp9/send'
+const PREVIEW_ENDPOINT = '/review/meta-bk2xp9/conversation-preview'
 const MAX_MESSAGE_LEN = 280
+
+type PreviewResponse =
+  | {
+      ok: true
+      inbound: {
+        sender_name: string | null
+        sender_psid: string
+        text: string | null
+        created_time: string | null
+      }
+    }
+  | {
+      ok: false
+      error: string
+      message?: string
+      status?: number
+      body?: string
+      detail?: string
+    }
 
 type SendResponse =
   | {
@@ -47,9 +67,33 @@ export default function SendMessagePanel() {
   const [message, setMessage] = useState('')
   const [sending, setSending] = useState(false)
   const [result, setResult] = useState<SendResponse | null>(null)
+  const [loadingPreview, setLoadingPreview] = useState(false)
+  const [preview, setPreview] = useState<PreviewResponse | null>(null)
   const trimmedLen = message.trim().length
   const tooLong = trimmedLen > MAX_MESSAGE_LEN
   const canSend = !sending && trimmedLen > 0 && !tooLong
+
+  async function handleLoadPreview() {
+    if (loadingPreview) return
+    setLoadingPreview(true)
+    setPreview(null)
+    try {
+      const res = await fetch(PREVIEW_ENDPOINT)
+      const data: PreviewResponse = await res.json().catch(() => ({
+        ok: false,
+        error: 'invalid_response',
+      }))
+      setPreview(data)
+    } catch (err) {
+      setPreview({
+        ok: false,
+        error: 'network_error',
+        detail: err instanceof Error ? err.message : 'unknown',
+      })
+    } finally {
+      setLoadingPreview(false)
+    }
+  }
 
   async function handleSend() {
     if (!canSend) return
@@ -92,7 +136,58 @@ export default function SendMessagePanel() {
           messaged the Page. Message the Page from Messenger first, then type
           a reply here and click Send.
         </p>
+        <p className="text-xs text-gray-600 mt-2 leading-relaxed">
+          Click &ldquo;Load latest message&rdquo; to see the customer message
+          this reply will answer.
+        </p>
       </div>
+
+      <div className="mb-3">
+        <button
+          type="button"
+          onClick={handleLoadPreview}
+          disabled={loadingPreview}
+          className="inline-flex items-center gap-2 bg-white hover:bg-gray-50 disabled:opacity-60 text-gray-700 text-sm font-medium px-3 py-2 rounded-lg border border-gray-300 transition-colors"
+        >
+          {loadingPreview ? 'Loading…' : 'Load latest message'}
+        </button>
+      </div>
+
+      {preview ? (
+        preview.ok ? (
+          <div className="mb-3 rounded-lg border border-blue-300 bg-blue-50 p-4">
+            <div className="flex items-start justify-between gap-3 mb-1.5">
+              <h4 className="text-sm font-semibold text-blue-900">
+                📨 {preview.inbound.sender_name ?? 'Customer'} wrote:
+              </h4>
+              {preview.inbound.created_time ? (
+                <span className="shrink-0 text-[10px] text-blue-700 font-mono">
+                  {preview.inbound.created_time}
+                </span>
+              ) : null}
+            </div>
+            <p className="text-sm text-blue-900 whitespace-pre-wrap break-words mb-2">
+              {preview.inbound.text ?? '(no text in latest message)'}
+            </p>
+            <p className="text-[11px] text-blue-700 font-mono break-all">
+              PSID this reply targets: {preview.inbound.sender_psid}
+            </p>
+          </div>
+        ) : (
+          <div className="mb-3 rounded-lg border border-amber-300 bg-amber-50 p-4">
+            <p className="text-xs text-amber-900 font-mono mb-1 break-all">
+              {preview.error}
+              {preview.message ? ` — ${preview.message}` : ''}
+            </p>
+            {preview.error === 'no_recent_conversation' || preview.status === 409 ? (
+              <p className="text-xs text-amber-900">
+                Message the Page from Messenger first, then click &ldquo;Load
+                latest message&rdquo; again.
+              </p>
+            ) : null}
+          </div>
+        )
+      ) : null}
 
       <label className="block text-xs font-medium text-gray-700 mb-1.5">
         Reply text
