@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import DashboardTabs from './DashboardTabs'
 import SendMessagePanel from './SendMessagePanel'
 import CommentReplyPanel from './CommentReplyPanel'
+import IgPublishPanel from './IgPublishPanel'
 import {
   ENDPOINTS,
   TABS,
@@ -320,6 +321,7 @@ export default async function MetaReviewDashboardPage() {
             <div className="grid gap-4">
               {t.id === 'pages' ? <SendMessagePanel /> : null}
               {t.id === 'pages' ? <CommentReplyPanel /> : null}
+              {t.id === 'instagram' ? <IgPublishPanel /> : null}
               {panelsByTab[t.id].map((p, i) => (
                 <PanelCard key={`${t.id}-${i}-${p.def.permission}`} panel={p} />
               ))}
