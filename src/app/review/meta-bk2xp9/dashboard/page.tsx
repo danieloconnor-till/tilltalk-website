@@ -2,6 +2,7 @@ import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import DashboardTabs from './DashboardTabs'
 import SendMessagePanel from './SendMessagePanel'
+import CommentReplyPanel from './CommentReplyPanel'
 import {
   ENDPOINTS,
   TABS,
@@ -318,6 +319,7 @@ export default async function MetaReviewDashboardPage() {
           content: (
             <div className="grid gap-4">
               {t.id === 'pages' ? <SendMessagePanel /> : null}
+              {t.id === 'pages' ? <CommentReplyPanel /> : null}
               {panelsByTab[t.id].map((p, i) => (
                 <PanelCard key={`${t.id}-${i}-${p.def.permission}`} panel={p} />
               ))}
