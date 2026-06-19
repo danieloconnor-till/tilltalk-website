@@ -60,7 +60,12 @@ export function pickTargetComment(
 ): CommentSelection | null {
   for (const post of posts) {
     const eligible = post.comments
-      .filter((c) => c.id && c.from?.id && c.from.id !== pageId)
+      // Graph v25.0 omits `from` for comments by users who haven't authorised
+      // the app (a privacy gate App Review can't lift). A missing `from` is
+      // therefore a third-party commenter, not the Page — the Page authorises
+      // its own app, so its own comments always carry from.id === pageId.
+      // Eligible = has a comment id AND is not the Page's own comment.
+      .filter((c) => c.id && (!c.from?.id || c.from.id !== pageId))
       .slice()
       .sort((a, b) => {
         const ta = a.created_time ? Date.parse(a.created_time) : 0

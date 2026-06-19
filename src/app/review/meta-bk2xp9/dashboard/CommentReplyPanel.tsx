@@ -14,6 +14,7 @@
  */
 
 import { useState } from 'react'
+import { commenterDisplayName } from '../lib/displayName'
 
 const REPLY_ENDPOINT = '/review/meta-bk2xp9/comment-reply'
 const PREVIEW_ENDPOINT = '/review/meta-bk2xp9/comment-preview'
@@ -160,7 +161,7 @@ export default function CommentReplyPanel() {
           <div className="mb-3 rounded-lg border border-blue-300 bg-blue-50 p-4">
             <div className="flex items-start justify-between gap-3 mb-1.5">
               <h4 className="text-sm font-semibold text-blue-900">
-                💬 {preview.inbound.commenter_name ?? 'Someone'} commented:
+                💬 {commenterDisplayName(preview.inbound.commenter_name)} commented:
               </h4>
               {preview.inbound.created_time ? (
                 <span className="shrink-0 text-[10px] text-blue-700 font-mono">

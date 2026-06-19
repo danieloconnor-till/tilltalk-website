@@ -119,15 +119,18 @@ describe('pickTargetComment', () => {
     expect(sel?.commentId).toBe('C_TIMED')
   })
 
-  it('skips comments missing from.id or comment id', () => {
+  it('skips comments missing a comment id but accepts comments missing from', () => {
+    // Graph v25.0 omits `from` for third-party commenters, so a comment with no
+    // `from` is a valid target. A comment with no comment id is still skipped
+    // (the reply POST needs the id), even when it is the most recent.
     const posts: PostWithComments[] = [
       {
         postId: 'POST_A',
         comments: [
-          { id: 'C_NOAUTHOR', created_time: '2026-06-18T14:00:00+0000' },
+          { id: 'C_NOFROM', created_time: '2026-06-18T14:00:00+0000' },
           {
             from: { id: 'USER_NOID', name: 'No comment id' },
-            created_time: '2026-06-18T14:00:00+0000',
+            created_time: '2026-06-18T15:00:00+0000',
           },
           {
             id: 'C_OK',
@@ -138,7 +141,56 @@ describe('pickTargetComment', () => {
       },
     ]
     const sel = pickTargetComment(posts, 'PAGE_ID')
-    expect(sel?.commentId).toBe('C_OK')
+    // C_NOFROM is the most recent eligible comment; the id-less one is skipped.
+    expect(sel?.commentId).toBe('C_NOFROM')
+    expect(sel?.commenterName).toBeNull()
+  })
+
+  it('selects a third-party comment that has NO from field, with null commenterName', () => {
+    const posts: PostWithComments[] = [
+      {
+        postId: 'POST_A',
+        comments: [
+          {
+            id: 'C_NOFROM',
+            message: 'Menu looks great',
+            created_time: '2026-06-19T13:13:26+0000',
+          },
+        ],
+      },
+    ]
+    const sel = pickTargetComment(posts, 'PAGE_ID')
+    expect(sel).toEqual({
+      commentId: 'C_NOFROM',
+      postId: 'POST_A',
+      commenterName: null,
+    })
+  })
+
+  it('skips the Page’s own comment and selects the no-from comment alongside it', () => {
+    const posts: PostWithComments[] = [
+      {
+        postId: 'POST_A',
+        comments: [
+          {
+            id: 'C_PAGE',
+            message: 'Thanks everyone!',
+            from: { id: 'PAGE_ID', name: 'Bella Napoli' },
+            created_time: '2026-06-19T15:00:00+0000',
+          },
+          {
+            id: 'C_NOFROM',
+            message: 'Do you take bookings?',
+            created_time: '2026-06-19T14:00:00+0000',
+          },
+        ],
+      },
+    ]
+    const sel = pickTargetComment(posts, 'PAGE_ID')
+    // The Page's own comment is more recent but must be skipped; the no-from
+    // third-party comment is the selected target.
+    expect(sel?.commentId).toBe('C_NOFROM')
+    expect(sel?.commenterName).toBeNull()
   })
 })
 
