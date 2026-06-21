@@ -277,13 +277,7 @@ export default async function MetaReviewDashboardPage() {
       if (!decision.trigger) return
       const snapshot = await loadSnapshot(panel.def.permission)
       if (!snapshot) return
-      // Special-case caption for instagram_manage_messages — the live 400 is
-      // an app-level capability block, not an empty/missing data issue.
-      const captionReason =
-        panel.def.permission === 'instagram_manage_messages'
-          ? 'the linked Bella Napoli IG account has a known app-level capability block separate from this submission'
-          : decision.reason
-      panel.fallback = { captionReason, snapshot }
+      panel.fallback = { captionReason: decision.reason, snapshot }
     }),
   )
 

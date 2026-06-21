@@ -13,8 +13,8 @@ const SNAPSHOT_DIR = join(
 )
 
 describe('endpoints', () => {
-  it('exports 18 endpoint definitions', () => {
-    expect(ENDPOINTS).toHaveLength(18)
+  it('exports 17 endpoint definitions', () => {
+    expect(ENDPOINTS).toHaveLength(17)
   })
 
   it('has unique permission names', () => {

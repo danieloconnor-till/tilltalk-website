@@ -40,7 +40,7 @@ export const TABS: Array<{
   {
     id: 'instagram',
     label: 'Instagram',
-    count: 5,
+    count: 4,
     note:
       'All Instagram calls use the User Token. The IG user id is resolved from the connected Page via instagram_business_account.',
   },
@@ -173,7 +173,7 @@ export const ENDPOINTS: EndpointDef[] = [
     tokenType: 'page',
   },
 
-  // ── Tab 4 — Instagram (5) ───────────────────────────────────────────
+  // ── Tab 4 — Instagram (4) ───────────────────────────────────────────
   {
     permission: 'instagram_basic',
     tab: 'instagram',
@@ -192,13 +192,6 @@ export const ENDPOINTS: EndpointDef[] = [
       fields: 'id,caption,comments.limit(2){text,username,timestamp}',
       limit: '3',
     },
-    tokenType: 'user',
-  },
-  {
-    permission: 'instagram_manage_messages',
-    tab: 'instagram',
-    path: '{ig-user-id}/conversations',
-    params: { limit: '3' },
     tokenType: 'user',
   },
   {
