@@ -2,9 +2,10 @@ import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 import crypto from 'node:crypto'
 
-// The 18 permissions covered by this demo. Listed in the prompt under "The 18
-// permissions to demonstrate" — kept here as the OAuth scope string source of
-// truth so the dashboard panels and the OAuth dialog stay in sync.
+// The 17 permissions covered by this demo (instagram_manage_messages was
+// dropped from the submission — it cannot be demonstrated at standard access).
+// Kept here as the OAuth scope string source of truth so the dashboard panels
+// and the OAuth dialog stay in sync.
 const SCOPES = [
   // Tab 1 — Pages & Content
   'pages_show_list',
@@ -26,7 +27,6 @@ const SCOPES = [
   'instagram_basic',
   'instagram_manage_comments',
   'instagram_manage_insights',
-  'instagram_manage_messages',
   'instagram_content_publish',
 ].join(',')
 
