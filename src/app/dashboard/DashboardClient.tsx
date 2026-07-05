@@ -8,6 +8,7 @@ import type { User as SupabaseUser } from '@supabase/supabase-js'
 import AnalyticsSection from './AnalyticsSection'
 import QueryChat from './QueryChat'
 import AccountTab from './AccountTab'
+import PhotosSection from './PhotosSection'
 
 interface Profile {
   id: string
@@ -34,6 +35,7 @@ interface Props {
 const TAB_ITEMS = [
   { id: 'analytics', label: 'Analytics' },
   { id: 'account',   label: 'Account'   },
+  { id: 'photos',    label: 'Photos'    },
 ] as const
 type TabId = typeof TAB_ITEMS[number]['id']
 
@@ -126,6 +128,8 @@ export default function DashboardClient({ user, profile }: Props) {
             onProfileUpdate={() => router.refresh()}
           />
         )}
+
+        {activeTab === 'photos' && <PhotosSection />}
       </div>
     </div>
   )
