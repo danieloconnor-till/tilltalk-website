@@ -54,8 +54,8 @@ vi.mock('next/server', () => {
 process.env.TIKTOK_APP_ID             = 'test-app-id'
 process.env.TIKTOK_APP_SECRET         = 'test-app-secret'
 process.env.TIKTOK_OAUTH_STATE_SECRET = 'test-state-secret'
-process.env.RAILWAY_ONBOARDING_URL    = 'https://railway.test'
-process.env.ONBOARDING_API_KEY        = 'test-onboarding-key'
+process.env.TILLTALK1_BASE_URL        = 'https://railway.test'
+process.env.TILLTALK1_ONBOARDING_KEY  = 'test-onboarding-key'
 
 const { GET } = await import('../route')
 const { buildSignedState } = await import('../../_state')

@@ -8,8 +8,9 @@ import {
   verifySignedState,
 } from '../_state'
 
-const RAILWAY_URL    = process.env.RAILWAY_ONBOARDING_URL ?? ''
-const ONBOARDING_KEY = process.env.ONBOARDING_API_KEY ?? ''
+// The website's tilltalk1 handoff pair, same as src/app/connect/meta/callback.
+const TILLTALK1_BASE = process.env.TILLTALK1_BASE_URL ?? ''
+const ONBOARDING_KEY = process.env.TILLTALK1_ONBOARDING_KEY ?? ''
 
 // TODO(multi-tenant): resolve the TillTalk client id from the authenticated
 // session when client #2 lands. Bella Napoli is client 11. Mirrors the constant
@@ -179,9 +180,9 @@ export async function GET(request: Request): Promise<NextResponse> {
   // Hand off to Railway for encrypted storage. Best-effort, matching the
   // advertiser callback: the exchange itself succeeded, so a storage failure is
   // logged and the user still lands on a clean success page.
-  if (RAILWAY_URL && ONBOARDING_KEY) {
+  if (TILLTALK1_BASE && ONBOARDING_KEY) {
     try {
-      const railwayRes = await fetch(`${RAILWAY_URL}/api/onboard/tiktok-account`, {
+      const railwayRes = await fetch(`${TILLTALK1_BASE}/api/onboard/tiktok-account`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -212,7 +213,7 @@ export async function GET(request: Request): Promise<NextResponse> {
     }
   } else {
     console.warn(
-      '[tiktok-account-oauth] RAILWAY_ONBOARDING_URL/ONBOARDING_API_KEY not set — skipping storage',
+      '[tiktok-account-oauth] TILLTALK1_BASE_URL/TILLTALK1_ONBOARDING_KEY not set — skipping storage',
     )
   }
 
