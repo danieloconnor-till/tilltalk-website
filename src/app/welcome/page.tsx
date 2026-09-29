@@ -1,13 +1,17 @@
+import {
+  CONNECTED_MESSAGE,
+  PENDING_MESSAGE,
+  resolveWelcomeOutcome,
+  type WelcomeParams,
+} from './_outcome'
+
 interface Props {
-  searchParams: Promise<{ merchant_id?: string; error?: string }>
+  searchParams: Promise<WelcomeParams>
 }
 
 export default async function WelcomePage({ searchParams }: Props) {
   const params = await searchParams
-  const merchantId = params.merchant_id
-  const error      = params.error
-
-  const isSuccess = merchantId && !error
+  const outcome = resolveWelcomeOutcome(params)
 
   return (
     <main className="min-h-screen flex flex-col items-center justify-center bg-white px-4">
@@ -17,18 +21,30 @@ export default async function WelcomePage({ searchParams }: Props) {
           <span className="text-3xl font-bold text-green-600">TillTalk</span>
         </div>
 
-        {isSuccess ? (
+        {outcome.kind === 'connected' && (
           <>
             <div className="text-5xl">✓</div>
             <h1 className="text-2xl font-semibold text-gray-900">
               Connected
             </h1>
-            <p className="text-gray-600">
-              Your Clover account is connected. We&apos;ll send setup instructions
-              once your account is activated.
-            </p>
+            <p className="text-gray-600">{CONNECTED_MESSAGE[outcome.provider]}</p>
           </>
-        ) : (
+        )}
+
+        {/* Neither a success nor a failure: the authorisation landed, but the app
+            credentials are not configured yet, so there is nothing for the owner
+            to retry and nothing they did wrong. */}
+        {outcome.kind === 'pending' && (
+          <>
+            <div className="text-5xl">⏳</div>
+            <h1 className="text-2xl font-semibold text-gray-900">
+              Almost there
+            </h1>
+            <p className="text-gray-600">{PENDING_MESSAGE[outcome.provider]}</p>
+          </>
+        )}
+
+        {outcome.kind === 'error' && (
           <>
             <div className="text-5xl">⚠️</div>
             <h1 className="text-2xl font-semibold text-gray-900">
