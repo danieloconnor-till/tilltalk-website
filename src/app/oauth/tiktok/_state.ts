@@ -1,6 +1,11 @@
 import { createHmac, randomUUID, timingSafeEqual } from 'node:crypto'
 
 export const STATE_COOKIE_NAME = 'tiktok_oauth_state'
+// The TikTok account-holder flow gets its OWN cookie name. Both flows live under
+// /oauth/tiktok and the state cookie is single-use, so sharing one name would let
+// whichever flow started second silently invalidate the first — a connect-advertiser
+// then connect-TikTok-account sequence is the ordinary case, not an edge case.
+export const ACCOUNT_STATE_COOKIE_NAME = 'tiktok_account_oauth_state'
 export const STATE_COOKIE_PATH = '/oauth/tiktok'
 export const STATE_COOKIE_MAX_AGE_SEC = 600
 
@@ -35,13 +40,16 @@ export function constantTimeEquals(a: string, b: string): boolean {
   return timingSafeEqual(bufA, bufB)
 }
 
-export function readStateCookie(request: Request): string | null {
+export function readStateCookie(
+  request: Request,
+  name: string = STATE_COOKIE_NAME,
+): string | null {
   const header = request.headers.get('cookie') ?? ''
   if (!header) return null
   for (const part of header.split(/;\s*/)) {
     const eq = part.indexOf('=')
     if (eq === -1) continue
-    if (part.slice(0, eq) === STATE_COOKIE_NAME) {
+    if (part.slice(0, eq) === name) {
       return decodeURIComponent(part.slice(eq + 1))
     }
   }
