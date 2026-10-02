@@ -101,6 +101,7 @@ export async function GET(request: Request): Promise<NextResponse> {
   let advertiserIds: string[] = []
   let refreshToken: string | null = null
   let expiresIn: number | null = null
+  let scope: number[] = []
   try {
     const tokenRes = await fetch(TIKTOK_TOKEN_URL, {
       method: 'POST',
@@ -121,7 +122,10 @@ export async function GET(request: Request): Promise<NextResponse> {
       data?: {
         access_token?: string
         advertiser_ids?: string[]
-        scope?: string[]
+        // Scope IDs (numbers), per "Obtain a long-term access token". Forwarded
+        // so tilltalk1 records what this token was actually granted: an approved
+        // scope only reaches a token on re-authorisation (2026-10-02).
+        scope?: number[]
         // Absent on this (advertiser) flow — the token is long-lived. Modelled so
         // the handoff forwards whatever TikTok actually sent rather than a
         // lifetime assumed at build time.
@@ -149,6 +153,7 @@ export async function GET(request: Request): Promise<NextResponse> {
     advertiserIds = tokenJson?.data?.advertiser_ids ?? []
     refreshToken = tokenJson?.data?.refresh_token ?? null
     expiresIn = typeof tokenJson?.data?.expires_in === 'number' ? tokenJson.data.expires_in : null
+    scope = Array.isArray(tokenJson?.data?.scope) ? tokenJson.data.scope : []
   } catch (err) {
     // Only the error's name/message — never the object, whose `cause` can carry
     // the request that produced it.
@@ -175,6 +180,7 @@ export async function GET(request: Request): Promise<NextResponse> {
           advertiser_ids: advertiserIds,
           refresh_token:  refreshToken,
           expires_in:     expiresIn,
+          scopes:         scope.length ? scope.join(',') : null,
           oauth_app_id:   appId,
         }),
         signal: AbortSignal.timeout(12000),

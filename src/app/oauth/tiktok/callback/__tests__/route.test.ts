@@ -235,6 +235,7 @@ describe('GET /oauth/tiktok/callback', () => {
       advertiser_ids: ['7643575841385021458'],
       refresh_token: null,
       expires_in: null,
+      scopes: '4,5',
       oauth_app_id: 'test-app-id',
     })
 
@@ -272,6 +273,24 @@ describe('GET /oauth/tiktok/callback', () => {
     const body = JSON.parse((mockFetch.mock.calls[1][1] as RequestInit).body as string)
     expect(body.refresh_token).toBe('refresh-abc')
     expect(body.expires_in).toBe(86400)
+  })
+
+  it('forwards scopes as null when TikTok sends no scope list', async () => {
+    const mockFetch = vi
+      .fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({ code: 0, data: { access_token: ACCESS_TOKEN, advertiser_ids: [] } }),
+      })
+      .mockResolvedValueOnce({ ok: true, status: 200, text: async () => 'ok' })
+    vi.stubGlobal('fetch', mockFetch)
+
+    const state = buildSignedState('test-state-secret')
+    await GET(makeRequest({ state, auth_code: AUTH_CODE }, { tiktok_oauth_state: state }))
+
+    const body = JSON.parse((mockFetch.mock.calls[1][1] as RequestInit).body as string)
+    expect(body.scopes).toBeNull()
   })
 
   // ----------------------------------------------------------------- failure
